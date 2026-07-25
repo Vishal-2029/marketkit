@@ -1,0 +1,16 @@
+// Copy this file to firebase-config.js and fill in your Firebase web project values.
+// firebase-config.js is gitignored — never commit it.
+//
+// In CI, generate it with:
+//   printf "self.FIREBASE_WEB_API_KEY = '%s';\nself.FIREBASE_WEB_APP_ID = '%s';\nself.FIREBASE_WEB_PROJECT_ID = '%s';\nself.FIREBASE_WEB_SENDER_ID = '%s';\n" \
+//     "$FIREBASE_WEB_API_KEY" "$FIREBASE_WEB_APP_ID" "$FIREBASE_WEB_PROJECT_ID" "$FIREBASE_WEB_SENDER_ID" > app/web/firebase-config.js
+//
+// Values are found in the Firebase console under:
+//   Project settings → General → Your apps → Web app → SDK setup and configuration
+self.FIREBASE_WEB_API_KEY    = 'YOUR_WEB_API_KEY';
+self.FIREBASE_WEB_APP_ID     = 'YOUR_WEB_APP_ID';
+self.FIREBASE_WEB_PROJECT_ID = 'your-firebase-project';
+self.FIREBASE_WEB_SENDER_ID  = '000000000000';
+
+// Optional — only needed if you use Google Analytics for Firebase.
+self.FIREBASE_WEB_MEASUREMENT_ID = '';

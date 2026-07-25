@@ -1,0 +1,15 @@
+{
+  "name": "marketkit-root",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "cd web && (test -d node_modules || bun install) && bun run dev",
+    "build": "cd web && (test -d node_modules || bun install) && bun run build",
+    "preview": "cd web && bun run preview",
+    "lint": "cd web && bun run lint",
+    "test": "cd web && bun run test"
+  },
+  "dependencies": {
+    "firebase": "^12.15.0"
+  }
+}

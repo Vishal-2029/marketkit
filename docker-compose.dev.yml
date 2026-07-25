@@ -1,0 +1,37 @@
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+      target: dev
+    env_file:
+      - ./api/.env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-marketkit}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-marketkit}?sslmode=disable
+      APP_ENV: development
+      # api/.env carries the prod allowlist; browsers testing locally need the
+      # dev origins (Flutter web on :8081, admin Vite on :5173) or every
+      # request dies on CORS. `environment:` wins over env_file.
+      CORS_ORIGIN: http://localhost:8081,http://localhost:5173
+    # The base compose binds 127.0.0.1 only (nginx is the prod ingress), but
+    # in dev the Flutter app on a physical device connects straight to :3000
+    # over WiFi, so the API must listen on the LAN. `!override` replaces the
+    # base list instead of merging with it — plain `ports:` here would keep
+    # both mappings and the container fails to bind the duplicate.
+    ports: !override
+      - "3000:3000"
+    volumes:
+      - ./api:/app
+      - /app/tmp
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+
+  # nginx needs the letsencrypt certs that only exist on the prod server, so
+  # locally it just crash-loops. The profile keeps `up` from starting it in
+  # dev; the app and admin panel talk to the API on :3000 directly.
+  nginx:
+    profiles: ["prod-only"]

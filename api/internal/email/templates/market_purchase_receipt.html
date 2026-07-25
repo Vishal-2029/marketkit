@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thank you for your purchase — Design Express</title>
+</head>
+<body style="margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:32px 16px;background:#f4f4f4;">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e0e0e0;max-width:560px;width:100%;">
+
+          <tr>
+            <td style="background:#1a1205;padding:22px 32px;text-align:center;">
+              <h1 style="margin:0;color:#C49A28;font-size:20px;letter-spacing:2px;font-weight:700;">Design Express</h1>
+            </td>
+          </tr>
+          <tr><td><div style="height:3px;background:#C49A28;"></div></td></tr>
+
+          <tr>
+            <td style="padding:32px 40px 8px;">
+              <h2 style="margin:0 0 4px;font-size:20px;color:#111111;">Thank you for your purchase</h2>
+              <div style="height:2px;width:40px;background:#C49A28;margin:10px 0 20px;"></div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:0 40px 36px;">
+              <p style="margin:0 0 14px;font-size:15px;color:#333333;">Dear {{.Name}},</p>
+              <p style="margin:0 0 20px;font-size:15px;color:#333333;line-height:1.7;">
+                Your Design Market purchase was successful. Your invoice and design file
+                {{if .DownloadLink}}download link are{{else}}are attached to{{end}} this email as a permanent backup.
+              </p>
+
+              {{if .PreviewURL}}
+              <p style="margin:0 0 20px;text-align:center;">
+                <img src="{{.PreviewURL}}" alt="{{.DesignTitle}}" style="max-width:240px;border-radius:8px;border:1px solid #eee;" />
+              </p>
+              {{end}}
+
+              <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #eeeeee;margin-bottom:24px;">
+                <tr style="background:#f9f9f9;">
+                  <td style="padding:11px 16px;font-size:13px;color:#888888;width:45%;border-bottom:1px solid #eeeeee;">Design</td>
+                  <td style="padding:11px 16px;font-size:14px;color:#111111;font-weight:700;text-align:right;border-bottom:1px solid #eeeeee;">{{.DesignTitle}}</td>
+                </tr>
+                <tr>
+                  <td style="padding:11px 16px;font-size:13px;color:#888888;border-bottom:1px solid #eeeeee;">Seller</td>
+                  <td style="padding:11px 16px;font-size:14px;color:#333333;text-align:right;border-bottom:1px solid #eeeeee;">{{.SellerName}}</td>
+                </tr>
+                <tr style="background:#f9f9f9;">
+                  <td style="padding:11px 16px;font-size:13px;color:#888888;border-bottom:1px solid #eeeeee;">Amount Paid</td>
+                  <td style="padding:11px 16px;font-size:16px;color:#111111;font-weight:700;text-align:right;border-bottom:1px solid #eeeeee;">{{.Amount}}</td>
+                </tr>
+                <tr>
+                  <td style="padding:11px 16px;font-size:13px;color:#888888;border-bottom:1px solid #eeeeee;">Payment Method</td>
+                  <td style="padding:11px 16px;font-size:14px;color:#333333;text-align:right;border-bottom:1px solid #eeeeee;">{{.PaidVia}}</td>
+                </tr>
+                <tr style="background:#f9f9f9;">
+                  <td style="padding:11px 16px;font-size:13px;color:#888888;">Paid On</td>
+                  <td style="padding:11px 16px;font-size:14px;color:#333333;text-align:right;">{{.PaidAt}}</td>
+                </tr>
+              </table>
+
+              {{if .DownloadLink}}
+              <p style="margin:0 0 20px;font-size:14px;color:#333333;line-height:1.6;">
+                The design file was too large to attach. Download it securely here
+                (link expires in 7 days):<br />
+                <a href="{{.DownloadLink}}" style="color:#C49A28;font-weight:600;">Download your design</a>
+              </p>
+              {{end}}
+
+              <p style="margin:0 0 16px;font-size:13px;color:#888888;line-height:1.6;font-style:italic;">
+                This sale is final — no returns or refunds are processed through the app.
+                If there's an issue with the design you purchased, please contact support
+                from the design's page instead of requesting a return.
+              </p>
+              <p style="margin:0;font-size:15px;color:#333333;">Regards,<br /><strong>Design Express Team</strong></p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="background:#f9f9f9;border-top:1px solid #eeeeee;padding:16px 40px;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#888888;line-height:1.6;">&copy; {{.Year}} Design Express. All rights reserved.<br />This is an automated message, please do not reply.</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

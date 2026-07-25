@@ -1,0 +1,85 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-marketkit}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env (copy .env.example)}
+      POSTGRES_DB: ${POSTGRES_DB:-marketkit}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-marketkit} -d ${POSTGRES_DB:-marketkit}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redisdata:/data
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+      target: production
+    restart: always
+    env_file:
+      - ./api/.env
+    environment:
+      # Always use the Docker service name inside containers. Credentials are
+      # pulled from the same POSTGRES_USER/POSTGRES_PASSWORD the postgres
+      # service uses (set them in a root .env or the shell environment before
+      # `docker compose up`) — this must NOT hardcode a literal password, or
+      # it silently overrides whatever real credentials are in api/.env.
+      DATABASE_URL: postgres://${POSTGRES_USER:-marketkit}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env (copy .env.example)}@postgres:5432/${POSTGRES_DB:-marketkit}?sslmode=disable
+      REDIS_URL: redis://redis:6379
+      FIREBASE_CREDENTIALS_FILE: /app/secrets/firebase-service-account.json
+      APP_ENV: production
+    # Bound to loopback only — nginx is the sole public ingress (TLS,
+    # security headers). Reaching the API on 3000 from outside the host
+    # would skip both, and expose /docs (Swagger) with zero auth. Still
+    # reachable from the host itself via `curl localhost:3000/health` for
+    # ops/debugging.
+    ports:
+      - "127.0.0.1:${PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./api/uploads:/app/uploads
+      - ./api/secrets:/app/secrets:ro
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./web/dist:/usr/share/nginx/html:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  redisdata:

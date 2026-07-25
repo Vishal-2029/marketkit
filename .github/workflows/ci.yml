@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  web-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build admin panel (same as deploy)
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}/web:/app" \
+            -w /app \
+            node:20-alpine \
+            sh -c "npm install && npm run build"

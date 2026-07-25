@@ -1,0 +1,47 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "app-v*"
+
+env:
+  API_BASE_URL: https://api.example.com/api/v1
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -z "${GOOGLE_SERVICES_JSON}" ]; then
+            echo "::error::Add repo secret GOOGLE_SERVICES_JSON (base64 of app/android/app/google-services.json)"
+            exit 1
+          fi
+          echo "${GOOGLE_SERVICES_JSON}" | base64 -d > app/android/app/google-services.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          cache-key: flutter-${{ hashFiles('app/pubspec.lock') }}
+
+      - name: Build release APK
+        run: ./scripts/build-apk.sh
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: app/build/app/outputs/apk/release/app-release.apk
+          if-no-files-found: error

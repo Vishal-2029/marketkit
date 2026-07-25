@@ -1,0 +1,20 @@
+.env
+.env.*
+# Templates must stay tracked. Both negations are needed: `.env.example` does
+# not match `.env.*.example`.
+!.env.example
+!.env.*.example
+firebase-service-account.json
+*.pem
+*.key
+secrets/*
+!secrets/.gitkeep
+!secrets/*.example
+tmp/
+uploads/*
+!uploads/videos/
+!uploads/photos/
+uploads/videos/*
+uploads/photos/*
+!uploads/videos/.gitkeep
+!uploads/photos/.gitkeep

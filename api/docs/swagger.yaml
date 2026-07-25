@@ -1,0 +1,4604 @@
+basePath: /api/v1
+definitions:
+  auth.registerRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+    type: object
+  auth.sendOTPRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  auth.verifyOTPRequest:
+    properties:
+      email:
+        type: string
+      otp:
+        type: string
+    type: object
+  models.Admin:
+    properties:
+      avatar_url:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      is_super:
+        type: boolean
+      last_name:
+        type: string
+      phone:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.CommunityPost:
+    properties:
+      anon_name:
+        type: string
+      category:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      image_urls:
+        items:
+          type: string
+        type: array
+      is_flagged:
+        type: boolean
+      replies:
+        items:
+          $ref: '#/definitions/models.CommunityReply'
+        type: array
+      reply_count:
+        type: integer
+      title:
+        type: string
+      user_email:
+        type: string
+      user_name:
+        description: Populated at query time for admin endpoints only; not stored
+          in DB.
+        type: string
+    type: object
+  models.CommunityReply:
+    properties:
+      anon_name:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      image_url:
+        type: string
+      is_flagged:
+        type: boolean
+      post_id:
+        type: string
+    type: object
+  models.Design:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      file_format:
+        type: string
+      file_name:
+        type: string
+      file_size_bytes:
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      is_mine:
+        type: boolean
+      is_purchased:
+        type: boolean
+      preview_urls:
+        items:
+          type: string
+        type: array
+      price_in_paise:
+        type: integer
+      sales_count:
+        type: integer
+      seller_email:
+        type: string
+      seller_name:
+        description: Populated at query time; not stored in DB.
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.DesignPurchase:
+    properties:
+      amount_in_paise:
+        type: integer
+      buyer:
+        $ref: '#/definitions/models.User'
+      buyer_email:
+        type: string
+      buyer_name:
+        description: Populated at query time for admin endpoints only; not stored
+          in DB.
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      design:
+        $ref: '#/definitions/models.Design'
+      design_id:
+        type: string
+      design_title:
+        type: string
+      id:
+        type: string
+      paid_at:
+        type: string
+      razorpay_order_id:
+        type: string
+      razorpay_payment_id:
+        type: string
+      status:
+        $ref: '#/definitions/models.PaymentStatus'
+    type: object
+  models.JSONMap:
+    additionalProperties: true
+    type: object
+  models.Payment:
+    properties:
+      amount_in_paise:
+        type: integer
+      created_at:
+        type: string
+      currency:
+        type: string
+      gateway:
+        $ref: '#/definitions/models.PaymentGateway'
+      gateway_response:
+        $ref: '#/definitions/models.JSONMap'
+      id:
+        type: string
+      notes:
+        type: string
+      paid_at:
+        type: string
+      plan:
+        $ref: '#/definitions/models.Plan'
+      plan_id:
+        type: string
+      razorpay_order_id:
+        type: string
+      razorpay_payment_id:
+        type: string
+      status:
+        $ref: '#/definitions/models.PaymentStatus'
+      user:
+        $ref: '#/definitions/models.User'
+      user_id:
+        type: string
+    type: object
+  models.PaymentGateway:
+    enum:
+    - RAZORPAY
+    - MANUAL
+    type: string
+    x-enum-varnames:
+    - GatewayRazorpay
+    - GatewayManual
+  models.PaymentStatus:
+    enum:
+    - SUCCESS
+    - FAILED
+    - REFUNDED
+    - PENDING
+    type: string
+    x-enum-varnames:
+    - PaymentSuccess
+    - PaymentFailed
+    - PaymentRefunded
+    - PaymentPending
+  models.Photo:
+    properties:
+      category:
+        type: string
+      file_key:
+        type: string
+      id:
+        type: string
+      is_published:
+        type: boolean
+      mime_type:
+        type: string
+      size_bytes:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+      uploaded_at:
+        type: string
+      url:
+        description: URL is computed at request time from FileKey — not stored in
+          DB.
+        type: string
+      video_id:
+        type: string
+    type: object
+  models.PhotoCategory:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  models.Plan:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      duration_days:
+        type: integer
+      has_e4:
+        type: boolean
+      has_mecad:
+        type: boolean
+      has_willcom:
+        type: boolean
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price_in_paise:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  models.PlaybackLog:
+    properties:
+      completed:
+        type: boolean
+      id:
+        type: string
+      played_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      user_id:
+        type: string
+      video:
+        $ref: '#/definitions/models.Video'
+      video_id:
+        type: string
+      watched_seconds:
+        type: integer
+      watermark_id:
+        type: string
+    type: object
+  models.Subscription:
+    properties:
+      activated_by:
+        type: string
+      created_at:
+        type: string
+      expiry_date:
+        type: string
+      expiry_warning_sent:
+        type: boolean
+      id:
+        type: string
+      plan:
+        $ref: '#/definitions/models.Plan'
+      plan_id:
+        type: string
+      start_date:
+        type: string
+      status:
+        $ref: '#/definitions/models.SubscriptionStatus'
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      user_id:
+        type: string
+    type: object
+  models.SubscriptionStatus:
+    enum:
+    - ACTIVE
+    - EXPIRED
+    - SUSPENDED
+    - CANCELLED
+    type: string
+    x-enum-varnames:
+    - SubscriptionActive
+    - SubscriptionExpired
+    - SubscriptionSuspended
+    - SubscriptionCancelled
+  models.User:
+    properties:
+      avatar_url:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      joined_at:
+        type: string
+      name:
+        type: string
+      payments:
+        items:
+          $ref: '#/definitions/models.Payment'
+        type: array
+      phone:
+        type: string
+      playback_logs:
+        items:
+          $ref: '#/definitions/models.PlaybackLog'
+        type: array
+      sessions:
+        items:
+          $ref: '#/definitions/models.UserSession'
+        type: array
+      status:
+        $ref: '#/definitions/models.UserStatus'
+      subscriptions:
+        items:
+          $ref: '#/definitions/models.Subscription'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  models.UserSession:
+    properties:
+      created_at:
+        type: string
+      device_info:
+        type: string
+      id:
+        type: string
+      ip_address:
+        type: string
+      last_active_at:
+        type: string
+      location:
+        type: string
+      revoked_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      user_id:
+        type: string
+    type: object
+  models.UserStatus:
+    enum:
+    - ACTIVE
+    - SUSPENDED
+    - EXPIRED
+    type: string
+    x-enum-varnames:
+    - UserStatusActive
+    - UserStatusSuspended
+    - UserStatusExpired
+  models.Video:
+    properties:
+      category:
+        $ref: '#/definitions/models.VideoCategory'
+      description:
+        type: string
+      duration_seconds:
+        type: integer
+      file_key:
+        type: string
+      hls_key:
+        type: string
+      id:
+        type: string
+      is_free:
+        type: boolean
+      is_intro:
+        type: boolean
+      is_preview:
+        type: boolean
+      lqip:
+        type: string
+      mp4_key_240p:
+        type: string
+      mp4_key_360p:
+        type: string
+      mp4_key_480p:
+        type: string
+      mp4_key_720p:
+        type: string
+      mp4_key_1080p:
+        type: string
+      mp4_size_240p:
+        type: integer
+      mp4_size_360p:
+        type: integer
+      mp4_size_480p:
+        type: integer
+      mp4_size_720p:
+        type: integer
+      mp4_size_1080p:
+        type: integer
+      playback_logs:
+        items:
+          $ref: '#/definitions/models.PlaybackLog'
+        type: array
+      preview_url:
+        type: string
+      status:
+        $ref: '#/definitions/models.VideoStatus'
+      thumbnail_url:
+        type: string
+      title:
+        type: string
+      transcode_error:
+        type: string
+      updated_at:
+        type: string
+      uploaded_at:
+        type: string
+    type: object
+  models.VideoCategory:
+    enum:
+    - WILLCOM
+    - E4
+    - MECAD
+    type: string
+    x-enum-varnames:
+    - CategoryWillcom
+    - CategoryE4
+    - CategoryMecad
+  models.VideoComment:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      is_admin:
+        type: boolean
+      thread_user_id:
+        description: |-
+          ThreadUserID identifies which end user's private conversation this row
+          belongs to. For a user-authored row it equals UserID. For an
+          admin-authored reply, UserID is the "admin" sentinel while
+          ThreadUserID is the target user — so a single
+          Where("thread_user_id = ?") query returns a user's own messages plus
+          admin's replies to them, never another user's rows.
+        type: string
+      user_name:
+        type: string
+      video_id:
+        type: string
+    type: object
+  models.VideoProgress:
+    properties:
+      position_seconds:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        type: string
+      video_id:
+        type: string
+    type: object
+  models.VideoStatus:
+    enum:
+    - DRAFT
+    - PROCESSING
+    - PUBLISHED
+    - ERROR
+    type: string
+    x-enum-varnames:
+    - VideoStatusDraft
+    - VideoStatusProcessing
+    - VideoStatusPublished
+    - VideoStatusError
+  plans.planWithStats:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      duration_days:
+        type: integer
+      has_e4:
+        type: boolean
+      has_mecad:
+        type: boolean
+      has_willcom:
+        type: boolean
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price_in_paise:
+        type: integer
+      subscribers:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  user_auth.registerRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+    type: object
+  user_auth.sendOTPRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  user_auth.verifyOTPRequest:
+    properties:
+      email:
+        type: string
+      otp:
+        type: string
+    type: object
+  user_videos.videoWithAccess:
+    properties:
+      accessible:
+        type: boolean
+      category:
+        $ref: '#/definitions/models.VideoCategory'
+      description:
+        type: string
+      duration_seconds:
+        type: integer
+      file_key:
+        type: string
+      hls_key:
+        type: string
+      id:
+        type: string
+      is_free:
+        type: boolean
+      is_intro:
+        type: boolean
+      is_preview:
+        type: boolean
+      lqip:
+        type: string
+      mp4_key_240p:
+        type: string
+      mp4_key_360p:
+        type: string
+      mp4_key_480p:
+        type: string
+      mp4_key_720p:
+        type: string
+      mp4_key_1080p:
+        type: string
+      mp4_size_240p:
+        type: integer
+      mp4_size_360p:
+        type: integer
+      mp4_size_480p:
+        type: integer
+      mp4_size_720p:
+        type: integer
+      mp4_size_1080p:
+        type: integer
+      playback_logs:
+        items:
+          $ref: '#/definitions/models.PlaybackLog'
+        type: array
+      preview_url:
+        type: string
+      progress_seconds:
+        type: integer
+      status:
+        $ref: '#/definitions/models.VideoStatus'
+      thumbnail_url:
+        type: string
+      title:
+        type: string
+      transcode_error:
+        type: string
+      updated_at:
+        type: string
+      uploaded_at:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: support@example.com
+    name: MarketKit
+  description: REST API for the MarketKit marketplace platform. Admin routes require
+    a Bearer JWT token. User routes require a separate User Bearer JWT token.
+  license:
+    name: MIT
+  termsOfService: http://swagger.io/terms/
+  title: MarketKit API
+  version: "1.0"
+paths:
+  /admin/notifications:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Delete all notifications from history (admin)
+      tags:
+      - Admin Notifications
+    get:
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: List sent notification logs (admin)
+      tags:
+      - Admin Notifications
+  /admin/notifications/{id}:
+    delete:
+      parameters:
+      - description: Notification log ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Delete a single notification from history (admin)
+      tags:
+      - Admin Notifications
+  /admin/notifications/broadcast:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: title, message, optional plan_id and sub_status
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Broadcast push notification to users (admin)
+      tags:
+      - Admin Notifications
+  /admin/users:
+    get:
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: User status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: List all users
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Name, email, phone, and optional plan ID
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Create a new user
+      tags:
+      - Users
+  /admin/users/{id}:
+    delete:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Delete user
+      tags:
+      - Users
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Get user by ID
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Name and optional status
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Update user details
+      tags:
+      - Users
+  /admin/users/{id}/assign-free-plan:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Plan ID and optional duration_days override
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Assign a free plan to a user (no payment required)
+      tags:
+      - Users
+  /admin/users/{id}/cancel-free-plan:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Cancel a user's active free plan
+      tags:
+      - Users
+  /admin/users/{id}/force-logout:
+    post:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Force user logout
+      tags:
+      - Users
+  /admin/users/{id}/plan:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New plan ID
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Change user's subscription plan
+      tags:
+      - Users
+  /admin/users/{id}/suspend:
+    post:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Suspend user
+      tags:
+      - Users
+  /admin/videos:
+    get:
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: Category
+        in: query
+        name: category
+        type: string
+      - description: Status
+        in: query
+        name: status
+        type: string
+      - description: Is free (true/false)
+        in: query
+        name: is_free
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: List all videos
+      tags:
+      - Videos
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Video title
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Video description
+        in: formData
+        name: description
+        type: string
+      - description: Video category
+        in: formData
+        name: category
+        required: true
+        type: string
+      - description: 'Is free (default: false)'
+        in: formData
+        name: is_free
+        type: boolean
+      - description: 'Is preview (default: false)'
+        in: formData
+        name: is_preview
+        type: boolean
+      - description: Video file
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Thumbnail image
+        in: formData
+        name: thumbnail
+        type: file
+      - description: Thumbnail URL
+        in: formData
+        name: thumbnail_url
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Video'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Create a new video
+      tags:
+      - Videos
+  /admin/videos/{id}:
+    delete:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Delete video
+      tags:
+      - Videos
+    get:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Video'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Get video by ID
+      tags:
+      - Videos
+    put:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Video title
+        in: formData
+        name: title
+        type: string
+      - description: Video description
+        in: formData
+        name: description
+        type: string
+      - description: Video category
+        in: formData
+        name: category
+        type: string
+      - description: 'Is free (default: false)'
+        in: formData
+        name: is_free
+        type: boolean
+      - description: 'Is preview (default: false)'
+        in: formData
+        name: is_preview
+        type: boolean
+      - description: Thumbnail image
+        in: formData
+        name: thumbnail
+        type: file
+      - description: Thumbnail URL
+        in: formData
+        name: thumbnail_url
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Video'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Update video details
+      tags:
+      - Videos
+  /admins:
+    get:
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: List all admin accounts
+      tags:
+      - Admins
+  /admins/{id}:
+    delete:
+      parameters:
+      - description: Admin ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Permanently delete an admin (super-admin only)
+      tags:
+      - Admins
+  /admins/{id}/super:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Admin ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: '{\'
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: boolean
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Admin'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Grant or revoke super-admin status (super-admin only)
+      tags:
+      - Admins
+  /audit-logs:
+    get:
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 50)'
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by event type
+        in: query
+        name: event_type
+        type: string
+      - description: Filter by start date (YYYY-MM-DD)
+        in: query
+        name: start_date
+        type: string
+      - description: Filter by end date (YYYY-MM-DD)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: List audit logs (admin)
+      tags:
+      - Admin Audit Logs
+  /auth/avatar:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Avatar file (jpg, png, webp only)
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Upload profile picture
+      tags:
+      - User Auth
+  /auth/change-password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Current and new password
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Change current admin password
+      tags:
+      - Admin Auth
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Current and new password
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Change user password
+      tags:
+      - User Auth
+  /auth/device-token:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Token and platform
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Register device token
+      tags:
+      - User Auth
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Email address
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Request password reset
+      tags:
+      - User Auth
+  /auth/google:
+    get:
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+      summary: Redirect to Google OAuth consent screen
+      tags:
+      - Admin Auth
+  /auth/google/callback:
+    get:
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Handle Google OAuth callback and log the admin in
+      tags:
+      - Admin Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Logout user
+      tags:
+      - User Auth
+  /auth/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Get current user profile
+      tags:
+      - User Auth
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Profile fields
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Update current admin profile
+      tags:
+      - Admin Auth
+  /auth/profile:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Name and phone number
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Update user profile
+      tags:
+      - User Auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Refresh access token
+      tags:
+      - User Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User registration payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/user_auth.registerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - User Auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Email, OTP, and new password
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Reset user password
+      tags:
+      - User Auth
+  /auth/send-otp:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Email and password payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/user_auth.sendOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Send OTP for verification
+      tags:
+      - User Auth
+  /auth/verify-otp:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Email and OTP payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/user_auth.verifyOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Verify OTP and login
+      tags:
+      - User Auth
+  /community/posts:
+    get:
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: List all community posts (admin)
+      tags:
+      - Admin Community
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Post title
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Post content
+        in: formData
+        name: content
+        required: true
+        type: string
+      - description: 'Category (default: GENERAL)'
+        in: formData
+        name: category
+        type: string
+      - description: Up to 3 images
+        in: formData
+        name: images
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CommunityPost'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Create a community post as admin
+      tags:
+      - Admin Community
+  /community/posts/{id}:
+    delete:
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Delete a community post (admin)
+      tags:
+      - Admin Community
+    get:
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CommunityPost'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Get a community post with all its replies (admin)
+      tags:
+      - Admin Community
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: title and content
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CommunityPost'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Update a community post (admin)
+      tags:
+      - Admin Community
+  /community/posts/{id}/flag:
+    patch:
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Toggle flag on a community post (admin)
+      tags:
+      - Admin Community
+  /community/posts/{id}/replies:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: content
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CommunityReply'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Post an admin reply to a community post
+      tags:
+      - Admin Community
+  /community/replies/{id}:
+    delete:
+      parameters:
+      - description: Reply ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Delete a community reply (admin)
+      tags:
+      - Admin Community
+  /dashboard/activity:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Get recent audit logs (admin)
+      tags:
+      - Admin Dashboard
+  /dashboard/payments:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Get recent payments (admin)
+      tags:
+      - Admin Dashboard
+  /dashboard/plan-distribution:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Get subscription plan distribution (admin)
+      tags:
+      - Admin Dashboard
+  /dashboard/stats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Get site statistics for dashboard
+      tags:
+      - Admin Dashboard
+  /dashboard/user-growth:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Get user growth by month over last 12 months (admin)
+      tags:
+      - Admin Dashboard
+  /market/designs:
+    get:
+      parameters:
+      - description: Search by title or seller
+        in: query
+        name: search
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Design'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List all marketplace designs (admin)
+      tags:
+      - Admin Market
+  /market/designs/{id}:
+    delete:
+      parameters:
+      - description: Design ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Take down a marketplace design (admin)
+      tags:
+      - Admin Market
+  /market/purchases:
+    get:
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.DesignPurchase'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List all design purchases (admin)
+      tags:
+      - Admin Market
+  /photo-categories:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: List photo categories (admin)
+      tags:
+      - Admin Photo Categories
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Category name
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.PhotoCategory'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Create a photo category (admin)
+      tags:
+      - Admin Photo Categories
+  /photo-categories/{id}:
+    delete:
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Delete a photo category (admin)
+      tags:
+      - Admin Photo Categories
+  /photos:
+    get:
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 20)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: List photos (admin)
+      tags:
+      - Admin Photos
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Photo file (max 10MB)
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Photo title
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: 'Photo category (default: GENERAL)'
+        in: formData
+        name: category
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Photo'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Create a new photo (admin)
+      tags:
+      - Admin Photos
+  /photos/{id}:
+    delete:
+      parameters:
+      - description: Photo ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Delete a photo (admin)
+      tags:
+      - Admin Photos
+    put:
+      parameters:
+      - description: Photo ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Title, category, and published status
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Update a photo (admin)
+      tags:
+      - Admin Photos
+  /plans:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/plans.planWithStats'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: List all plans with subscriber counts (admin)
+      tags:
+      - Admin Plans
+    post:
+      parameters:
+      - description: Plan details
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Create a new plan (admin)
+      tags:
+      - Admin Plans
+  /plans/{id}:
+    delete:
+      parameters:
+      - description: Plan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Delete a plan (admin)
+      tags:
+      - Admin Plans
+    put:
+      parameters:
+      - description: Plan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Plan fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Update a plan (admin)
+      tags:
+      - Admin Plans
+  /plans/public:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Plan'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List active plans (public)
+      tags:
+      - Plans
+  /playback/by-user:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Playback stats grouped by user (admin)
+      tags:
+      - Playback Analytics
+  /playback/daily-trend:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Daily playback trend over last 30 days (admin)
+      tags:
+      - Playback Analytics
+  /playback/summary:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Overall playback summary (admin)
+      tags:
+      - Playback Analytics
+  /playback/top-videos:
+    get:
+      parameters:
+      - description: 'Time period: ''7d'' or ''30d'' (default: 30d)'
+        in: query
+        name: period
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Top videos by play count (admin)
+      tags:
+      - Playback Analytics
+  /revenue/by-plan:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Revenue breakdown by plan (admin)
+      tags:
+      - Revenue
+  /revenue/forecast:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Upcoming subscription expiry forecast (admin)
+      tags:
+      - Revenue
+  /revenue/monthly:
+    get:
+      parameters:
+      - description: 'Year (default: current year)'
+        in: query
+        name: year
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Monthly revenue breakdown (admin)
+      tags:
+      - Revenue
+  /revenue/renewal-stats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Renewal and churn statistics
+      tags:
+      - Revenue
+  /revenue/summary:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Revenue summary
+      tags:
+      - Revenue
+  /user/auth/me:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Delete current user account
+      tags:
+      - User Auth
+  /user/community/posts:
+    get:
+      parameters:
+      - description: Category filter
+        in: query
+        name: category
+        type: string
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.CommunityPost'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: List community posts
+      tags:
+      - User Community
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Post title
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Post content
+        in: formData
+        name: content
+        required: true
+        type: string
+      - description: 'Category (default: GENERAL)'
+        in: formData
+        name: category
+        type: string
+      - description: Up to 3 images
+        in: formData
+        name: images
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CommunityPost'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Create a community post
+      tags:
+      - User Community
+  /user/community/posts/{id}:
+    get:
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CommunityPost'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Get a community post with replies
+      tags:
+      - User Community
+  /user/community/posts/{id}/replies:
+    get:
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.CommunityReply'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: List replies for a community post
+      tags:
+      - User Community
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Reply content
+        in: formData
+        name: content
+        required: true
+        type: string
+      - description: Optional image
+        in: formData
+        name: image
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CommunityReply'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Reply to a community post
+      tags:
+      - User Community
+  /user/market/designs:
+    get:
+      parameters:
+      - description: Search by title
+        in: query
+        name: search
+        type: string
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Design'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Browse marketplace designs
+      tags:
+      - User Market
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Design title
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Description
+        in: formData
+        name: description
+        type: string
+      - description: Price in paise (min 1000 = ₹10)
+        in: formData
+        name: price_in_paise
+        required: true
+        type: integer
+      - description: Embroidery machine file (.dst/.pes/...)
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: 1-3 preview images
+        in: formData
+        name: previews
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Design'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: List a design for sale
+      tags:
+      - User Market
+  /user/market/designs/{id}:
+    delete:
+      parameters:
+      - description: Design ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Remove own design listing
+      tags:
+      - User Market
+    get:
+      parameters:
+      - description: Design ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Design'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Get a marketplace design
+      tags:
+      - User Market
+  /user/market/designs/{id}/download-url:
+    get:
+      parameters:
+      - description: Design ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Get a signed download URL for a purchased design file
+      tags:
+      - User Market
+  /user/market/my/designs:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Design'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: List own design listings (including unlisted)
+      tags:
+      - User Market
+  /user/market/my/earnings:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Seller earnings summary (informational; payouts handled manually)
+      tags:
+      - User Market
+  /user/market/my/purchases:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.DesignPurchase'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: List own successful design purchases
+      tags:
+      - User Market
+  /user/market/purchases/order:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: design_id
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Create a Razorpay order for a design purchase
+      tags:
+      - User Market
+  /user/market/purchases/verify:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: razorpay_order_id, razorpay_payment_id, razorpay_signature
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Verify a Razorpay design purchase signature
+      tags:
+      - User Market
+  /user/notifications:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: List user notifications
+      tags:
+      - User Notifications
+  /user/notifications/read:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Mark all notifications as read
+      tags:
+      - User Notifications
+  /user/payments/order:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: plan_id
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Create a Razorpay payment order
+      tags:
+      - User Payments
+  /user/payments/verify:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: razorpay_order_id, razorpay_payment_id, razorpay_signature
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Verify a Razorpay payment signature and activate subscription
+      tags:
+      - User Payments
+  /user/videos:
+    get:
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: Category filter (WILLCOM, E4, MECAD)
+        in: query
+        name: category
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/user_videos.videoWithAccess'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: List published videos with access flags
+      tags:
+      - User Videos
+  /user/videos/{id}/comments:
+    get:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.VideoComment'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: List the requesting user's private comment thread for a video
+      tags:
+      - Video Engagement
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: content
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.VideoComment'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Post a comment on a video
+      tags:
+      - Video Engagement
+  /user/videos/{id}/comments/{cid}:
+    delete:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Comment ID
+        in: path
+        name: cid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Delete own comment on a video
+      tags:
+      - Video Engagement
+  /user/videos/{id}/download-url:
+    get:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Quality: 240p | 360p | 480p | 720p | 1080p (default 720p)'
+        in: query
+        name: quality
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Get a signed download URL for a specific quality MP4
+      tags:
+      - User Videos
+  /user/videos/{id}/photos:
+    get:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Photo'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: List photos attached to a video
+      tags:
+      - User Videos
+  /user/videos/{id}/playback-log:
+    post:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Log a video playback event
+      tags:
+      - User Videos
+  /user/videos/{id}/progress:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: position_seconds
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: integer
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.VideoProgress'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Save video playback progress
+      tags:
+      - User Videos
+  /user/videos/{id}/qualities:
+    get:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: List available download qualities with real file sizes
+      tags:
+      - User Videos
+  /user/videos/{id}/reactions:
+    get:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Get like/dislike counts and current user's reaction
+      tags:
+      - Video Engagement
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'reaction: ''like'' or ''dislike'''
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Toggle like or dislike on a video
+      tags:
+      - Video Engagement
+  /user/videos/{id}/stream:
+    get:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "307":
+          description: Redirect to signed video URL
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Stream a video (redirect to signed URL)
+      tags:
+      - User Videos
+  /user/videos/{id}/stream-url:
+    get:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Get signed video stream URL as JSON
+      tags:
+      - User Videos
+  /videos/{id}/comments:
+    get:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.VideoComment'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: List all comments for a video (admin)
+      tags:
+      - Video Engagement
+  /videos/{id}/comments/{cid}:
+    delete:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Comment ID
+        in: path
+        name: cid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Delete any comment (admin moderation)
+      tags:
+      - Video Engagement
+  /videos/{id}/comments/reply:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: user_id, content
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.VideoComment'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Reply to a user's private comment thread on a video (admin)
+      tags:
+      - Video Engagement
+  /videos/{id}/engagement:
+    get:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Get engagement stats for a video (admin)
+      tags:
+      - Video Engagement
+  /videos/{id}/photos:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Base title for the photos (defaults to the video title)
+        in: formData
+        name: title
+        type: string
+      - description: One or more image files
+        in: formData
+        name: photos
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/models.Photo'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Attach photos to a video (admin)
+      tags:
+      - Admin Videos
+  /videos/{id}/stream:
+    get:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "307":
+          description: Redirect to video stream
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Stream video
+      tags:
+      - Videos
+  /videos/{id}/stream-url:
+    get:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Get video stream URL
+      tags:
+      - Videos
+securityDefinitions:
+  AdminAuth:
+    description: Admin JWT — prefix with "Bearer "
+    in: header
+    name: Authorization
+    type: apiKey
+  UserAuth:
+    description: User JWT — prefix with "Bearer "
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
