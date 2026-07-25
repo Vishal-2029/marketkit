@@ -20,7 +20,7 @@ func formatPaise(paise int64) string {
 	return fmt.Sprintf("Rs. %.2f", rupees)
 }
 
-// fetchPreviewImageBytes downloads a design's first preview image over HTTP
+// fetchPreviewImageBytes downloads a product's first preview image over HTTP
 // from its public URL so it can be embedded in the invoice PDF. Preview
 // images are always stored as JPEG (see uploadPreviewImage).
 func fetchPreviewImageBytes(url string) ([]byte, error) {
@@ -38,7 +38,7 @@ func fetchPreviewImageBytes(url string) ([]byte, error) {
 
 // buildInvoicePDF renders the purchase invoice PDF. Used by the download
 // endpoint and the post-purchase thank-you email.
-func buildInvoicePDF(purchase *models.DesignPurchase) ([]byte, error) {
+func buildInvoicePDF(purchase *models.ProductPurchase) ([]byte, error) {
 	pdf := fpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
 
@@ -67,12 +67,12 @@ func buildInvoicePDF(purchase *models.DesignPurchase) ([]byte, error) {
 	pdf.Ln(8)
 
 	pdf.SetFont("Helvetica", "B", 12)
-	pdf.CellFormat(0, 8, "Design", "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 8, "Product", "", 1, "L", false, 0, "")
 	pdf.SetFont("Helvetica", "", 10)
-	pdf.CellFormat(0, 6, purchase.Design.Title, "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 6, purchase.Product.Title, "", 1, "L", false, 0, "")
 
-	if len(purchase.Design.PreviewKeys) > 0 {
-		previewURL := storage.Store.PublicURL(purchase.Design.PreviewKeys[0])
+	if len(purchase.Product.PreviewKeys) > 0 {
+		previewURL := storage.Store.PublicURL(purchase.Product.PreviewKeys[0])
 		if imgBytes, err := fetchPreviewImageBytes(previewURL); err == nil {
 			imgName := "preview"
 			pdf.RegisterImageOptionsReader(imgName, fpdf.ImageOptions{ImageType: "JPEG"}, bytes.NewReader(imgBytes))
@@ -97,8 +97,8 @@ func buildInvoicePDF(purchase *models.DesignPurchase) ([]byte, error) {
 	// multi-byte em-dash (—) would come out as garbage ("â€"") in the PDF.
 	pdf.MultiCell(0, 5,
 		"This sale is final - no returns or refunds are processed through the app. "+
-			"If there's an issue with the design you purchased, please contact support "+
-			"from the design's page instead of requesting a return.",
+			"If there's an issue with the product you purchased, please contact support "+
+			"from the product's page instead of requesting a return.",
 		"", "L", false)
 
 	var buf bytes.Buffer
@@ -121,9 +121,9 @@ func buildInvoicePDF(purchase *models.DesignPurchase) ([]byte, error) {
 func HandleDownloadInvoice(c *fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(string)
 
-	var purchase models.DesignPurchase
+	var purchase models.ProductPurchase
 	if err := database.DB.
-		Preload("Design").
+		Preload("Product").
 		Preload("Buyer").
 		Preload("Seller").
 		Where("id = ? AND buyer_id = ? AND status = ?", c.Params("id"), userID, models.PaymentSuccess).

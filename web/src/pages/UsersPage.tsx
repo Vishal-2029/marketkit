@@ -53,7 +53,7 @@ const statusLabel = (s: string) =>
   s === "ACTIVE" ? "Active" : s === "SUSPENDED" ? "Suspended" : "Expired";
 
 const appModeLabel = (u: User) =>
-  u.current_app_mode === "market" ? "Design Market" : u.current_app_mode === "learning" ? "Learning" : "Not chosen";
+  u.current_app_mode === "market" ? "Product Market" : u.current_app_mode === "learning" ? "Learning" : "Not chosen";
 
 const appModeVariant = (u: User) =>
   u.current_app_mode === "market" ? "gold" as const : u.current_app_mode === "learning" ? "success" as const : "neutral" as const;
@@ -89,8 +89,8 @@ function fmtPaise(paise: number) {
 function walletTxLabel(type: string) {
   switch (type) {
     case "TOPUP": return "Money added";
-    case "PURCHASE_DEBIT": return "Design purchased";
-    case "SALE_CREDIT": return "Design sold";
+    case "PURCHASE_DEBIT": return "Product purchased";
+    case "SALE_CREDIT": return "Product sold";
     case "WITHDRAWAL": return "Withdrawal";
     default: return type;
   }
@@ -404,7 +404,7 @@ export default function UsersPage() {
         >
           <option value="">All App Modes</option>
           <option value="learning">Learning</option>
-          <option value="market">Design Market</option>
+          <option value="market">Product Market</option>
         </select>
       </div>
 
@@ -594,7 +594,7 @@ export default function UsersPage() {
                 <StatusBadge variant={appModeVariant(drawerUser)}>{appModeLabel(drawerUser)}</StatusBadge>
                 <div className="mt-2 space-y-0.5">
                   {formatDate(drawerUser.market_joined_at) && (
-                    <p className="text-sm text-muted-foreground">Design Market since {formatDate(drawerUser.market_joined_at)}</p>
+                    <p className="text-sm text-muted-foreground">Product Market since {formatDate(drawerUser.market_joined_at)}</p>
                   )}
                   {formatDate(drawerUser.learning_joined_at) && (
                     <p className="text-sm text-muted-foreground">Learning since {formatDate(drawerUser.learning_joined_at)}</p>

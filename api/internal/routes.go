@@ -80,19 +80,19 @@ var postLimiter = limiter.New(limiter.Config{
 	},
 })
 
-// designUploadLimiter bounds marketplace listings per account — there is no
+// productUploadLimiter bounds marketplace listings per account — there is no
 // admin approval gate, so this is the primary spam control.
-var designUploadLimiter = limiter.New(limiter.Config{
+var productUploadLimiter = limiter.New(limiter.Config{
 	Max:        5,
 	Expiration: 10 * time.Minute,
 	KeyGenerator: func(c *fiber.Ctx) string {
 		id, _ := c.Locals("userID").(string)
-		return "design_upload_" + id
+		return "product_upload_" + id
 	},
 	LimitReached: func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
 			"success": false,
-			"error":   "too many design uploads — wait 10 minutes",
+			"error":   "too many product uploads — wait 10 minutes",
 		})
 	},
 })
@@ -132,7 +132,7 @@ var messageLimiter = limiter.New(limiter.Config{
 	Expiration: 10 * time.Minute,
 	KeyGenerator: func(c *fiber.Ctx) string {
 		id, _ := c.Locals("userID").(string)
-		return "design_message_" + id
+		return "product_message_" + id
 	},
 	LimitReached: func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
@@ -474,33 +474,33 @@ func RegisterRoutes(v1 fiber.Router) {
 	uc.Get("/posts/:id/replies", community.HandleListReplies)
 	uc.Post("/posts/:id/replies", replyLimiter, community.HandleCreateReply)
 
-	// ── User: Design Market (/user/market) ────────────────────────────────────
+	// ── User: Product Market (/user/market) ────────────────────────────────────
 	um := v1.Group("/user/market", middleware.UserAuthenticate)
-	um.Get("/designs", market.HandleListDesigns)
-	um.Post("/designs", designUploadLimiter, market.HandleCreateDesign)
-	// Static sub-paths must be registered before /designs/:id to avoid param capture.
+	um.Get("/products", market.HandleListProducts)
+	um.Post("/products", productUploadLimiter, market.HandleCreateProduct)
+	// Static sub-paths must be registered before /products/:id to avoid param capture.
 	um.Get("/fee", market.HandleGetSellerFee)
 	um.Get("/categories", market.HandleListCategories)
-	um.Get("/my/designs", market.HandleMyDesigns)
-	um.Get("/my/designs/:id/stats", market.HandleMyDesignStats)
+	um.Get("/my/products", market.HandleMyProducts)
+	um.Get("/my/products/:id/stats", market.HandleMyProductStats)
 	um.Get("/my/purchases", market.HandleMyPurchases)
 	um.Get("/my/earnings", market.HandleEarnings)
 	um.Post("/purchases/order", market.HandleCreatePurchaseOrder)
 	um.Post("/purchases/verify", market.HandleVerifyPurchase)
 	um.Post("/purchases/wallet", market.HandlePurchaseWithWallet)
-	// Design Market Plans (separate from learning /plans)
+	// Product Market Plans (separate from learning /plans)
 	um.Get("/plans", market.HandleListMarketPlans)
 	um.Get("/plans/my", market.HandleMyMarketPlan)
 	um.Delete("/plans/my", market.HandleCancelMyMarketPlan)
 	um.Post("/plans/verify", market.HandleVerifyMarketPlan)
 	um.Post("/plans/:id/order", market.HandleCreateMarketPlanOrder)
 	um.Post("/plans/:id/wallet", market.HandleSubscribeMarketPlanWithWallet)
-	um.Get("/designs/:id", market.HandleGetDesign)
-	um.Delete("/designs/:id", market.HandleDeleteDesign)
-	um.Get("/designs/:id/download-url", market.HandleDownloadURL)
+	um.Get("/products/:id", market.HandleGetProduct)
+	um.Delete("/products/:id", market.HandleDeleteProduct)
+	um.Get("/products/:id/download-url", market.HandleDownloadURL)
 	um.Get("/purchases/:id/invoice", market.HandleDownloadInvoice)
-	um.Get("/designs/:id/messages", market.HandleListDesignMessages)
-	um.Post("/designs/:id/messages", messageLimiter, market.HandlePostDesignMessage)
+	um.Get("/products/:id/messages", market.HandleListProductMessages)
+	um.Post("/products/:id/messages", messageLimiter, market.HandlePostProductMessage)
 
 	// ── User: Wallet (/user/wallet) ───────────────────────────────────────────
 	uw := v1.Group("/user/wallet", middleware.UserAuthenticate)
@@ -513,10 +513,10 @@ func RegisterRoutes(v1 fiber.Router) {
 	uw.Post("/withdrawals", wallet.HandleCreateWithdrawal)
 	uw.Get("/withdrawals", wallet.HandleMyWithdrawals)
 
-	// ── Admin: Design Market (/market) ────────────────────────────────────────
+	// ── Admin: Product Market (/market) ────────────────────────────────────────
 	am := v1.Group("/market", middleware.Authenticate)
-	am.Get("/designs", market.HandleAdminListDesigns)
-	am.Delete("/designs/:id", market.HandleAdminDeleteDesign)
+	am.Get("/products", market.HandleAdminListProducts)
+	am.Delete("/products/:id", market.HandleAdminDeleteProduct)
 	am.Get("/categories", market.HandleAdminListCategories)
 	am.Post("/categories", market.HandleAdminCreateCategory)
 	am.Put("/categories/:id", market.HandleAdminUpdateCategory)
@@ -526,7 +526,7 @@ func RegisterRoutes(v1 fiber.Router) {
 	am.Get("/purchases/:id/messages", market.HandleAdminListPurchaseMessages)
 	am.Post("/purchases/:id/messages", market.HandleAdminReplyPurchaseMessage)
 	am.Get("/users", market.HandleAdminListMarketUsers)
-	am.Get("/users/:id/designs", market.HandleAdminMarketUserDesigns)
+	am.Get("/users/:id/products", market.HandleAdminMarketUserProducts)
 	am.Get("/plans", market.HandleAdminListMarketPlans)
 	am.Post("/plans", market.HandleAdminCreateMarketPlan)
 	am.Put("/plans/:id", market.HandleAdminUpdateMarketPlan)

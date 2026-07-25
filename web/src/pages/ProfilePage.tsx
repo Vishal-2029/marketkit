@@ -28,7 +28,7 @@ function fmtPaise(paise: number) {
 const SOURCE_LABEL: Record<string, string> = {
   LEARNING_PLAN: "Learning plan",
   MARKET_PLAN: "Market plan",
-  PLATFORM_FEE: "Design sale fee",
+  PLATFORM_FEE: "Product sale fee",
   WITHDRAWAL: "Withdrawal",
 };
 
@@ -122,7 +122,7 @@ function PlatformWalletSection() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <StatCard label="Learning plans" value={fmtPaise(s?.breakdown.learning_plan_in_paise ?? 0)} />
               <StatCard label="Market plans" value={fmtPaise(s?.breakdown.market_plan_in_paise ?? 0)} />
-              <StatCard label="Design sale fees" value={fmtPaise(s?.breakdown.platform_fee_in_paise ?? 0)} />
+              <StatCard label="Product sale fees" value={fmtPaise(s?.breakdown.platform_fee_in_paise ?? 0)} />
               <StatCard label="Withdrawn" value={fmtPaise(Math.abs(s?.breakdown.withdrawal_in_paise ?? 0))} />
             </div>
           </>

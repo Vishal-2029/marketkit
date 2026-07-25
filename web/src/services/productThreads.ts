@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 
-export interface DesignThreadMessage {
+export interface ProductThreadMessage {
   id: string;
   user_name: string;
   content: string;
@@ -8,13 +8,13 @@ export interface DesignThreadMessage {
   is_admin: boolean;
 }
 
-export const designThreadsService = {
+export const productThreadsService = {
   listMessages: (purchaseId: string) =>
     api
       .get(`/market/purchases/${purchaseId}/messages`)
-      .then((r) => r.data.data as DesignThreadMessage[]),
+      .then((r) => r.data.data as ProductThreadMessage[]),
   reply: (purchaseId: string, content: string) =>
     api
       .post(`/market/purchases/${purchaseId}/messages`, { content })
-      .then((r) => r.data.data as DesignThreadMessage),
+      .then((r) => r.data.data as ProductThreadMessage),
 };

@@ -1,7 +1,7 @@
 // Package revenue is learning-only. Every handler here reads exclusively
-// from payments / plans / subscriptions / users — design-market money
-// (design_purchases, market_plan_subscriptions) must never appear in these
-// queries. Design Market's own revenue lives in the market module
+// from payments / plans / subscriptions / users — product-market money
+// (product_purchases, market_plan_subscriptions) must never appear in these
+// queries. Product Market's own revenue lives in the market module
 // (HandleMarketRevenueSummary / HandleMarketRevenueMonthly).
 package revenue
 
@@ -23,7 +23,7 @@ import (
 // @Success     200  {object}  map[string]interface{}
 // @Router      /revenue/summary [get]
 // Learning-only scope: sums payments/subscriptions/users. Never touches
-// design_purchases or market_plan_subscriptions.
+// product_purchases or market_plan_subscriptions.
 func HandleSummary(c *fiber.Ctx) error {
 	var totalRevenue, monthRevenue int64
 	var activeSubs, totalUsers int64
@@ -68,7 +68,7 @@ func HandleSummary(c *fiber.Ctx) error {
 // @Failure     401  {object}  map[string]string
 // @Router      /revenue/monthly [get]
 // Learning-only scope: sums the payments table only. Never touches
-// design_purchases or market_plan_subscriptions.
+// product_purchases or market_plan_subscriptions.
 func HandleMonthly(c *fiber.Ctx) error {
 	year := c.Query("year", strconv.Itoa(time.Now().Year()))
 
@@ -97,7 +97,7 @@ func HandleMonthly(c *fiber.Ctx) error {
 // @Failure     401  {object}  map[string]string
 // @Router      /revenue/by-plan [get]
 // Learning-only scope: joins plans/subscriptions/payments only. Never
-// touches design_purchases or market_plan_subscriptions.
+// touches product_purchases or market_plan_subscriptions.
 func HandleByPlan(c *fiber.Ctx) error {
 	type planRow struct {
 		PlanID      string `json:"plan_id"`
@@ -126,7 +126,7 @@ func HandleByPlan(c *fiber.Ctx) error {
 // @Success     200  {object}  map[string]interface{}
 // @Router      /revenue/renewal-stats [get]
 // Learning-only scope: reads the learning subscriptions/plans tables only.
-// Never touches design_purchases or market_plan_subscriptions.
+// Never touches product_purchases or market_plan_subscriptions.
 func HandleRenewalStats(c *fiber.Ctx) error {
 	now := time.Now()
 	cutoff := now.AddDate(0, 0, -90)
@@ -200,7 +200,7 @@ func HandleRenewalStats(c *fiber.Ctx) error {
 // @Failure     401  {object}  map[string]string
 // @Router      /revenue/forecast [get]
 // Learning-only scope: reads the learning subscriptions/plans/users tables
-// only. Never touches design_purchases or market_plan_subscriptions.
+// only. Never touches product_purchases or market_plan_subscriptions.
 func HandleForecast(c *fiber.Ctx) error {
 	next30 := time.Now().AddDate(0, 0, 30)
 

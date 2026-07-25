@@ -14,7 +14,7 @@ function fmt(paise: number) {
   return "₹" + (paise / 100).toLocaleString("en-IN");
 }
 
-export default function DesignMarketRevenuePage() {
+export default function ProductMarketRevenuePage() {
   const summary = useQuery({ queryKey: ["market-revenue-summary"], queryFn: marketRevenueService.summary });
   const monthly = useQuery({ queryKey: ["market-revenue-monthly"], queryFn: () => marketRevenueService.monthly() });
 
@@ -29,8 +29,8 @@ export default function DesignMarketRevenuePage() {
   return (
     <div>
       <PageHeader
-        title="Design Market Revenue"
-        subtitle="Platform revenue from the Design Market only — plan subscriptions and sale fees. Learning revenue never appears here."
+        title="Product Market Revenue"
+        subtitle="Platform revenue from the Product Market only — plan subscriptions and sale fees. Learning revenue never appears here."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -40,7 +40,7 @@ export default function DesignMarketRevenuePage() {
               subInfo="Plan revenue + sale fees" />
             <StatCard label="Plan Revenue" value={fmt(s?.plan_revenue_paise ?? 0)}
               subInfo={`${s?.plan_count ?? 0} paid subscriptions`} />
-            <StatCard label="Design Sale Fees" value={fmt(s?.fee_revenue_paise ?? 0)}
+            <StatCard label="Product Sale Fees" value={fmt(s?.fee_revenue_paise ?? 0)}
               subInfo={`${s?.sale_count ?? 0} sales`} />
             <StatCard label="Gross Sales Volume" value={fmt(s?.gross_sales_paise ?? 0)}
               subInfo="Context only — not platform revenue" />
@@ -50,7 +50,7 @@ export default function DesignMarketRevenuePage() {
 
       <div className="rounded-xl border border-border bg-card p-6 mb-8">
         <h2 className="text-section-title mb-1">Monthly Platform Revenue (₹)</h2>
-        <p className="text-xs text-muted-foreground mb-6">Plan revenue and design-sale fees — the two sources credited to the platform wallet</p>
+        <p className="text-xs text-muted-foreground mb-6">Plan revenue and product-sale fees — the two sources credited to the platform wallet</p>
         {monthly.isLoading ? <Skeleton className="h-48" /> : (
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={monthlyData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
@@ -69,7 +69,7 @@ export default function DesignMarketRevenuePage() {
       <div className="rounded-xl border border-border bg-card p-6">
         <h2 className="text-section-title mb-4">Seller Payouts (context)</h2>
         <p className="text-xs text-muted-foreground mb-4">
-          Net amount paid out to sellers from design sales — this is the sellers' money, not platform revenue.
+          Net amount paid out to sellers from product sales — this is the sellers' money, not platform revenue.
         </p>
         <p className="text-2xl font-bold text-foreground">{fmt(s?.seller_payouts_paise ?? 0)}</p>
       </div>

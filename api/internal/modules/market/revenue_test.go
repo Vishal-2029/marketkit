@@ -24,8 +24,8 @@ func TestHandleMarketRevenueSummary_ReconcilesWithPlatformWalletAndExcludesLearn
 
 		seller := testutil.MustCreateUser(t, tx)
 		buyer := testutil.MustCreateUser(t, tx)
-		design := testutil.MustCreateDesign(t, tx, seller.ID, 100000)
-		purchase := testutil.MustCreateDesignPurchase(t, tx, design.ID, buyer.ID, seller.ID, 100000, 10000, models.PaymentSuccess)
+		product := testutil.MustCreateProduct(t, tx, seller.ID, 100000)
+		purchase := testutil.MustCreateProductPurchase(t, tx, product.ID, buyer.ID, seller.ID, 100000, 10000, models.PaymentSuccess)
 		_, err := platform_wallet.Apply(tx, models.PlatformSourcePlatformFee, purchase.FeeInPaise, &purchase.ID, nil)
 		require.NoError(t, err)
 

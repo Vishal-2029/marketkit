@@ -6,7 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../features/auth/providers/auth_provider.dart';
 
 /// Shared pick → crop → upload / remove avatar flow for Learning and
-/// Design Market profile screens.
+/// Product Market profile screens.
 mixin AvatarUploadController<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   bool uploadingAvatar = false;
   bool removingAvatar = false;

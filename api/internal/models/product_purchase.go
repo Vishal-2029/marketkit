@@ -2,11 +2,11 @@ package models
 
 import "time"
 
-type DesignPurchase struct {
-	ID       string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
-	DesignID string `gorm:"index;not null"                                 json:"design_id"`
-	BuyerID  string `gorm:"index;not null"                                 json:"-"`
-	// SellerID is denormalized from Design so earnings survive design deletion.
+type ProductPurchase struct {
+	ID        string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	ProductID string `gorm:"index;not null"                                 json:"product_id"`
+	BuyerID   string `gorm:"index;not null"                                 json:"-"`
+	// SellerID is denormalized from Product so earnings survive product deletion.
 	SellerID          string        `gorm:"index;not null"            json:"-"`
 	AmountInPaise     int64         `gorm:"not null"                  json:"amount_in_paise"`
 	Currency          string        `gorm:"default:'INR'"             json:"currency"`
@@ -22,14 +22,14 @@ type DesignPurchase struct {
 	PaidAt           *time.Time `                                        json:"paid_at,omitempty"`
 	CreatedAt        time.Time  `                                        json:"created_at"`
 
-	Design Design `gorm:"foreignKey:DesignID;constraint:OnDelete:CASCADE" json:"design,omitempty"`
-	Buyer  User   `gorm:"foreignKey:BuyerID;constraint:OnDelete:CASCADE"  json:"buyer,omitempty"`
-	Seller User   `gorm:"foreignKey:SellerID;constraint:OnDelete:CASCADE" json:"seller,omitempty"`
+	Product Product `gorm:"foreignKey:ProductID;constraint:OnDelete:CASCADE" json:"product,omitempty"`
+	Buyer   User    `gorm:"foreignKey:BuyerID;constraint:OnDelete:CASCADE"  json:"buyer,omitempty"`
+	Seller  User    `gorm:"foreignKey:SellerID;constraint:OnDelete:CASCADE" json:"seller,omitempty"`
 
 	// Populated at query time for admin endpoints only; not stored in DB.
-	BuyerName   string `gorm:"-" json:"buyer_name,omitempty"`
-	BuyerEmail  string `gorm:"-" json:"buyer_email,omitempty"`
-	SellerName  string `gorm:"-" json:"seller_name,omitempty"`
-	SellerEmail string `gorm:"-" json:"seller_email,omitempty"`
-	DesignTitle string `gorm:"-" json:"design_title,omitempty"`
+	BuyerName    string `gorm:"-" json:"buyer_name,omitempty"`
+	BuyerEmail   string `gorm:"-" json:"buyer_email,omitempty"`
+	SellerName   string `gorm:"-" json:"seller_name,omitempty"`
+	SellerEmail  string `gorm:"-" json:"seller_email,omitempty"`
+	ProductTitle string `gorm:"-" json:"product_title,omitempty"`
 }

@@ -68,10 +68,10 @@ func Migrate() error {
 		&models.AppVersion{},
 		&models.Playlist{},
 		&models.PlaylistVideo{},
-		&models.Design{},
-		&models.DesignCategory{},
-		&models.DesignPurchase{},
-		&models.DesignPurchaseMessage{},
+		&models.Product{},
+		&models.ProductCategory{},
+		&models.ProductPurchase{},
+		&models.ProductPurchaseMessage{},
 		&models.MarketPlan{},
 		&models.MarketPlanSubscription{},
 		&models.WalletTransaction{},
@@ -115,10 +115,10 @@ func Migrate() error {
 	DB.Where("id = ?", models.PlatformWalletSingletonID).
 		FirstOrCreate(&models.PlatformWallet{}, models.PlatformWallet{ID: models.PlatformWalletSingletonID})
 
-	// Seed Design Market home-page categories: 6 unnamed placeholder sections,
+	// Seed Product Market home-page categories: 6 unnamed placeholder sections,
 	// each with 3-4 sub-sections, plus one real "Other" catch-all. Names are
 	// renamed later directly in the DB — idempotent, only runs once.
-	seedDesignCategories()
+	seedProductCategories()
 
 	// Normalize legacy anonymized community author labels ("Learner #1234") to a
 	// plain "Learner". Admin-authored rows (user_id = 'admin') keep their "Admin"
@@ -294,39 +294,39 @@ func SeedAdmin() {
 	log.Printf("Admin account created: %s", mask.Email(email))
 }
 
-// seedDesignCategories creates the initial Design Market category tree once.
+// seedProductCategories creates the initial Product Market category tree once.
 // Runs only when no categories exist yet, so admin renames/reorders made
 // after the first boot are never overwritten on subsequent boots.
-func seedDesignCategories() {
+func seedProductCategories() {
 	var count int64
-	DB.Model(&models.DesignCategory{}).Count(&count)
+	DB.Model(&models.ProductCategory{}).Count(&count)
 	if count > 0 {
 		return
 	}
 
 	for section := 1; section <= 6; section++ {
-		parent := models.DesignCategory{
+		parent := models.ProductCategory{
 			Name:         fmt.Sprintf("Section %d", section),
 			DisplayOrder: section,
 		}
 		if err := DB.Create(&parent).Error; err != nil {
-			log.Printf("seedDesignCategories: failed to create parent %d: %v", section, err)
+			log.Printf("seedProductCategories: failed to create parent %d: %v", section, err)
 			continue
 		}
 		for sub := 1; sub <= 3; sub++ {
-			child := models.DesignCategory{
+			child := models.ProductCategory{
 				ParentID:     &parent.ID,
 				Name:         fmt.Sprintf("Section %d.%d", section, sub),
 				DisplayOrder: sub,
 			}
 			if err := DB.Create(&child).Error; err != nil {
-				log.Printf("seedDesignCategories: failed to create child %d.%d: %v", section, sub, err)
+				log.Printf("seedProductCategories: failed to create child %d.%d: %v", section, sub, err)
 			}
 		}
 	}
 
-	other := models.DesignCategory{Name: "Other", DisplayOrder: 999, IsOther: true}
+	other := models.ProductCategory{Name: "Other", DisplayOrder: 999, IsOther: true}
 	if err := DB.Create(&other).Error; err != nil {
-		log.Printf("seedDesignCategories: failed to create Other category: %v", err)
+		log.Printf("seedProductCategories: failed to create Other category: %v", err)
 	}
 }

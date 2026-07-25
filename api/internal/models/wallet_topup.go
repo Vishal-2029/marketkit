@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-// WalletTopup tracks a Razorpay add-money order. Mirrors DesignPurchase: the
+// WalletTopup tracks a Razorpay add-money order. Mirrors ProductPurchase: the
 // PENDING→SUCCESS status flip is the idempotency gate that makes the wallet
 // credit exactly-once across the verify endpoint and the webhook.
 type WalletTopup struct {

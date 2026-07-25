@@ -2,8 +2,8 @@ import { Fragment, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash2, ChevronLeft, ChevronRight, MessageSquareReply, MoreVertical } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
-import { designsService, Design, DesignPurchase, MarketUser } from "@/services/designs";
-import { designThreadsService } from "@/services/designThreads";
+import { productsService, Product, ProductPurchase, MarketUser } from "@/services/products";
+import { productThreadsService } from "@/services/productThreads";
 import { usersService } from "@/services/users";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,10 +26,10 @@ import { cn } from "@/lib/utils";
 
 const formatPrice = (paise: number) => `₹${(paise / 100).toLocaleString("en-IN")}`;
 
-export default function DesignsPage() {
+export default function ProductsPage() {
   const qc = useQueryClient();
   const { toast } = useToast();
-  const [tab, setTab] = useState<"designs" | "purchases" | "users">("designs");
+  const [tab, setTab] = useState<"products" | "purchases" | "users">("products");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [purchasePage, setPurchasePage] = useState(1);
@@ -38,50 +38,50 @@ export default function DesignsPage() {
   const [userPage, setUserPage] = useState(1);
   const [userSearch, setUserSearch] = useState("");
   const [detailUserId, setDetailUserId] = useState<string | null>(null);
-  const [detailTab, setDetailTab] = useState<"designs_sold" | "purchases">("designs_sold");
+  const [detailTab, setDetailTab] = useState<"products_sold" | "purchases">("products_sold");
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["market-designs", page, search],
-    queryFn: () => designsService.listDesigns(page, search),
-    enabled: tab === "designs",
+    queryKey: ["market-products", page, search],
+    queryFn: () => productsService.listProducts(page, search),
+    enabled: tab === "products",
   });
 
   const { data: purchaseData, isLoading: purchasesLoading } = useQuery({
     queryKey: ["market-purchases", purchasePage],
-    queryFn: () => designsService.listPurchases(purchasePage),
+    queryFn: () => productsService.listPurchases(purchasePage),
     enabled: tab === "purchases",
   });
 
   const { data: threadMessages, isLoading: threadLoading } = useQuery({
     queryKey: ["market-purchase-thread", threadPurchaseId],
-    queryFn: () => designThreadsService.listMessages(threadPurchaseId!),
+    queryFn: () => productThreadsService.listMessages(threadPurchaseId!),
     enabled: !!threadPurchaseId,
   });
 
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ["market-users", userPage, userSearch],
-    queryFn: () => designsService.listMarketUsers(undefined, userPage, userSearch),
+    queryFn: () => productsService.listMarketUsers(undefined, userPage, userSearch),
     enabled: tab === "users",
   });
 
   const { data: userDetail, isLoading: userDetailLoading } = useQuery({
-    queryKey: ["market-user-designs", detailUserId],
-    queryFn: () => designsService.getMarketUserDesigns(detailUserId!),
+    queryKey: ["market-user-products", detailUserId],
+    queryFn: () => productsService.getMarketUserProducts(detailUserId!),
     enabled: !!detailUserId,
   });
 
   const replyThread = useMutation({
     mutationFn: (content: string) =>
-      designThreadsService.reply(threadPurchaseId!, content),
+      productThreadsService.reply(threadPurchaseId!, content),
     onSuccess: () => {
       setReplyText("");
       qc.invalidateQueries({ queryKey: ["market-purchase-thread", threadPurchaseId] });
     },
   });
 
-  const deleteDesign = useMutation({
-    mutationFn: (id: string) => designsService.deleteDesign(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["market-designs"] }),
+  const deleteProduct = useMutation({
+    mutationFn: (id: string) => productsService.deleteProduct(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["market-products"] }),
   });
 
   const deleteUser = useMutation({
@@ -93,19 +93,19 @@ export default function DesignsPage() {
     onError: () => toast({ title: "Failed to delete user", variant: "destructive" }),
   });
 
-  const designs: Design[] = data?.data ?? [];
-  const purchases: DesignPurchase[] = purchaseData?.data ?? [];
+  const products: Product[] = data?.data ?? [];
+  const purchases: ProductPurchase[] = purchaseData?.data ?? [];
   const marketUsers: MarketUser[] = usersData?.data ?? [];
 
   return (
     <div>
       <PageHeader
-        title="Design Market"
-        subtitle="Oversee designs listed for sale, purchases, and marketplace users"
+        title="Product Market"
+        subtitle="Oversee products listed for sale, purchases, and marketplace users"
       />
 
       <div className="flex gap-2 mt-6 mb-4">
-        {(["designs", "purchases", "users"] as const).map((t) => (
+        {(["products", "purchases", "users"] as const).map((t) => (
           <Button
             key={t}
             size="sm"
@@ -115,10 +115,10 @@ export default function DesignsPage() {
               setUserPage(1);
             }}
           >
-            {t === "designs" ? "Designs" : t === "purchases" ? "Purchases" : "Buyer & Seller"}
+            {t === "products" ? "Products" : t === "purchases" ? "Purchases" : "Buyer & Seller"}
           </Button>
         ))}
-        {tab === "designs" && (
+        {tab === "products" && (
           <input
             className="ml-auto rounded-md border border-border bg-background px-3 py-1.5 text-sm w-64"
             placeholder="Search title or seller…"
@@ -144,7 +144,7 @@ export default function DesignsPage() {
 
       {error && (
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 text-destructive px-4 py-3 text-sm mb-4">
-          Failed to load designs: {(error as Error).message}
+          Failed to load products: {(error as Error).message}
         </div>
       )}
 
@@ -185,7 +185,7 @@ export default function DesignsPage() {
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{u.phone || "—"}</td>
                       <td className="px-4 py-3">{u.purchase_count}</td>
-                      <td className="px-4 py-3">{u.design_count}</td>
+                      <td className="px-4 py-3">{u.product_count}</td>
                       <td className="px-4 py-3 font-medium">{formatPrice(u.total_income_in_paise)}</td>
                       <td className="px-4 py-3">{formatPrice(u.seller_income_in_paise)}</td>
                       <td className="px-4 py-3 text-muted-foreground">{formatPrice(u.platform_income_in_paise)}</td>
@@ -199,7 +199,7 @@ export default function DesignsPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
                               onClick={() => {
-                                setDetailTab(u.design_count > 0 ? "designs_sold" : "purchases");
+                                setDetailTab(u.product_count > 0 ? "products_sold" : "purchases");
                                 setDetailUserId(u.id);
                               }}
                             >
@@ -234,21 +234,21 @@ export default function DesignsPage() {
             <Pagination page={userPage} pages={usersData?.meta.pages ?? 1} onChange={setUserPage} />
           </>
         )
-      ) : tab === "designs" ? (
+      ) : tab === "products" ? (
         isLoading ? (
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
               <Skeleton key={i} className="h-16 w-full rounded-xl" />
             ))}
           </div>
-        ) : designs.length === 0 ? (
+        ) : products.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">
-            No designs listed yet.
+            No products listed yet.
           </div>
         ) : (
           <>
             <p className="text-sm text-muted-foreground mb-4">
-              {data?.meta.total ?? 0} total designs
+              {data?.meta.total ?? 0} total products
             </p>
             <div className="rounded-xl border border-border overflow-hidden">
               <table className="w-full text-sm">
@@ -266,7 +266,7 @@ export default function DesignsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {designs.map((d) => (
+                  {products.map((d) => (
                     <tr key={d.id} className={cn("border-t border-border hover:bg-muted/20", !d.is_active && "opacity-60")}>
                       <td className="px-4 py-3">
                         {d.preview_urls?.length > 0 ? (
@@ -305,11 +305,11 @@ export default function DesignsPage() {
                             if (
                               confirm(
                                 d.sales_count > 0
-                                  ? "This design has sales — it will be unlisted but buyers keep their downloads. Continue?"
-                                  : "Permanently delete this design?"
+                                  ? "This product has sales — it will be unlisted but buyers keep their downloads. Continue?"
+                                  : "Permanently delete this product?"
                               )
                             )
-                              deleteDesign.mutate(d.id);
+                              deleteProduct.mutate(d.id);
                           }}
                         >
                           <Trash2 className="h-3 w-3" />
@@ -342,7 +342,7 @@ export default function DesignsPage() {
             <table className="w-full text-sm">
               <thead className="bg-muted/40">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Design</th>
+                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Product</th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Buyer</th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Seller</th>
                   <th className="text-left px-4 py-3 font-medium text-muted-foreground">Amount</th>
@@ -355,7 +355,7 @@ export default function DesignsPage() {
                 {purchases.map((p) => (
                   <Fragment key={p.id}>
                     <tr className="border-t border-border hover:bg-muted/20">
-                      <td className="px-4 py-3 font-medium">{p.design_title ?? "—"}</td>
+                      <td className="px-4 py-3 font-medium">{p.product_title ?? "—"}</td>
                       <td className="px-4 py-3">
                         <p className="text-xs font-medium">{p.buyer_name ?? "—"}</p>
                         {p.buyer_email && <p className="text-[11px] text-muted-foreground">{p.buyer_email}</p>}
@@ -483,15 +483,15 @@ export default function DesignsPage() {
           ) : !userDetail ? (
             <p className="text-sm text-muted-foreground py-6 text-center">Failed to load account details.</p>
           ) : (
-            <Tabs value={detailTab} onValueChange={(v) => setDetailTab(v as "designs_sold" | "purchases")}>
+            <Tabs value={detailTab} onValueChange={(v) => setDetailTab(v as "products_sold" | "purchases")}>
               <TabsList>
-                <TabsTrigger value="designs_sold">Designs listed ({userDetail.designs_sold.length})</TabsTrigger>
+                <TabsTrigger value="products_sold">Products listed ({userDetail.products_sold.length})</TabsTrigger>
                 <TabsTrigger value="purchases">Purchases ({userDetail.purchases.length})</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="designs_sold">
-                {userDetail.designs_sold.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-6 text-center">No designs listed.</p>
+              <TabsContent value="products_sold">
+                {userDetail.products_sold.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-6 text-center">No products listed.</p>
                 ) : (
                   <div className="max-h-[60vh] overflow-y-auto rounded-lg border border-border">
                     <table className="w-full text-sm">
@@ -506,7 +506,7 @@ export default function DesignsPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {userDetail.designs_sold.map((d) => (
+                        {userDetail.products_sold.map((d) => (
                           <tr key={d.id} className="border-t border-border">
                             <td className="px-3 py-2">
                               {d.preview_urls[0] ? (
@@ -545,7 +545,7 @@ export default function DesignsPage() {
                       <thead className="bg-muted/40 sticky top-0">
                         <tr>
                           <th className="text-left px-3 py-2 font-medium text-muted-foreground">Photo</th>
-                          <th className="text-left px-3 py-2 font-medium text-muted-foreground">Design</th>
+                          <th className="text-left px-3 py-2 font-medium text-muted-foreground">Product</th>
                           <th className="text-left px-3 py-2 font-medium text-muted-foreground">Seller</th>
                           <th className="text-left px-3 py-2 font-medium text-muted-foreground">Amount paid</th>
                           <th className="text-left px-3 py-2 font-medium text-muted-foreground">Platform fee</th>
@@ -567,7 +567,7 @@ export default function DesignsPage() {
                                 <span className="text-muted-foreground text-xs">—</span>
                               )}
                             </td>
-                            <td className="px-3 py-2 max-w-[180px] truncate">{p.design_title}</td>
+                            <td className="px-3 py-2 max-w-[180px] truncate">{p.product_title}</td>
                             <td className="px-3 py-2 text-muted-foreground">{p.seller_name}</td>
                             <td className="px-3 py-2 font-medium">{formatPrice(p.amount_in_paise)}</td>
                             <td className="px-3 py-2 text-muted-foreground">{formatPrice(p.fee_in_paise)}</td>

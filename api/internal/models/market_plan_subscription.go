@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-// MarketPlanSubscription tracks a user's Design Market plan subscription.
+// MarketPlanSubscription tracks a user's Product Market plan subscription.
 // Completely separate from learning Subscription (subscription.go).
 type MarketPlanSubscription struct {
 	ID                string             `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`

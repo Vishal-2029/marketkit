@@ -85,8 +85,8 @@ class ModeChooserScreen extends ConsumerWidget {
                 const SizedBox(height: 20),
                 _ModeCard(
                   icon: Icons.storefront_outlined,
-                  title: 'Design Market',
-                  subtitle: 'Buy and sell embroidery designs',
+                  title: 'Product Market',
+                  subtitle: 'Buy and sell embroidery products',
                   onTap: () => _choose(context, ref, AppModeService.market),
                 ),
                 const Spacer(flex: 2),

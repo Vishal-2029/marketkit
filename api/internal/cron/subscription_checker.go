@@ -127,7 +127,7 @@ func markAndNotifyExpired() {
 	}
 }
 
-// markMarketPlanExpired flips ACTIVE Design Market plan subscriptions past
+// markMarketPlanExpired flips ACTIVE Product Market plan subscriptions past
 // their expiry date to EXPIRED. Separate from learning-plan subscriptions.
 func markMarketPlanExpired() {
 	now := time.Now()

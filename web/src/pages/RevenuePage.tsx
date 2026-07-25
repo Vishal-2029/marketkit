@@ -42,7 +42,7 @@ export default function RevenuePage() {
     <div>
       <PageHeader
         title="Learning Revenue"
-        subtitle="Learning subscription revenue only — excludes Design Market (see Design Market Revenue under DESIGN MARKET)"
+        subtitle="Learning subscription revenue only — excludes Product Market (see Product Market Revenue under PRODUCT MARKET)"
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

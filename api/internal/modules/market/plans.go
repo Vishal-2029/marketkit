@@ -95,7 +95,7 @@ func HandleGetSellerFee(c *fiber.Ctx) error {
 }
 
 // HandleListMarketPlans godoc
-// @Summary     List active Design Market plans
+// @Summary     List active Product Market plans
 // @Tags        User Market Plans
 // @Produce     json
 // @Security    UserAuth
@@ -113,7 +113,7 @@ func HandleListMarketPlans(c *fiber.Ctx) error {
 }
 
 // HandleMyMarketPlan godoc
-// @Summary     Current user's active Design Market plan subscription
+// @Summary     Current user's active Product Market plan subscription
 // @Tags        User Market Plans
 // @Produce     json
 // @Security    UserAuth
@@ -137,7 +137,7 @@ func HandleMyMarketPlan(c *fiber.Ctx) error {
 }
 
 // HandleCancelMyMarketPlan godoc
-// @Summary     Cancel the current user's active Design Market plan (no refund)
+// @Summary     Cancel the current user's active Product Market plan (no refund)
 // @Tags        User Market Plans
 // @Produce     json
 // @Security    UserAuth
@@ -173,7 +173,7 @@ func HandleCancelMyMarketPlan(c *fiber.Ctx) error {
 }
 
 // HandleCreateMarketPlanOrder godoc
-// @Summary     Create a Razorpay order for a Design Market plan
+// @Summary     Create a Razorpay order for a Product Market plan
 // @Tags        User Market Plans
 // @Produce     json
 // @Security    UserAuth
@@ -230,7 +230,7 @@ func HandleCreateMarketPlanOrder(c *fiber.Ctx) error {
 }
 
 // HandleVerifyMarketPlan godoc
-// @Summary     Verify Razorpay payment and activate Design Market plan
+// @Summary     Verify Razorpay payment and activate Product Market plan
 // @Tags        User Market Plans
 // @Accept      json
 // @Produce     json
@@ -288,7 +288,7 @@ func HandleVerifyMarketPlan(c *fiber.Ctx) error {
 }
 
 // HandleSubscribeMarketPlanWithWallet godoc
-// @Summary     Pay for a Design Market plan using wallet balance
+// @Summary     Pay for a Product Market plan using wallet balance
 // @Tags        User Market Plans
 // @Produce     json
 // @Security    UserAuth
@@ -418,7 +418,7 @@ func CaptureMarketPlanOrder(orderID, razorpayPaymentID string) bool {
 // ── Admin handlers ────────────────────────────────────────────────────────────
 
 // HandleAdminListMarketPlans godoc
-// @Summary     List all Design Market plans with subscriber counts (admin)
+// @Summary     List all Product Market plans with subscriber counts (admin)
 // @Tags        Admin Market Plans
 // @Produce     json
 // @Security    AdminAuth
@@ -446,7 +446,7 @@ func HandleAdminListMarketPlans(c *fiber.Ctx) error {
 }
 
 // HandleAdminCreateMarketPlan godoc
-// @Summary     Create a Design Market plan (admin)
+// @Summary     Create a Product Market plan (admin)
 // @Tags        Admin Market Plans
 // @Produce     json
 // @Security    AdminAuth
@@ -495,7 +495,7 @@ func HandleAdminCreateMarketPlan(c *fiber.Ctx) error {
 }
 
 // HandleAdminUpdateMarketPlan godoc
-// @Summary     Update a Design Market plan (admin)
+// @Summary     Update a Product Market plan (admin)
 // @Tags        Admin Market Plans
 // @Produce     json
 // @Security    AdminAuth
@@ -560,7 +560,7 @@ func HandleAdminUpdateMarketPlan(c *fiber.Ctx) error {
 }
 
 // HandleAdminDeleteMarketPlan godoc
-// @Summary     Delete a Design Market plan (admin)
+// @Summary     Delete a Product Market plan (admin)
 // @Tags        Admin Market Plans
 // @Produce     json
 // @Security    AdminAuth
@@ -611,7 +611,7 @@ type marketPlanPaymentRow struct {
 }
 
 // HandleAdminListMarketPlanPayments godoc
-// @Summary     List Design Market plan subscription payments (admin)
+// @Summary     List Product Market plan subscription payments (admin)
 // @Tags        Admin Market Plans
 // @Produce     json
 // @Security    AdminAuth

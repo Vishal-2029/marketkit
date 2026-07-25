@@ -98,27 +98,27 @@ class ApiEndpoints {
   static const String walletPayoutDetails = '/user/wallet/payout-details';
   static const String walletWithdrawals = '/user/wallet/withdrawals';
 
-  // Design market
+  // Product market
   static const String marketFee = '/user/market/fee';
   static const String marketCategories = '/user/market/categories';
   static const String marketWalletPurchase = '/user/market/purchases/wallet';
-  static const String marketDesigns = '/user/market/designs';
-  static String marketDesign(String id) => '/user/market/designs/$id';
+  static const String marketProducts = '/user/market/products';
+  static String marketProduct(String id) => '/user/market/products/$id';
   static String marketDownloadUrl(String id) =>
-      '/user/market/designs/$id/download-url';
-  static const String marketMyDesigns = '/user/market/my/designs';
-  static String marketMyDesignStats(String id) =>
-      '/user/market/my/designs/$id/stats';
+      '/user/market/products/$id/download-url';
+  static const String marketMyProducts = '/user/market/my/products';
+  static String marketMyProductStats(String id) =>
+      '/user/market/my/products/$id/stats';
   static const String marketMyPurchases = '/user/market/my/purchases';
   static String marketInvoice(String purchaseId) =>
       '/user/market/purchases/$purchaseId/invoice';
-  static String marketDesignMessages(String designId) =>
-      '/user/market/designs/$designId/messages';
+  static String marketProductMessages(String productId) =>
+      '/user/market/products/$productId/messages';
   static const String marketEarnings = '/user/market/my/earnings';
   static const String marketOrder = '/user/market/purchases/order';
   static const String marketVerify = '/user/market/purchases/verify';
 
-  // Design Market Plans (separate from learning /plans)
+  // Product Market Plans (separate from learning /plans)
   static const String marketPlans = '/user/market/plans';
   static const String marketPlansMy = '/user/market/plans/my';
   static String marketPlanOrder(String id) => '/user/market/plans/$id/order';

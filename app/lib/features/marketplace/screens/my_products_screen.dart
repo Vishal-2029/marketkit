@@ -3,20 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
-import '../models/design_model.dart';
+import '../models/product_model.dart';
 import '../models/earnings_model.dart';
-import '../providers/designs_provider.dart';
+import '../providers/products_provider.dart';
 import '../providers/my_market_provider.dart';
 
-/// Seller-facing list of every design they've uploaded, with sales/view
+/// Seller-facing list of every product they've uploaded, with sales/view
 /// stats, plus a total-earnings summary and a best-sellers chart built from
 /// the same per-seller earnings data shown on the Market profile tab.
-class MyDesignsScreen extends ConsumerWidget {
-  const MyDesignsScreen({super.key});
+class MyProductsScreen extends ConsumerWidget {
+  const MyProductsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final myDesigns = ref.watch(myDesignsProvider);
+    final myProducts = ref.watch(myProductsProvider);
     final earnings = ref.watch(earningsProvider);
 
     return Scaffold(
@@ -25,26 +25,26 @@ class MyDesignsScreen extends ConsumerWidget {
         backgroundColor: kBackground,
         elevation: 0,
         title: const Text(
-          'My Designs',
+          'My Products',
           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17),
         ),
       ),
       body: RefreshIndicator(
         color: kGold,
         onRefresh: () async {
-          ref.invalidate(myDesignsProvider);
+          ref.invalidate(myProductsProvider);
           ref.invalidate(earningsProvider);
         },
-        child: myDesigns.when(
-          data: (designs) {
-            if (designs.isEmpty) {
+        child: myProducts.when(
+          data: (products) {
+            if (products.isEmpty) {
               return ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: const [
                   SizedBox(height: 120),
                   Center(
                     child: Text(
-                      'No designs listed yet.\nUpload one to start selling!',
+                      'No products listed yet.\nUpload one to start selling!',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: kMutedForeground, height: 1.5),
                     ),
@@ -69,9 +69,9 @@ class MyDesignsScreen extends ConsumerWidget {
                   ),
                   orElse: () => const SizedBox.shrink(),
                 ),
-                for (int i = 0; i < designs.length; i++) ...[
+                for (int i = 0; i < products.length; i++) ...[
                   if (i > 0) const SizedBox(height: 10),
-                  _MyDesignCard(design: designs[i]),
+                  _MyProductCard(product: products[i]),
                 ],
               ],
             );
@@ -81,7 +81,7 @@ class MyDesignsScreen extends ConsumerWidget {
           ),
           error: (_, __) => const Center(
             child: Text(
-              'Could not load designs.',
+              'Could not load products.',
               style: TextStyle(color: kMutedForeground),
             ),
           ),
@@ -154,7 +154,7 @@ class _EarningsSummary extends StatelessWidget {
   }
 }
 
-/// Simple horizontal bar chart ranking this seller's own designs by sales —
+/// Simple horizontal bar chart ranking this seller's own products by sales —
 /// hand-rolled (no chart dependency) since only a handful of bars are ever
 /// shown at once.
 class _BestSellersChart extends StatelessWidget {
@@ -251,19 +251,19 @@ class _BarRow extends StatelessWidget {
   }
 }
 
-class _MyDesignCard extends ConsumerWidget {
-  final DesignModel design;
-  const _MyDesignCard({required this.design});
+class _MyProductCard extends ConsumerWidget {
+  final ProductModel product;
+  const _MyProductCard({required this.product});
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Remove design?'),
+        title: const Text('Remove product?'),
         content: Text(
-          design.salesCount > 0
-              ? 'This design has sales — it will be unlisted, but buyers keep their downloads.'
-              : 'This will permanently remove the design.',
+          product.salesCount > 0
+              ? 'This product has sales — it will be unlisted, but buyers keep their downloads.'
+              : 'This will permanently remove the product.',
         ),
         actions: [
           TextButton(
@@ -279,13 +279,13 @@ class _MyDesignCard extends ConsumerWidget {
     );
     if (confirmed != true) return;
     try {
-      await ref.read(marketServiceProvider).deleteDesign(design.id);
-      ref.invalidate(myDesignsProvider);
-      ref.read(designsProvider.notifier).load();
+      await ref.read(marketServiceProvider).deleteProduct(product.id);
+      ref.invalidate(myProductsProvider);
+      ref.read(productsProvider.notifier).load();
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not remove design.')),
+          const SnackBar(content: Text('Could not remove product.')),
         );
       }
     }
@@ -293,9 +293,9 @@ class _MyDesignCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final desc = design.description.trim();
+    final desc = product.description.trim();
     return InkWell(
-      onTap: () => context.push('/market/design/${design.id}'),
+      onTap: () => context.push('/market/product/${product.id}'),
       borderRadius: BorderRadius.circular(14),
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -309,9 +309,9 @@ class _MyDesignCard extends ConsumerWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: design.previewUrls.isNotEmpty
+              child: product.previewUrls.isNotEmpty
                   ? CachedNetworkImage(
-                      imageUrl: design.previewUrls.first,
+                      imageUrl: product.previewUrls.first,
                       width: 88,
                       height: 88,
                       fit: BoxFit.cover,
@@ -336,7 +336,7 @@ class _MyDesignCard extends ConsumerWidget {
                     children: [
                       Flexible(
                         child: Text(
-                          design.title,
+                          product.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -346,7 +346,7 @@ class _MyDesignCard extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      if (!design.isActive) ...[
+                      if (!product.isActive) ...[
                         const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -383,7 +383,7 @@ class _MyDesignCard extends ConsumerWidget {
                   ],
                   const SizedBox(height: 8),
                   Text(
-                    design.formattedPrice,
+                    product.formattedPrice,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -392,7 +392,7 @@ class _MyDesignCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${design.salesCount} sold · ${design.viewCount} views',
+                    '${product.salesCount} sold · ${product.viewCount} views',
                     style: const TextStyle(
                       fontSize: 12,
                       color: kMutedForeground,

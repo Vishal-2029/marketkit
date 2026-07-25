@@ -14,7 +14,7 @@ func TestMain(m *testing.M) { testutil.RunMain(m) }
 
 // TestCapturePurchase_CreditsSellerAndPlatformFeeExactlyOnce exercises the
 // Razorpay capture path shared by HandleVerifyPurchase and the webhook. The
-// platform's cut on a design sale is exactly the fee (10% by default),
+// platform's cut on a product sale is exactly the fee (10% by default),
 // credited in the same transaction as the seller's net — calling it twice
 // (simulating verify racing the webhook) must only credit once.
 func TestCapturePurchase_CreditsSellerAndPlatformFeeExactlyOnce(t *testing.T) {
@@ -23,13 +23,13 @@ func TestCapturePurchase_CreditsSellerAndPlatformFeeExactlyOnce(t *testing.T) {
 
 		seller := testutil.MustCreateUser(t, tx)
 		buyer := testutil.MustCreateUser(t, tx)
-		design := testutil.MustCreateDesign(t, tx, seller.ID, 100000) // ₹1000
+		product := testutil.MustCreateProduct(t, tx, seller.ID, 100000) // ₹1000
 
-		purchase := models.DesignPurchase{
-			DesignID:      design.ID,
+		purchase := models.ProductPurchase{
+			ProductID:     product.ID,
 			BuyerID:       buyer.ID,
 			SellerID:      seller.ID,
-			AmountInPaise: design.PriceInPaise,
+			AmountInPaise: product.PriceInPaise,
 			Status:        models.PaymentPending,
 		}
 		require.NoError(t, tx.Create(&purchase).Error)
@@ -42,7 +42,7 @@ func TestCapturePurchase_CreditsSellerAndPlatformFeeExactlyOnce(t *testing.T) {
 		ok = capturePurchase(&purchase, "pay_test1", nil)
 		assert.False(t, ok, "second capture on an already-SUCCESS purchase must not re-flip")
 
-		var updated models.DesignPurchase
+		var updated models.ProductPurchase
 		require.NoError(t, tx.First(&updated, "id = ?", purchase.ID).Error)
 		assert.Equal(t, models.PaymentSuccess, updated.Status)
 		assert.Equal(t, int64(10000), updated.FeeInPaise, "default platform fee is 10%%")
@@ -52,8 +52,8 @@ func TestCapturePurchase_CreditsSellerAndPlatformFeeExactlyOnce(t *testing.T) {
 		require.NoError(t, tx.Select("wallet_balance_in_paise").First(&sellerAfter, "id = ?", seller.ID).Error)
 		assert.Equal(t, int64(90000), sellerAfter.WalletBalanceInPaise, "seller wallet must be credited exactly once")
 
-		var d models.Design
-		require.NoError(t, tx.First(&d, "id = ?", design.ID).Error)
+		var d models.Product
+		require.NoError(t, tx.First(&d, "id = ?", product.ID).Error)
 		assert.Equal(t, 1, d.SalesCount, "sales_count must increment exactly once")
 
 		var platformFeeTotal int64

@@ -3,14 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:design_express/features/marketplace/models/design_category_model.dart';
-import 'package:design_express/features/marketplace/models/design_model.dart';
-import 'package:design_express/features/marketplace/providers/designs_provider.dart';
-import 'package:design_express/features/marketplace/screens/all_designs_tab.dart';
+import 'package:design_express/features/marketplace/models/product_category_model.dart';
+import 'package:design_express/features/marketplace/models/product_model.dart';
+import 'package:design_express/features/marketplace/providers/products_provider.dart';
+import 'package:design_express/features/marketplace/screens/all_products_tab.dart';
 import 'package:design_express/features/marketplace/services/market_service.dart';
 
-DesignModel _design(String id, String title, String catId) =>
-    DesignModel.fromJson({
+ProductModel _product(String id, String title, String catId) =>
+    ProductModel.fromJson({
       "id": id, "title": title, "description": "",
       "price_in_paise": 20000, "file_name": "$id.dst", "file_size_bytes": 0,
       "file_format": "dst", "is_active": true, "sales_count": 0,
@@ -20,11 +20,11 @@ DesignModel _design(String id, String title, String catId) =>
     });
 
 final _cats = [
-  DesignCategoryModel.fromJson(
+  ProductCategoryModel.fromJson(
       {"id": "p1", "parent_id": null, "name": "Section 1", "display_order": 1, "is_other": false}),
-  DesignCategoryModel.fromJson(
+  ProductCategoryModel.fromJson(
       {"id": "c11", "parent_id": "p1", "name": "Section 1.1", "display_order": 1, "is_other": false}),
-  DesignCategoryModel.fromJson(
+  ProductCategoryModel.fromJson(
       {"id": "c12", "parent_id": "p1", "name": "Section 1.2", "display_order": 2, "is_other": false}),
 ];
 
@@ -32,17 +32,17 @@ class FakeMarketService extends MarketService {
   String? lastCategoryId = '<none>';
 
   @override
-  Future<List<DesignCategoryModel>> fetchCategories() async => _cats;
+  Future<List<ProductCategoryModel>> fetchCategories() async => _cats;
 
   @override
-  Future<List<DesignModel>> fetchDesigns(
+  Future<List<ProductModel>> fetchProducts(
       {String? search, String? categoryId, int page = 1}) async {
     lastCategoryId = categoryId;
     if (categoryId == 'p1') {
-      return [_design('d1', 'All A', 'c11'), _design('d2', 'All B', 'c12')];
+      return [_product('d1', 'All A', 'c11'), _product('d2', 'All B', 'c12')];
     }
-    if (categoryId == 'c11') return [_design('d1', 'Only 1.1', 'c11')];
-    if (categoryId == 'c12') return [_design('d2', 'Only 1.2', 'c12')];
+    if (categoryId == 'c11') return [_product('d1', 'Only 1.1', 'c11')];
+    if (categoryId == 'c12') return [_product('d2', 'Only 1.2', 'c12')];
     return [];
   }
 }
@@ -62,7 +62,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [marketServiceProvider.overrideWithValue(fake)],
-        child: const MaterialApp(home: Scaffold(body: AllDesignsTab())),
+        child: const MaterialApp(home: Scaffold(body: AllProductsTab())),
       ),
     );
     for (var i = 0; i < 8; i++) {
@@ -72,7 +72,7 @@ void main() {
     // Home shows the parent section row.
     expect(find.text('Section 1'), findsWidgets);
 
-    // Tap the parent section → loads all children's designs (parent id p1).
+    // Tap the parent section → loads all children's products (parent id p1).
     await tester.tap(find.text('Section 1').first);
     for (var i = 0; i < 8; i++) {
       await tester.pump(const Duration(milliseconds: 100));
@@ -92,7 +92,7 @@ void main() {
     expect(find.text('Section 1.1'), findsOneWidget);
     expect(find.text('Section 1.2'), findsOneWidget);
 
-    // Pick Section 1.1 → loads only that child's designs.
+    // Pick Section 1.1 → loads only that child's products.
     await tester.tap(find.text('Section 1.1'));
     for (var i = 0; i < 8; i++) {
       await tester.pump(const Duration(milliseconds: 100));

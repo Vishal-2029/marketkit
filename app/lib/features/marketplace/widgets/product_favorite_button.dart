@@ -2,22 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../models/design_model.dart';
-import '../providers/design_favorites_provider.dart';
+import '../models/product_model.dart';
+import '../providers/product_favorites_provider.dart';
 
-/// Star toggle for liking a design, mirroring the video [FavoriteButton].
-class DesignFavoriteButton extends ConsumerWidget {
-  final DesignModel design;
+/// Star toggle for liking a product, mirroring the video [FavoriteButton].
+class ProductFavoriteButton extends ConsumerWidget {
+  final ProductModel product;
 
-  const DesignFavoriteButton({super.key, required this.design});
+  const ProductFavoriteButton({super.key, required this.product});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isFavorite = ref.watch(
-        designFavoritesProvider.select((s) => s.isFavorite(design.id)));
+        productFavoritesProvider.select((s) => s.isFavorite(product.id)));
 
     return GestureDetector(
-      onTap: () => ref.read(designFavoritesProvider.notifier).toggle(design),
+      onTap: () => ref.read(productFavoritesProvider.notifier).toggle(product),
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: const BoxDecoration(

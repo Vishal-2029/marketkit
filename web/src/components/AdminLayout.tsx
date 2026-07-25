@@ -203,13 +203,13 @@ const navSections = [
     ],
   },
   {
-    label: "DESIGN MARKET",
+    label: "PRODUCT MARKET",
     items: [
-      { title: "Sections", url: "/design-categories", icon: FolderTree },
-      { title: "Designs & Purchases", url: "/designs", icon: ShoppingBag },
+      { title: "Sections", url: "/product-categories", icon: FolderTree },
+      { title: "Products & Purchases", url: "/products", icon: ShoppingBag },
       { title: "Market Plans", url: "/market-plans", icon: BadgePercent },
       { title: "Plan Payments", url: "/market-plan-payments", icon: Receipt },
-      { title: "Market Revenue", url: "/design-market-revenue", icon: BarChart3 },
+      { title: "Market Revenue", url: "/product-market-revenue", icon: BarChart3 },
       { title: "Withdrawal Settings", url: "/withdrawals", icon: Wallet },
     ],
   },

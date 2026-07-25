@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-type Design struct {
+type Product struct {
 	ID            string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	SellerID      string    `gorm:"index;not null"                                 json:"-"`
 	Title         string    `gorm:"not null"                                       json:"title"`
@@ -18,14 +18,14 @@ type Design struct {
 	CreatedAt     time.Time `                                                      json:"created_at"`
 	UpdatedAt     time.Time `                                                      json:"updated_at"`
 
-	// CategoryID is nullable so pre-existing designs aren't broken by this
+	// CategoryID is nullable so pre-existing products aren't broken by this
 	// field's addition. CategoryOther holds the seller's free-text
 	// description when CategoryID points at the "Other" category.
 	CategoryID    *string `gorm:"index"     json:"category_id,omitempty"`
 	CategoryOther *string `                 json:"category_other,omitempty"`
 
-	Seller   User            `gorm:"foreignKey:SellerID;constraint:OnDelete:CASCADE"   json:"-"`
-	Category *DesignCategory `gorm:"foreignKey:CategoryID;constraint:OnDelete:SET NULL" json:"category,omitempty"`
+	Seller   User             `gorm:"foreignKey:SellerID;constraint:OnDelete:CASCADE"   json:"-"`
+	Category *ProductCategory `gorm:"foreignKey:CategoryID;constraint:OnDelete:SET NULL" json:"category,omitempty"`
 
 	// Preview image keys stored as a JSON array; URLs resolved at query time.
 	PreviewKeys []string `gorm:"type:text;serializer:json" json:"-"`

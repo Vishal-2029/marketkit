@@ -5,10 +5,10 @@ import '../../../shared/widgets/notifications_bell.dart';
 import '../../notifications/providers/notifications_provider.dart';
 import '../../market_plans/screens/market_plans_tab.dart';
 import '../widgets/payout_details_banner.dart';
-import 'all_designs_tab.dart';
-import 'favorite_designs_tab.dart';
+import 'all_products_tab.dart';
+import 'favorite_products_tab.dart';
 import 'market_profile_tab.dart';
-import 'upload_design_tab.dart';
+import 'upload_product_tab.dart';
 
 class MarketplaceShell extends ConsumerStatefulWidget {
   const MarketplaceShell({super.key});
@@ -32,12 +32,12 @@ class _MarketplaceShellState extends ConsumerState<MarketplaceShell> {
       backgroundColor: kBackground,
       appBar: AppBar(
         backgroundColor: kBackground,
-        // No back arrow: Design Market is a top-level mode, not a pushed
+        // No back arrow: Product Market is a top-level mode, not a pushed
         // page. The only way back to Learning is the switch in the Profile
         // tab — so a stray auto-added leading arrow must never appear.
         automaticallyImplyLeading: false,
         title: const Text(
-          'Design Market',
+          'Product Market',
           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
         ),
         centerTitle: false,
@@ -52,10 +52,10 @@ class _MarketplaceShellState extends ConsumerState<MarketplaceShell> {
           child: IndexedStack(
             index: _index,
             children: [
-              const AllDesignsTab(),
-              UploadDesignTab(onUploaded: () => setState(() => _index = 4)),
+              const AllProductsTab(),
+              UploadProductTab(onUploaded: () => setState(() => _index = 4)),
               const MarketPlansTab(),
-              const FavoriteDesignsTab(),
+              const FavoriteProductsTab(),
               MarketProfileTab(onViewPlans: () => setState(() => _index = 2)),
             ],
           ),
@@ -69,7 +69,7 @@ class _MarketplaceShellState extends ConsumerState<MarketplaceShell> {
           BottomNavigationBarItem(
             icon: Icon(Icons.grid_view_outlined),
             activeIcon: Icon(Icons.grid_view_rounded),
-            label: 'Design',
+            label: 'Product',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.file_upload_outlined),

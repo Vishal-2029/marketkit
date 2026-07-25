@@ -10,13 +10,13 @@ import (
 )
 
 // TestBuildInvoicePDF_ProducesValidPDF proves the bill/invoice generated on
-// every design purchase (wallet, Razorpay verify, Razorpay webhook all call
+// every product purchase (wallet, Razorpay verify, Razorpay webhook all call
 // sendPurchaseEmailAsync -> buildInvoicePDF, and the download endpoint
 // HandleDownloadInvoice calls it too) actually renders without error and
 // yields a real PDF.
 func TestBuildInvoicePDF_ProducesValidPDF(t *testing.T) {
 	now := time.Now()
-	purchase := &models.DesignPurchase{
+	purchase := &models.ProductPurchase{
 		ID:               "test-purchase-id",
 		AmountInPaise:    400000,
 		FeeInPaise:       40000,
@@ -27,7 +27,7 @@ func TestBuildInvoicePDF_ProducesValidPDF(t *testing.T) {
 		CreatedAt:        now,
 		Buyer:            models.User{Name: "Test Buyer", Email: "buyer@example.com"},
 		Seller:           models.User{Name: "Test Seller", Email: "seller@example.com"},
-		Design: models.Design{
+		Product: models.Product{
 			Title:    "Rose Embroidery Pattern",
 			FileName: "rose.dst",
 			// No PreviewKeys, so buildInvoicePDF skips the network image fetch.

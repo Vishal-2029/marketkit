@@ -1,6 +1,6 @@
 // Package platform_wallet implements the single, organization-wide platform
 // wallet: the running total of platform income (learning-plan payments,
-// market-plan payments, and design-sale platform fees) minus super-admin
+// market-plan payments, and product-sale platform fees) minus super-admin
 // withdrawals. It is not per-admin and not split — there is exactly one
 // balance, visible and spendable only by super-admins.
 package platform_wallet
@@ -23,7 +23,7 @@ var ErrInsufficientBalance = errors.New("insufficient platform wallet balance")
 // It row-locks the wallet record so concurrent credits/debits serialize.
 //
 // Must be called inside a caller-provided transaction, in the same
-// transaction as the event that earns/spends it (a design sale, a plan
+// transaction as the event that earns/spends it (a product sale, a plan
 // activation, a withdrawal) — a rollback must undo the platform credit
 // together with whatever else that transaction did.
 func Apply(tx *gorm.DB, source string, amountInPaise int64, referenceID *string, meta models.JSONMap) (int64, error) {
@@ -63,7 +63,7 @@ func Apply(tx *gorm.DB, source string, amountInPaise int64, referenceID *string,
 }
 
 // Backfill seeds the platform ledger/balance from historical rows the first
-// time it runs: SUM(fee_in_paise) over successful design_purchases, plus
+// time it runs: SUM(fee_in_paise) over successful product_purchases, plus
 // historical learning payments, plus paid market_plan_subscriptions. Guarded
 // by PlatformWallet.BackfilledAt so re-runs on every boot never double-credit.
 func Backfill() {
@@ -89,7 +89,7 @@ func Backfill() {
 			Select("COALESCE(SUM(amount_in_paise), 0)").Scan(&marketPlanTotal).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(&models.DesignPurchase{}).
+		if err := tx.Model(&models.ProductPurchase{}).
 			Where("status = ?", models.PaymentSuccess).
 			Select("COALESCE(SUM(fee_in_paise), 0)").Scan(&feeTotal).Error; err != nil {
 			return err

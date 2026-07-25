@@ -222,12 +222,12 @@ func SendWelcomeLearningEmail(to, name string) error {
 }
 
 // SendWelcomeMarketEmail fires on first-ever login for users who chose the
-// Design Market mode (at registration, or by switching to it later).
+// Product Market mode (at registration, or by switching to it later).
 func SendWelcomeMarketEmail(to, name string) error {
 	if name == "" {
 		name = "there"
 	}
-	return sendTemplate(to, "Welcome to the Design Market — Design Express", "welcome_market.html",
+	return sendTemplate(to, "Welcome to the Product Market — Design Express", "welcome_market.html",
 		welcomeModeTemplateData{Name: name, Year: time.Now().Year()})
 }
 
@@ -237,24 +237,24 @@ func SendPaymentReceiptEmail(to string, data PaymentReceiptData) error {
 	return sendTemplate(to, "Payment Receipt — Design Express", "payment_receipt.html", data)
 }
 
-// MarketPurchaseEmailData is the payload for Design Market purchase thank-you emails.
+// MarketPurchaseEmailData is the payload for Product Market purchase thank-you emails.
 type MarketPurchaseEmailData struct {
 	Name         string
-	DesignTitle  string
+	ProductTitle string
 	SellerName   string
 	Amount       string
 	PaidVia      string
 	PaidAt       string
 	PurchaseID   string
 	PreviewURL   string
-	DownloadLink string // set when the design file is too large to attach
+	DownloadLink string // set when the product file is too large to attach
 	Year         int
 }
 
 // SendMarketPurchaseEmail emails the buyer a thank-you with the invoice PDF
-// and (when small enough) the design file attached. If designFile is empty
+// and (when small enough) the product file attached. If productFile is empty
 // and DownloadLink is set on data, the template shows a secure download link.
-func SendMarketPurchaseEmail(to string, data MarketPurchaseEmailData, invoicePDF []byte, designFile []byte, designFileName string) error {
+func SendMarketPurchaseEmail(to string, data MarketPurchaseEmailData, invoicePDF []byte, productFile []byte, productFileName string) error {
 	data.Year = time.Now().Year()
 	if data.Name == "" {
 		data.Name = "there"
@@ -262,8 +262,8 @@ func SendMarketPurchaseEmail(to string, data MarketPurchaseEmailData, invoicePDF
 	atts := []EmailAttachment{
 		{Filename: fmt.Sprintf("invoice-%s.pdf", data.PurchaseID), Data: invoicePDF},
 	}
-	if len(designFile) > 0 && designFileName != "" {
-		atts = append(atts, EmailAttachment{Filename: designFileName, Data: designFile})
+	if len(productFile) > 0 && productFileName != "" {
+		atts = append(atts, EmailAttachment{Filename: productFileName, Data: productFile})
 	}
 	return sendTemplateWithAttachments(to, "Thank you for your purchase — Design Express",
 		"market_purchase_receipt.html", data, atts...)

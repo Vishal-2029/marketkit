@@ -16,7 +16,7 @@ func TestMain(m *testing.M) { testutil.RunMain(m) }
 
 // TestCreateManualPayment_CreditsLearningPlanExactlyOnce covers the
 // admin-manual-activation flip point (HandleManual). Learning-plan payments
-// are platform revenue in full, unlike a design sale's fee-only cut.
+// are platform revenue in full, unlike a product sale's fee-only cut.
 func TestCreateManualPayment_CreditsLearningPlanExactlyOnce(t *testing.T) {
 	testutil.WithTx(t, func() {
 		tx := database.DB

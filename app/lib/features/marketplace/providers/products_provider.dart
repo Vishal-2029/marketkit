@@ -1,58 +1,58 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/design_category_model.dart';
-import '../models/design_model.dart';
+import '../models/product_category_model.dart';
+import '../models/product_model.dart';
 import '../services/market_service.dart';
 
-class DesignsState {
+class ProductsState {
   final bool isLoading;
   final bool isLoadingMore;
   final bool hasMore;
   final int currentPage;
-  final List<DesignModel> designs;
+  final List<ProductModel> products;
   final String searchQuery;
   final String? categoryId;
   final String? error;
 
-  const DesignsState({
+  const ProductsState({
     this.isLoading = false,
     this.isLoadingMore = false,
     this.hasMore = true,
     this.currentPage = 1,
-    this.designs = const [],
+    this.products = const [],
     this.searchQuery = '',
     this.categoryId,
     this.error,
   });
 
-  DesignsState copyWith({
+  ProductsState copyWith({
     bool? isLoading,
     bool? isLoadingMore,
     bool? hasMore,
     int? currentPage,
-    List<DesignModel>? designs,
+    List<ProductModel>? products,
     String? searchQuery,
     String? categoryId,
     bool clearCategory = false,
     String? error,
     bool clearError = false,
   }) =>
-      DesignsState(
+      ProductsState(
         isLoading: isLoading ?? this.isLoading,
         isLoadingMore: isLoadingMore ?? this.isLoadingMore,
         hasMore: hasMore ?? this.hasMore,
         currentPage: currentPage ?? this.currentPage,
-        designs: designs ?? this.designs,
+        products: products ?? this.products,
         searchQuery: searchQuery ?? this.searchQuery,
         categoryId: clearCategory ? null : (categoryId ?? this.categoryId),
         error: clearError ? null : (error ?? this.error),
       );
 }
 
-class DesignsNotifier extends StateNotifier<DesignsState> {
+class ProductsNotifier extends StateNotifier<ProductsState> {
   final MarketService _service;
 
-  DesignsNotifier(this._service) : super(const DesignsState());
+  ProductsNotifier(this._service) : super(const ProductsState());
 
   static const _pageSize = 20;
 
@@ -60,21 +60,21 @@ class DesignsNotifier extends StateNotifier<DesignsState> {
     state = state.copyWith(
         isLoading: true, clearError: true, currentPage: 1, hasMore: true);
     try {
-      final designs = await _service.fetchDesigns(
+      final products = await _service.fetchProducts(
         search: state.searchQuery,
         categoryId: state.categoryId,
         page: 1,
       );
       state = state.copyWith(
         isLoading: false,
-        designs: designs,
+        products: products,
         currentPage: 1,
-        hasMore: designs.length >= _pageSize,
+        hasMore: products.length >= _pageSize,
       );
     } catch (_) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Could not load designs. Check your connection.',
+        error: 'Could not load products. Check your connection.',
       );
     }
   }
@@ -84,16 +84,16 @@ class DesignsNotifier extends StateNotifier<DesignsState> {
     final nextPage = state.currentPage + 1;
     state = state.copyWith(isLoadingMore: true);
     try {
-      final designs = await _service.fetchDesigns(
+      final products = await _service.fetchProducts(
         search: state.searchQuery,
         categoryId: state.categoryId,
         page: nextPage,
       );
       state = state.copyWith(
         isLoadingMore: false,
-        designs: [...state.designs, ...designs],
+        products: [...state.products, ...products],
         currentPage: nextPage,
-        hasMore: designs.length >= _pageSize,
+        hasMore: products.length >= _pageSize,
       );
     } catch (_) {
       state = state.copyWith(isLoadingMore: false);
@@ -117,22 +117,22 @@ class DesignsNotifier extends StateNotifier<DesignsState> {
 
 final marketServiceProvider = Provider((_) => MarketService());
 
-final designsProvider = StateNotifierProvider<DesignsNotifier, DesignsState>(
-  (ref) => DesignsNotifier(ref.read(marketServiceProvider)),
+final productsProvider = StateNotifierProvider<ProductsNotifier, ProductsState>(
+  (ref) => ProductsNotifier(ref.read(marketServiceProvider)),
 );
 
 final categoriesProvider =
-    FutureProvider.autoDispose<List<DesignCategoryModel>>((ref) async {
+    FutureProvider.autoDispose<List<ProductCategoryModel>>((ref) async {
   return ref.read(marketServiceProvider).fetchCategories();
 });
 
-/// A capped preview of designs for one home-page section — separate from
-/// [designsProvider] so browsing sections doesn't disturb the main
+/// A capped preview of products for one home-page section — separate from
+/// [productsProvider] so browsing sections doesn't disturb the main
 /// search/filter grid's state.
-final sectionDesignsProvider = FutureProvider.autoDispose
-    .family<List<DesignModel>, String>((ref, categoryId) async {
-  final designs = await ref
+final sectionProductsProvider = FutureProvider.autoDispose
+    .family<List<ProductModel>, String>((ref, categoryId) async {
+  final products = await ref
       .read(marketServiceProvider)
-      .fetchDesigns(categoryId: categoryId);
-  return designs.take(10).toList();
+      .fetchProducts(categoryId: categoryId);
+  return products.take(10).toList();
 });

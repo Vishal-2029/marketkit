@@ -32,13 +32,13 @@ func readAllLimited(r io.Reader, limit int64) ([]byte, error) {
 }
 
 // sendPurchaseEmailAsync loads the purchase with relations, builds the invoice
-// PDF, optionally attaches the design file (or falls back to a signed link),
+// PDF, optionally attaches the product file (or falls back to a signed link),
 // and emails the buyer. Runs in a goroutine — never blocks the purchase response.
 func sendPurchaseEmailAsync(purchaseID string) {
 	go func() {
-		var purchase models.DesignPurchase
+		var purchase models.ProductPurchase
 		if err := database.DB.
-			Preload("Design").
+			Preload("Product").
 			Preload("Buyer").
 			Preload("Seller").
 			First(&purchase, "id = ?", purchaseID).Error; err != nil {
@@ -60,13 +60,13 @@ func sendPurchaseEmailAsync(purchaseID string) {
 			paidAt = *purchase.PaidAt
 		}
 		previewURL := ""
-		if len(purchase.Design.PreviewKeys) > 0 {
-			previewURL = storage.Store.PublicURL(purchase.Design.PreviewKeys[0])
+		if len(purchase.Product.PreviewKeys) > 0 {
+			previewURL = storage.Store.PublicURL(purchase.Product.PreviewKeys[0])
 		}
 
 		data := email.MarketPurchaseEmailData{
 			Name:         purchase.Buyer.Name,
-			DesignTitle:  purchase.Design.Title,
+			ProductTitle: purchase.Product.Title,
 			SellerName:   purchase.Seller.Name,
 			Amount:       email.FormatAmount(purchase.AmountInPaise),
 			PaidVia:      purchase.PaidVia,
@@ -76,13 +76,13 @@ func sendPurchaseEmailAsync(purchaseID string) {
 			DownloadLink: "",
 		}
 
-		var designBytes []byte
-		designFileName := purchase.Design.FileName
-		if designFileName == "" {
-			designFileName = "design-file"
+		var productBytes []byte
+		productFileName := purchase.Product.FileName
+		if productFileName == "" {
+			productFileName = "product-file"
 		}
 
-		url, err := storage.Store.SignedURL(context.Background(), purchase.Design.FileKey, 7*24*time.Hour)
+		url, err := storage.Store.SignedURL(context.Background(), purchase.Product.FileKey, 7*24*time.Hour)
 		if err != nil {
 			slog.Error("market: purchase email signed url failed", "purchase_id", purchaseID, "error", err)
 		} else {
@@ -92,7 +92,7 @@ func sendPurchaseEmailAsync(purchaseID string) {
 				if resp.StatusCode == http.StatusOK {
 					body, err := readAllLimited(resp.Body, maxEmailAttachmentBytes)
 					if err == nil {
-						designBytes = body
+						productBytes = body
 					} else {
 						// Too large (or read failed) — put a recoverable link in the email.
 						data.DownloadLink = url
@@ -106,7 +106,7 @@ func sendPurchaseEmailAsync(purchaseID string) {
 		}
 
 		if err := email.SendMarketPurchaseEmail(
-			purchase.Buyer.Email, data, pdfBytes, designBytes, designFileName,
+			purchase.Buyer.Email, data, pdfBytes, productBytes, productFileName,
 		); err != nil {
 			slog.Error("market: purchase email send failed", "purchase_id", purchaseID, "error", err)
 		}

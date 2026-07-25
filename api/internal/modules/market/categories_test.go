@@ -49,7 +49,7 @@ func multipartPhotoBody(t *testing.T, jpegBytes []byte) (*bytes.Buffer, string) 
 func TestHandleAdminUploadCategoryPhoto_SetsAndReplacesPhoto(t *testing.T) {
 	testutil.WithTx(t, func() {
 		tx := database.DB
-		cat := models.DesignCategory{Name: "Test Section", DisplayOrder: 1}
+		cat := models.ProductCategory{Name: "Test Section", DisplayOrder: 1}
 		require.NoError(t, tx.Create(&cat).Error)
 
 		app := testutil.FiberApp(nil)
@@ -74,7 +74,7 @@ func TestHandleAdminUploadCategoryPhoto_SetsAndReplacesPhoto(t *testing.T) {
 		require.NoError(t, json.Unmarshal(respBody, &parsed))
 		assert.NotEmpty(t, parsed.Data.PhotoURL)
 
-		var updated models.DesignCategory
+		var updated models.ProductCategory
 		require.NoError(t, tx.First(&updated, "id = ?", cat.ID).Error)
 		require.NotNil(t, updated.PhotoKey)
 		firstKey := *updated.PhotoKey
@@ -87,7 +87,7 @@ func TestHandleAdminUploadCategoryPhoto_SetsAndReplacesPhoto(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 200, resp2.StatusCode)
 
-		var updated2 models.DesignCategory
+		var updated2 models.ProductCategory
 		require.NoError(t, tx.First(&updated2, "id = ?", cat.ID).Error)
 		require.NotNil(t, updated2.PhotoKey)
 		assert.NotEqual(t, firstKey, *updated2.PhotoKey, "each upload should get a fresh key")
@@ -96,11 +96,11 @@ func TestHandleAdminUploadCategoryPhoto_SetsAndReplacesPhoto(t *testing.T) {
 
 // TestHandleAdminListCategories_PhotoURLEmptyUntilSet covers the fallback:
 // sections without an admin-set photo report no photo_url at all, so the app
-// knows to fall back to the first design's own preview.
+// knows to fall back to the first product's own preview.
 func TestHandleAdminListCategories_PhotoURLEmptyUntilSet(t *testing.T) {
 	testutil.WithTx(t, func() {
 		tx := database.DB
-		cat := models.DesignCategory{Name: "No Photo Section", DisplayOrder: 2}
+		cat := models.ProductCategory{Name: "No Photo Section", DisplayOrder: 2}
 		require.NoError(t, tx.Create(&cat).Error)
 
 		app := testutil.FiberApp(nil)

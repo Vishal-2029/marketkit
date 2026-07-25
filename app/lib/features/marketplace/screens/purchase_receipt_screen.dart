@@ -7,10 +7,10 @@ import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/purchase_model.dart';
-import '../providers/designs_provider.dart';
+import '../providers/products_provider.dart';
 
 /// Shown immediately after a successful purchase. Auto-downloads the invoice
-/// PDF and the design file to disk; status rows reflect progress with retry.
+/// PDF and the product file to disk; status rows reflect progress with retry.
 class PurchaseReceiptScreen extends ConsumerStatefulWidget {
   final String purchaseId;
 
@@ -73,7 +73,7 @@ class _PurchaseReceiptScreenState extends ConsumerState<PurchaseReceiptScreen> {
   }
 
   Future<void> _startDownloads() async {
-    await Future.wait([_downloadInvoice(), _downloadDesignFile()]);
+    await Future.wait([_downloadInvoice(), _downloadProductFile()]);
   }
 
   Future<void> _downloadInvoice() async {
@@ -96,7 +96,7 @@ class _PurchaseReceiptScreenState extends ConsumerState<PurchaseReceiptScreen> {
     }
   }
 
-  Future<void> _downloadDesignFile() async {
+  Future<void> _downloadProductFile() async {
     final purchase = _purchase;
     if (purchase == null) return;
     setState(() {
@@ -105,14 +105,14 @@ class _PurchaseReceiptScreenState extends ConsumerState<PurchaseReceiptScreen> {
     });
     try {
       final service = ref.read(marketServiceProvider);
-      final info = await service.fetchDownloadUrl(purchase.designId);
+      final info = await service.fetchDownloadUrl(purchase.productId);
       final url = info['url'] as String?;
-      final fileName = (info['file_name'] as String?) ?? 'design-file';
+      final fileName = (info['file_name'] as String?) ?? 'product-file';
       if (url == null || url.isEmpty) throw Exception('No download URL');
 
       final dir = await getApplicationDocumentsDirectory();
-      final savePath = '${dir.path}/designs/$fileName';
-      await Directory('${dir.path}/designs').create(recursive: true);
+      final savePath = '${dir.path}/products/$fileName';
+      await Directory('${dir.path}/products').create(recursive: true);
       await service.downloadFileToPath(url, savePath);
       if (!mounted) return;
       setState(() => _fileStatus = _DlStatus.done);
@@ -120,7 +120,7 @@ class _PurchaseReceiptScreenState extends ConsumerState<PurchaseReceiptScreen> {
       if (!mounted) return;
       setState(() {
         _fileStatus = _DlStatus.failed;
-        _fileError = 'Design file download incomplete — tap to retry';
+        _fileError = 'Product file download incomplete — tap to retry';
       });
     }
   }
@@ -151,9 +151,9 @@ class _PurchaseReceiptScreenState extends ConsumerState<PurchaseReceiptScreen> {
 
   Widget _buildBody() {
     final p = _purchase!;
-    final design = p.design;
-    final preview = design?.previewUrls.isNotEmpty == true
-        ? design!.previewUrls.first
+    final product = p.product;
+    final preview = product?.previewUrls.isNotEmpty == true
+        ? product!.previewUrls.first
         : null;
 
     return ListView(
@@ -177,17 +177,17 @@ class _PurchaseReceiptScreenState extends ConsumerState<PurchaseReceiptScreen> {
           ),
         const SizedBox(height: 20),
         Text(
-          design?.title ?? 'Design',
+          product?.title ?? 'Product',
           style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
             color: kForeground,
           ),
         ),
-        if (design != null && design.sellerName.isNotEmpty) ...[
+        if (product != null && product.sellerName.isNotEmpty) ...[
           const SizedBox(height: 6),
           Text(
-            'Seller: ${design.sellerName}',
+            'Seller: ${product.sellerName}',
             style: const TextStyle(fontSize: 14, color: kMutedForeground),
           ),
         ],
@@ -209,8 +209,8 @@ class _PurchaseReceiptScreenState extends ConsumerState<PurchaseReceiptScreen> {
           ),
           child: const Text(
             'This sale is final — no returns or refunds are processed through the app. '
-            "If there's an issue with the design you purchased, please contact support "
-            "from the design's page instead of requesting a return.",
+            "If there's an issue with the product you purchased, please contact support "
+            "from the product's page instead of requesting a return.",
             style: TextStyle(fontSize: 13, color: kMutedForeground, height: 1.45),
           ),
         ),
@@ -228,10 +228,10 @@ class _PurchaseReceiptScreenState extends ConsumerState<PurchaseReceiptScreen> {
         ),
         const SizedBox(height: 8),
         _statusTile(
-          label: 'Design file',
+          label: 'Product file',
           status: _fileStatus,
           error: _fileError,
-          onRetry: _downloadDesignFile,
+          onRetry: _downloadProductFile,
         ),
         const SizedBox(height: 32),
         SizedBox(
@@ -245,7 +245,7 @@ class _PurchaseReceiptScreenState extends ConsumerState<PurchaseReceiptScreen> {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text('Back to Design Market',
+            child: const Text('Back to Product Market',
                 style: TextStyle(fontWeight: FontWeight.w600)),
           ),
         ),

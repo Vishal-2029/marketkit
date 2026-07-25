@@ -219,7 +219,7 @@ export default function PhotosPage() {
             </div>
             <div className="mb-4">
               <label className="text-sm font-medium text-foreground">Title *</label>
-              <Input className="mt-1" placeholder="e.g. Rose Pattern Design" value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} />
+              <Input className="mt-1" placeholder="e.g. Rose Pattern Product" value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} />
             </div>
             <div className="mb-4">
               <label className="text-sm font-medium text-foreground">Category</label>

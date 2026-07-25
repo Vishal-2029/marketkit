@@ -6,7 +6,7 @@ import '../../features/notifications/models/notification_model.dart';
 import '../../features/notifications/providers/notifications_provider.dart';
 
 /// Bell icon with an unread-count badge. Tapping it opens the shared
-/// notifications sheet. Used on both the main Home screen and the Design
+/// notifications sheet. Used on both the main Home screen and the Product
 /// Market shell so the two modes share one notifications UI.
 class NotificationsBellButton extends ConsumerWidget {
   const NotificationsBellButton({super.key, this.iconColor = kForeground});

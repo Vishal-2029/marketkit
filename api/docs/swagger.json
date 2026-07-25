@@ -2862,7 +2862,7 @@
                 }
             }
         },
-        "/market/designs": {
+        "/market/products": {
             "get": {
                 "security": [
                     {
@@ -2875,7 +2875,7 @@
                 "tags": [
                     "Admin Market"
                 ],
-                "summary": "List all marketplace designs (admin)",
+                "summary": "List all marketplace products (admin)",
                 "parameters": [
                     {
                         "type": "string",
@@ -2902,7 +2902,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Design"
+                                "$ref": "#/definitions/models.Product"
                             }
                         }
                     },
@@ -2918,7 +2918,7 @@
                 }
             }
         },
-        "/market/designs/{id}": {
+        "/market/products/{id}": {
             "delete": {
                 "security": [
                     {
@@ -2931,11 +2931,11 @@
                 "tags": [
                     "Admin Market"
                 ],
-                "summary": "Take down a marketplace design (admin)",
+                "summary": "Take down a marketplace product (admin)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Design ID",
+                        "description": "Product ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2985,7 +2985,7 @@
                 "tags": [
                     "Admin Market"
                 ],
-                "summary": "List all design purchases (admin)",
+                "summary": "List all product purchases (admin)",
                 "parameters": [
                     {
                         "type": "integer",
@@ -3006,7 +3006,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.DesignPurchase"
+                                "$ref": "#/definitions/models.ProductPurchase"
                             }
                         }
                     },
@@ -4303,7 +4303,7 @@
                 }
             }
         },
-        "/user/market/designs": {
+        "/user/market/products": {
             "get": {
                 "security": [
                     {
@@ -4316,7 +4316,7 @@
                 "tags": [
                     "User Market"
                 ],
-                "summary": "Browse marketplace designs",
+                "summary": "Browse marketplace products",
                 "parameters": [
                     {
                         "type": "string",
@@ -4337,7 +4337,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Design"
+                                "$ref": "#/definitions/models.Product"
                             }
                         }
                     },
@@ -4367,11 +4367,11 @@
                 "tags": [
                     "User Market"
                 ],
-                "summary": "List a design for sale",
+                "summary": "List a product for sale",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Design title",
+                        "description": "Product title",
                         "name": "title",
                         "in": "formData",
                         "required": true
@@ -4408,7 +4408,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.Design"
+                            "$ref": "#/definitions/models.Product"
                         }
                     },
                     "400": {
@@ -4432,7 +4432,7 @@
                 }
             }
         },
-        "/user/market/designs/{id}": {
+        "/user/market/products/{id}": {
             "get": {
                 "security": [
                     {
@@ -4445,11 +4445,11 @@
                 "tags": [
                     "User Market"
                 ],
-                "summary": "Get a marketplace design",
+                "summary": "Get a marketplace product",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Design ID",
+                        "description": "Product ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4459,7 +4459,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Design"
+                            "$ref": "#/definitions/models.Product"
                         }
                     },
                     "401": {
@@ -4494,11 +4494,11 @@
                 "tags": [
                     "User Market"
                 ],
-                "summary": "Remove own design listing",
+                "summary": "Remove own product listing",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Design ID",
+                        "description": "Product ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4535,7 +4535,7 @@
                 }
             }
         },
-        "/user/market/designs/{id}/download-url": {
+        "/user/market/products/{id}/download-url": {
             "get": {
                 "security": [
                     {
@@ -4548,11 +4548,11 @@
                 "tags": [
                     "User Market"
                 ],
-                "summary": "Get a signed download URL for a purchased design file",
+                "summary": "Get a signed download URL for a purchased product file",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Design ID",
+                        "description": "Product ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4598,7 +4598,7 @@
                 }
             }
         },
-        "/user/market/my/designs": {
+        "/user/market/my/products": {
             "get": {
                 "security": [
                     {
@@ -4611,14 +4611,14 @@
                 "tags": [
                     "User Market"
                 ],
-                "summary": "List own design listings (including unlisted)",
+                "summary": "List own product listings (including unlisted)",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Design"
+                                "$ref": "#/definitions/models.Product"
                             }
                         }
                     },
@@ -4681,14 +4681,14 @@
                 "tags": [
                     "User Market"
                 ],
-                "summary": "List own successful design purchases",
+                "summary": "List own successful product purchases",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.DesignPurchase"
+                                "$ref": "#/definitions/models.ProductPurchase"
                             }
                         }
                     },
@@ -4720,10 +4720,10 @@
                 "tags": [
                     "User Market"
                 ],
-                "summary": "Create a Razorpay order for a design purchase",
+                "summary": "Create a Razorpay order for a product purchase",
                 "parameters": [
                     {
-                        "description": "design_id",
+                        "description": "product_id",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -4789,7 +4789,7 @@
                 "tags": [
                     "User Market"
                 ],
-                "summary": "Verify a Razorpay design purchase signature",
+                "summary": "Verify a Razorpay product purchase signature",
                 "parameters": [
                     {
                         "description": "razorpay_order_id, razorpay_payment_id, razorpay_signature",
@@ -6358,7 +6358,7 @@
                 }
             }
         },
-        "models.Design": {
+        "models.Product": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -6415,7 +6415,7 @@
                 }
             }
         },
-        "models.DesignPurchase": {
+        "models.ProductPurchase": {
             "type": "object",
             "properties": {
                 "amount_in_paise": {
@@ -6437,13 +6437,13 @@
                 "currency": {
                     "type": "string"
                 },
-                "design": {
-                    "$ref": "#/definitions/models.Design"
+                "product": {
+                    "$ref": "#/definitions/models.Product"
                 },
-                "design_id": {
+                "product_id": {
                     "type": "string"
                 },
-                "design_title": {
+                "product_title": {
                     "type": "string"
                 },
                 "id": {

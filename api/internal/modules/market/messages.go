@@ -9,62 +9,62 @@ import (
 )
 
 // buyersPurchase looks up the requesting user's successful purchase of a
-// design — the thread is keyed by purchase internally, but the app only
-// ever has the design ID handy (a design can only be bought once per buyer).
-func buyersPurchase(userID, designID string) (models.DesignPurchase, error) {
-	var purchase models.DesignPurchase
+// product — the thread is keyed by purchase internally, but the app only
+// ever has the product ID handy (a product can only be bought once per buyer).
+func buyersPurchase(userID, productID string) (models.ProductPurchase, error) {
+	var purchase models.ProductPurchase
 	err := database.DB.
-		Where("design_id = ? AND buyer_id = ? AND status = ?", designID, userID, models.PaymentSuccess).
+		Where("product_id = ? AND buyer_id = ? AND status = ?", productID, userID, models.PaymentSuccess).
 		Order("created_at DESC").
 		First(&purchase).Error
 	return purchase, err
 }
 
-// HandleListDesignMessages godoc
-// @Summary     List the buyer's private support thread for a purchased design
+// HandleListProductMessages godoc
+// @Summary     List the buyer's private support thread for a purchased product
 // @Tags        User Market
 // @Produce     json
 // @Security    UserAuth
-// @Param       id  path  string  true  "Design ID"
-// @Success     200  {object}  []models.DesignPurchaseMessage
+// @Param       id  path  string  true  "Product ID"
+// @Success     200  {object}  []models.ProductPurchaseMessage
 // @Failure     401  {object}  map[string]string
 // @Failure     404  {object}  map[string]string
-// @Router      /user/market/designs/{id}/messages [get]
-func HandleListDesignMessages(c *fiber.Ctx) error {
+// @Router      /user/market/products/{id}/messages [get]
+func HandleListProductMessages(c *fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(string)
 	purchase, err := buyersPurchase(userID, c.Params("id"))
 	if err != nil {
-		return response.NotFound(c, "you haven't purchased this design")
+		return response.NotFound(c, "you haven't purchased this product")
 	}
 
-	var messages []models.DesignPurchaseMessage
+	var messages []models.ProductPurchaseMessage
 	database.DB.
 		Where("purchase_id = ? AND thread_user_id = ?", purchase.ID, userID).
 		Order("created_at ASC").
 		Find(&messages)
 	if messages == nil {
-		messages = []models.DesignPurchaseMessage{}
+		messages = []models.ProductPurchaseMessage{}
 	}
 	return response.OK(c, messages)
 }
 
-// HandlePostDesignMessage godoc
-// @Summary     Send a message on the buyer's private support thread for a purchased design
+// HandlePostProductMessage godoc
+// @Summary     Send a message on the buyer's private support thread for a purchased product
 // @Tags        User Market
 // @Accept      json
 // @Produce     json
 // @Security    UserAuth
-// @Param       id    path  string             true  "Design ID"
+// @Param       id    path  string             true  "Product ID"
 // @Param       body  body  map[string]string  true  "content"
-// @Success     201  {object}  models.DesignPurchaseMessage
+// @Success     201  {object}  models.ProductPurchaseMessage
 // @Failure     400  {object}  map[string]string
 // @Failure     404  {object}  map[string]string
-// @Router      /user/market/designs/{id}/messages [post]
-func HandlePostDesignMessage(c *fiber.Ctx) error {
+// @Router      /user/market/products/{id}/messages [post]
+func HandlePostProductMessage(c *fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(string)
 	purchase, err := buyersPurchase(userID, c.Params("id"))
 	if err != nil {
-		return response.NotFound(c, "you haven't purchased this design")
+		return response.NotFound(c, "you haven't purchased this product")
 	}
 
 	var body struct {
@@ -80,7 +80,7 @@ func HandlePostDesignMessage(c *fiber.Ctx) error {
 		userName = user.Name
 	}
 
-	message := models.DesignPurchaseMessage{
+	message := models.ProductPurchaseMessage{
 		PurchaseID:   purchase.ID,
 		UserID:       userID,
 		ThreadUserID: userID,
@@ -104,25 +104,25 @@ func HandlePostDesignMessage(c *fiber.Ctx) error {
 // @Produce     json
 // @Security    BearerAuth
 // @Param       id  path  string  true  "Purchase ID"
-// @Success     200  {object}  []models.DesignPurchaseMessage
+// @Success     200  {object}  []models.ProductPurchaseMessage
 // @Failure     401  {object}  map[string]string
 // @Failure     404  {object}  map[string]string
 // @Router      /market/purchases/{id}/messages [get]
 func HandleAdminListPurchaseMessages(c *fiber.Ctx) error {
 	purchaseID := c.Params("id")
 
-	var purchase models.DesignPurchase
+	var purchase models.ProductPurchase
 	if err := database.DB.First(&purchase, "id = ?", purchaseID).Error; err != nil {
 		return response.NotFound(c, "purchase not found")
 	}
 
-	var messages []models.DesignPurchaseMessage
+	var messages []models.ProductPurchaseMessage
 	database.DB.
 		Where("purchase_id = ?", purchaseID).
 		Order("created_at ASC").
 		Find(&messages)
 	if messages == nil {
-		messages = []models.DesignPurchaseMessage{}
+		messages = []models.ProductPurchaseMessage{}
 	}
 	return response.OK(c, messages)
 }
@@ -135,14 +135,14 @@ func HandleAdminListPurchaseMessages(c *fiber.Ctx) error {
 // @Security    BearerAuth
 // @Param       id    path  string             true  "Purchase ID"
 // @Param       body  body  map[string]string  true  "content"
-// @Success     201  {object}  models.DesignPurchaseMessage
+// @Success     201  {object}  models.ProductPurchaseMessage
 // @Failure     400  {object}  map[string]string
 // @Failure     404  {object}  map[string]string
 // @Router      /market/purchases/{id}/messages [post]
 func HandleAdminReplyPurchaseMessage(c *fiber.Ctx) error {
 	purchaseID := c.Params("id")
 
-	var purchase models.DesignPurchase
+	var purchase models.ProductPurchase
 	if err := database.DB.First(&purchase, "id = ?", purchaseID).Error; err != nil {
 		return response.NotFound(c, "purchase not found")
 	}
@@ -165,7 +165,7 @@ func HandleAdminReplyPurchaseMessage(c *fiber.Ctx) error {
 		}
 	}
 
-	message := models.DesignPurchaseMessage{
+	message := models.ProductPurchaseMessage{
 		PurchaseID:   purchaseID,
 		UserID:       "admin",
 		ThreadUserID: purchase.BuyerID,

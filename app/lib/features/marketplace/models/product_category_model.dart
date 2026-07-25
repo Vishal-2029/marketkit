@@ -1,15 +1,15 @@
-class DesignCategoryModel {
+class ProductCategoryModel {
   final String id;
   final String? parentId;
   final String name;
   final int displayOrder;
   final bool isOther;
-  // Admin-set banner photo for this section's row on the Design Market home
+  // Admin-set banner photo for this section's row on the Product Market home
   // page. Null/empty until an admin uploads one — callers fall back to the
-  // first design's own preview in that case.
+  // first product's own preview in that case.
   final String? photoUrl;
 
-  const DesignCategoryModel({
+  const ProductCategoryModel({
     required this.id,
     this.parentId,
     required this.name,
@@ -18,8 +18,8 @@ class DesignCategoryModel {
     this.photoUrl,
   });
 
-  factory DesignCategoryModel.fromJson(Map<String, dynamic> json) =>
-      DesignCategoryModel(
+  factory ProductCategoryModel.fromJson(Map<String, dynamic> json) =>
+      ProductCategoryModel(
         id: json['id'] as String? ?? '',
         parentId: json['parent_id'] as String?,
         name: json['name'] as String? ?? '',
@@ -31,20 +31,20 @@ class DesignCategoryModel {
 
 /// A top-level section paired with its sub-sections, built client-side from
 /// the flat category list the backend returns.
-class DesignCategorySection {
-  final DesignCategoryModel parent;
-  final List<DesignCategoryModel> children;
+class ProductCategorySection {
+  final ProductCategoryModel parent;
+  final List<ProductCategoryModel> children;
 
-  const DesignCategorySection({required this.parent, required this.children});
+  const ProductCategorySection({required this.parent, required this.children});
 }
 
-List<DesignCategorySection> buildDesignCategorySections(
-    List<DesignCategoryModel> categories) {
+List<ProductCategorySection> buildProductCategorySections(
+    List<ProductCategoryModel> categories) {
   final parents = categories.where((c) => c.parentId == null && !c.isOther).toList()
     ..sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
   return [
     for (final parent in parents)
-      DesignCategorySection(
+      ProductCategorySection(
         parent: parent,
         children: categories.where((c) => c.parentId == parent.id).toList()
           ..sort((a, b) => a.displayOrder.compareTo(b.displayOrder)),

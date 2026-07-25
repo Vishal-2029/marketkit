@@ -20,7 +20,7 @@ class WalletService {
         .toList();
   }
 
-  /// Returns {order_id, amount, currency, key_id} — same shape as the design
+  /// Returns {order_id, amount, currency, key_id} — same shape as the product
   /// purchase order, so the Razorpay checkout call is identical.
   Future<Map<String, dynamic>> createTopupOrder(int amountInPaise) async {
     final res = await _dio.post(ApiEndpoints.walletTopupOrder,
@@ -83,12 +83,12 @@ class WalletService {
     return (res.data['data']['fee_percent'] as num?)?.toInt() ?? 0;
   }
 
-  /// Buys a design directly from wallet balance. Throws DioException with
+  /// Buys a product directly from wallet balance. Throws DioException with
   /// status 400 ("insufficient wallet balance") when the balance is short —
   /// callers fall back to the Razorpay flow.
-  Future<PurchaseModel> purchaseWithWallet(String designId) async {
+  Future<PurchaseModel> purchaseWithWallet(String productId) async {
     final res = await _dio
-        .post(ApiEndpoints.marketWalletPurchase, data: {'design_id': designId});
+        .post(ApiEndpoints.marketWalletPurchase, data: {'product_id': productId});
     return PurchaseModel.fromJson(res.data['data'] as Map<String, dynamic>);
   }
 }

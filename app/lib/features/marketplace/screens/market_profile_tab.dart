@@ -16,7 +16,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../../market_plans/models/market_plan_model.dart';
 import '../../market_plans/providers/market_plans_provider.dart';
 import '../models/purchase_model.dart';
-import '../providers/designs_provider.dart';
+import '../providers/products_provider.dart';
 import '../providers/my_market_provider.dart';
 import '../providers/wallet_provider.dart';
 import '../widgets/add_money_sheet.dart';
@@ -106,7 +106,7 @@ class _MarketProfileTabState extends ConsumerState<MarketProfileTab> {
   Widget build(BuildContext context) {
     final wallet = ref.watch(walletSummaryProvider);
     final earnings = ref.watch(earningsProvider);
-    final myDesigns = ref.watch(myDesignsProvider);
+    final myProducts = ref.watch(myProductsProvider);
     final myPurchases = ref.watch(myPurchasesProvider);
     final marketPlans = ref.watch(marketPlansProvider);
     final mySub = marketPlans.mySubscription;
@@ -116,7 +116,7 @@ class _MarketProfileTabState extends ConsumerState<MarketProfileTab> {
       onRefresh: () async {
         ref.invalidate(walletSummaryProvider);
         ref.invalidate(earningsProvider);
-        ref.invalidate(myDesignsProvider);
+        ref.invalidate(myProductsProvider);
         ref.invalidate(myPurchasesProvider);
         await ref.read(marketPlansProvider.notifier).load();
       },
@@ -251,30 +251,30 @@ class _MarketProfileTabState extends ConsumerState<MarketProfileTab> {
           ),
           const SizedBox(height: 20),
 
-          // My designs — dedicated analytics screen
+          // My products — dedicated analytics screen
           GestureDetector(
-            onTap: () => context.push('/market/my-designs'),
+            onTap: () => context.push('/market/my-products'),
             behavior: HitTestBehavior.opaque,
             child: const Padding(
               padding: EdgeInsets.symmetric(vertical: 4),
               child: Row(
                 children: [
-                  Expanded(child: SectionHeader(title: 'MY DESIGNS')),
+                  Expanded(child: SectionHeader(title: 'MY PRODUCTS')),
                   Icon(Icons.chevron_right_rounded, color: kMutedForeground),
                 ],
               ),
             ),
           ),
-          myDesigns.when(
-            data: (designs) => designs.isEmpty
+          myProducts.when(
+            data: (products) => products.isEmpty
                 ? const _EmptyRow(
-                    text: 'No designs listed yet. Upload one to start selling!')
+                    text: 'No products listed yet. Upload one to start selling!')
                 : _EmptyRow(
                     text:
-                        '${designs.length} design${designs.length == 1 ? '' : 's'} · tap to view sales & views',
+                        '${products.length} product${products.length == 1 ? '' : 's'} · tap to view sales & views',
                   ),
             loading: () => const _LoadingRow(),
-            error: (_, __) => const _EmptyRow(text: 'Could not load designs.'),
+            error: (_, __) => const _EmptyRow(text: 'Could not load products.'),
           ),
           const SizedBox(height: 20),
 
@@ -514,7 +514,7 @@ class _PurchaseTile extends ConsumerWidget {
     try {
       final data = await ref
           .read(marketServiceProvider)
-          .fetchDownloadUrl(purchase.designId);
+          .fetchDownloadUrl(purchase.productId);
       final url = data['url'] as String?;
       if (url == null) throw Exception('no url');
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
@@ -544,7 +544,7 @@ class _PurchaseTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final design = purchase.design;
+    final product = purchase.product;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(10),
@@ -557,9 +557,9 @@ class _PurchaseTile extends ConsumerWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: design != null && design.previewUrls.isNotEmpty
+            child: product != null && product.previewUrls.isNotEmpty
                 ? CachedNetworkImage(
-                    imageUrl: design.previewUrls.first,
+                    imageUrl: product.previewUrls.first,
                     width: 48,
                     height: 48,
                     fit: BoxFit.cover,
@@ -578,7 +578,7 @@ class _PurchaseTile extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  design?.title ?? 'Design',
+                  product?.title ?? 'Product',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -599,7 +599,7 @@ class _PurchaseTile extends ConsumerWidget {
             onPressed: () => _download(context, ref),
             icon: const Icon(Icons.download_rounded, size: 18),
             color: kGold,
-            tooltip: 'Download design file',
+            tooltip: 'Download product file',
             visualDensity: VisualDensity.compact,
           ),
           IconButton(

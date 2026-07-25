@@ -4,26 +4,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/shimmer_loaders.dart';
-import '../models/design_category_model.dart';
-import '../providers/designs_provider.dart';
-import '../widgets/design_card.dart';
+import '../models/product_category_model.dart';
+import '../providers/products_provider.dart';
+import '../widgets/product_card.dart';
 
-class AllDesignsTab extends ConsumerStatefulWidget {
-  const AllDesignsTab({super.key});
+class AllProductsTab extends ConsumerStatefulWidget {
+  const AllProductsTab({super.key});
 
   @override
-  ConsumerState<AllDesignsTab> createState() => _AllDesignsTabState();
+  ConsumerState<AllProductsTab> createState() => _AllProductsTabState();
 }
 
-class _AllDesignsTabState extends ConsumerState<AllDesignsTab> {
+class _AllProductsTabState extends ConsumerState<AllProductsTab> {
   final _searchCtrl = TextEditingController();
   final _searchFocus = FocusNode();
   final _scrollCtrl = ScrollController();
 
   /// The parent section currently being drilled into (its children shown as
-  /// a grid). Null while browsing the top-level sections or after a design
+  /// a grid). Null while browsing the top-level sections or after a product
   /// list is reached via search suggestions.
-  DesignCategorySection? _selectedSection;
+  ProductCategorySection? _selectedSection;
 
   @override
   void initState() {
@@ -44,59 +44,59 @@ class _AllDesignsTabState extends ConsumerState<AllDesignsTab> {
   void _onScroll() {
     if (_scrollCtrl.position.pixels >=
         _scrollCtrl.position.maxScrollExtent - 300) {
-      ref.read(designsProvider.notifier).loadMore();
+      ref.read(productsProvider.notifier).loadMore();
     }
   }
 
-  void _selectCategory(DesignCategoryModel category) {
+  void _selectCategory(ProductCategoryModel category) {
     _searchCtrl.text = category.name;
     _searchFocus.unfocus();
     setState(() => _selectedSection = null);
-    ref.read(designsProvider.notifier).setCategory(category.id);
+    ref.read(productsProvider.notifier).setCategory(category.id);
   }
 
-  /// Tapping a top-level section: open it and show every design across all
+  /// Tapping a top-level section: open it and show every product across all
   /// of its sub-sections at once (the backend expands a parent category id
   /// to all its child leaves). A filter button then lets the user narrow to
   /// a single sub-section.
-  void _openSection(DesignCategorySection section) {
+  void _openSection(ProductCategorySection section) {
     _searchFocus.unfocus();
     _searchCtrl.clear();
     setState(() => _selectedSection = section);
-    ref.read(designsProvider.notifier).setCategory(section.parent.id);
+    ref.read(productsProvider.notifier).setCategory(section.parent.id);
   }
 
-  /// Filter the open section's designs to one sub-section, or back to all of
+  /// Filter the open section's products to one sub-section, or back to all of
   /// them. Passing null (or the parent itself) means "All".
-  void _filterByChild(DesignCategoryModel? child) {
+  void _filterByChild(ProductCategoryModel? child) {
     final section = _selectedSection;
     if (section == null) return;
     _searchFocus.unfocus();
     ref
-        .read(designsProvider.notifier)
+        .read(productsProvider.notifier)
         .setCategory(child?.id ?? section.parent.id);
   }
 
-  /// Breadcrumb "Design Market" — back to the top-level sections.
+  /// Breadcrumb "Product Market" — back to the top-level sections.
   void _backToSections() {
     setState(() => _selectedSection = null);
     _searchCtrl.clear();
-    ref.read(designsProvider.notifier).setCategory(null);
+    ref.read(productsProvider.notifier).setCategory(null);
   }
 
   void _clearFilters() {
     _searchCtrl.clear();
     _searchFocus.unfocus();
     setState(() => _selectedSection = null);
-    ref.read(designsProvider.notifier).setCategory(null);
+    ref.read(productsProvider.notifier).setCategory(null);
   }
 
   /// Bottom-sheet filter menu: the open section's sub-sections plus "All".
-  /// Mirrors the circular filter button in the design mockup.
+  /// Mirrors the circular filter button in the product mockup.
   void _openFilterSheet() {
     final section = _selectedSection;
     if (section == null || section.children.isEmpty) return;
-    final activeId = ref.read(designsProvider).categoryId;
+    final activeId = ref.read(productsProvider).categoryId;
 
     showModalBottomSheet<void>(
       context: context,
@@ -175,17 +175,17 @@ class _AllDesignsTabState extends ConsumerState<AllDesignsTab> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(designsProvider);
+    final state = ref.watch(productsProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
     final query = _searchCtrl.text.trim().toLowerCase();
 
     final suggestions = query.isEmpty
-        ? const <DesignCategoryModel>[]
+        ? const <ProductCategoryModel>[]
         : categoriesAsync.maybeWhen(
             data: (cats) => cats
                 .where((c) => !c.isOther && c.name.toLowerCase().contains(query))
                 .toList(),
-            orElse: () => const <DesignCategoryModel>[],
+            orElse: () => const <ProductCategoryModel>[],
           );
     final showSuggestions =
         _searchFocus.hasFocus && query.isNotEmpty && suggestions.isNotEmpty;
@@ -222,7 +222,7 @@ class _AllDesignsTabState extends ConsumerState<AllDesignsTab> {
             controller: _searchCtrl,
             focusNode: _searchFocus,
             decoration: InputDecoration(
-              hintText: 'Search designs or categories…',
+              hintText: 'Search products or categories…',
               hintStyle:
                   const TextStyle(color: kMutedForeground, fontSize: 14),
               prefixIcon:
@@ -244,7 +244,7 @@ class _AllDesignsTabState extends ConsumerState<AllDesignsTab> {
             ),
             onSubmitted: (q) {
               setState(() => _selectedSection = null);
-              ref.read(designsProvider.notifier).setSearch(q);
+              ref.read(productsProvider.notifier).setSearch(q);
             },
           ),
         ),
@@ -266,7 +266,7 @@ class _AllDesignsTabState extends ConsumerState<AllDesignsTab> {
                   ? _CategorySections(onOpenSection: _openSection)
                   : Stack(
                       children: [
-                        _DesignsGrid(state: state, scrollCtrl: _scrollCtrl),
+                        _ProductsGrid(state: state, scrollCtrl: _scrollCtrl),
                         if (showFilterButton)
                           Positioned(
                             right: 16,
@@ -307,8 +307,8 @@ class _FilterButton extends StatelessWidget {
 }
 
 class _CategorySuggestions extends StatelessWidget {
-  final List<DesignCategoryModel> suggestions;
-  final void Function(DesignCategoryModel) onSelect;
+  final List<ProductCategoryModel> suggestions;
+  final void Function(ProductCategoryModel) onSelect;
 
   const _CategorySuggestions({required this.suggestions, required this.onSelect});
 
@@ -331,7 +331,7 @@ class _CategorySuggestions extends StatelessWidget {
 }
 
 class _CategorySections extends ConsumerWidget {
-  final void Function(DesignCategorySection) onOpenSection;
+  final void Function(ProductCategorySection) onOpenSection;
   const _CategorySections({required this.onOpenSection});
 
   @override
@@ -349,16 +349,16 @@ class _CategorySections extends ConsumerWidget {
             style: TextStyle(color: kMutedForeground)),
       ),
       data: (categories) {
-        final sections = buildDesignCategorySections(categories);
+        final sections = buildProductCategorySections(categories);
         if (sections.isEmpty) {
           return const Center(
-            child: Text('No designs for sale yet.\nBe the first to upload one!',
+            child: Text('No products for sale yet.\nBe the first to upload one!',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: kMutedForeground)),
           );
         }
         // Every admin-defined section is always listed, whether or not it
-        // has designs yet — sections with none show a placeholder photo
+        // has products yet — sections with none show a placeholder photo
         // until something is uploaded into them.
         return ListView.builder(
           padding: const EdgeInsets.fromLTRB(0, 12, 0, 100),
@@ -375,14 +375,14 @@ class _CategorySections extends ConsumerWidget {
 }
 
 /// One collapsed section row: a full-bleed "photo" tile (the admin-set
-/// section photo if one exists, otherwise the first design's own preview,
+/// section photo if one exists, otherwise the first product's own preview,
 /// otherwise a placeholder) with a dark gradient scrim washing in from one
 /// side and the section name sitting directly on top of it, alternating side
-/// down the list. The design photos themselves stay hidden until the section
+/// down the list. The product photos themselves stay hidden until the section
 /// is tapped open — this row never shows more than the one representative
 /// photo.
 class _SectionRow extends ConsumerWidget {
-  final DesignCategorySection section;
+  final ProductCategorySection section;
   final int index;
   final VoidCallback onOpen;
   const _SectionRow({
@@ -394,13 +394,13 @@ class _SectionRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // An admin-set section photo always wins; only fall back to the first
-    // design's own preview when the admin hasn't uploaded one.
+    // product's own preview when the admin hasn't uploaded one.
     String? previewUrl = section.parent.photoUrl;
     if (previewUrl == null || previewUrl.isEmpty) {
-      final designsAsync = ref.watch(sectionDesignsProvider(section.parent.id));
-      previewUrl = designsAsync.maybeWhen(
-        data: (designs) => designs.isNotEmpty && designs.first.previewUrls.isNotEmpty
-            ? designs.first.previewUrls.first
+      final productsAsync = ref.watch(sectionProductsProvider(section.parent.id));
+      previewUrl = productsAsync.maybeWhen(
+        data: (products) => products.isNotEmpty && products.first.previewUrls.isNotEmpty
+            ? products.first.previewUrls.first
             : null,
         orElse: () => null,
       );
@@ -494,10 +494,10 @@ class _SectionPhoto extends StatelessWidget {
   }
 }
 
-class _DesignsGrid extends ConsumerWidget {
-  final DesignsState state;
+class _ProductsGrid extends ConsumerWidget {
+  final ProductsState state;
   final ScrollController scrollCtrl;
-  const _DesignsGrid({required this.state, required this.scrollCtrl});
+  const _ProductsGrid({required this.state, required this.scrollCtrl});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -518,14 +518,14 @@ class _DesignsGrid extends ConsumerWidget {
             Text(state.error!, style: const TextStyle(color: kMutedForeground)),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => ref.read(designsProvider.notifier).load(),
+              onPressed: () => ref.read(productsProvider.notifier).load(),
               child: const Text('Retry'),
             ),
           ],
         ),
       );
     }
-    if (state.designs.isEmpty) {
+    if (state.products.isEmpty) {
       final isFiltered = state.searchQuery.isNotEmpty || state.categoryId != null;
       return Center(
         child: Column(
@@ -539,8 +539,8 @@ class _DesignsGrid extends ConsumerWidget {
             const SizedBox(height: 12),
             Text(
               isFiltered
-                  ? 'No designs match this search.'
-                  : 'No designs for sale yet.\nBe the first to upload one!',
+                  ? 'No products match this search.'
+                  : 'No products for sale yet.\nBe the first to upload one!',
               textAlign: TextAlign.center,
               style: const TextStyle(color: kMutedForeground),
             ),
@@ -550,7 +550,7 @@ class _DesignsGrid extends ConsumerWidget {
     }
     return RefreshIndicator(
       color: kGold,
-      onRefresh: () => ref.read(designsProvider.notifier).load(),
+      onRefresh: () => ref.read(productsProvider.notifier).load(),
       child: GridView.builder(
         controller: scrollCtrl,
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
@@ -560,17 +560,17 @@ class _DesignsGrid extends ConsumerWidget {
           crossAxisSpacing: 12,
           childAspectRatio: 0.8,
         ),
-        itemCount: state.designs.length + (state.isLoadingMore ? 2 : 0),
+        itemCount: state.products.length + (state.isLoadingMore ? 2 : 0),
         itemBuilder: (_, i) {
-          if (i >= state.designs.length) {
+          if (i >= state.products.length) {
             return const Center(
               child: CircularProgressIndicator(color: kGold, strokeWidth: 2),
             );
           }
-          final design = state.designs[i];
-          return DesignCard(
-            design: design,
-            onTap: () => context.push('/market/design/${design.id}'),
+          final product = state.products[i];
+          return ProductCard(
+            product: product,
+            onTap: () => context.push('/market/product/${product.id}'),
           );
         },
       ),
@@ -578,7 +578,7 @@ class _DesignsGrid extends ConsumerWidget {
   }
 }
 
-/// "Design Market > Parent > Child" trail. Every crumb but the last is
+/// "Product Market > Parent > Child" trail. Every crumb but the last is
 /// tappable and jumps back to that level.
 class _Breadcrumb extends StatelessWidget {
   final String? parentName;
@@ -596,7 +596,7 @@ class _Breadcrumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final crumbs = <_Crumb>[
-      _Crumb('Design Market', onHome),
+      _Crumb('Product Market', onHome),
       if (parentName != null) _Crumb(parentName!, onParent),
       if (childName != null) _Crumb(childName!, null),
     ];

@@ -1,13 +1,13 @@
 /// One message in a purchase's private buyer-admin support thread.
 /// Mirrors VideoComment — the seller is never a participant.
-class DesignThreadMessage {
+class ProductThreadMessage {
   final String id;
   final String userName;
   final String content;
   final DateTime createdAt;
   final bool isAdmin;
 
-  const DesignThreadMessage({
+  const ProductThreadMessage({
     required this.id,
     required this.userName,
     required this.content,
@@ -15,8 +15,8 @@ class DesignThreadMessage {
     this.isAdmin = false,
   });
 
-  factory DesignThreadMessage.fromJson(Map<String, dynamic> json) =>
-      DesignThreadMessage(
+  factory ProductThreadMessage.fromJson(Map<String, dynamic> json) =>
+      ProductThreadMessage(
         id: json['id'] as String,
         userName: json['user_name'] as String? ?? 'User',
         content: json['content'] as String,

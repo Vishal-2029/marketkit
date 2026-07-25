@@ -11,7 +11,7 @@ import (
 )
 
 // HandleMarketRevenueSummary godoc
-// @Summary     Design Market revenue summary — market-only, never learning (admin)
+// @Summary     Product Market revenue summary — market-only, never learning (admin)
 // @Tags        Admin Market Revenue
 // @Produce     json
 // @Security    AdminAuth
@@ -29,14 +29,14 @@ func HandleMarketRevenueSummary(c *fiber.Ctx) error {
 	database.DB.Model(&models.MarketPlanSubscription{}).
 		Where("paid_at IS NOT NULL").Count(&planCount)
 
-	// Design sales: platform keeps only the fee — the rest (seller_net) is
+	// Product sales: platform keeps only the fee — the rest (seller_net) is
 	// the seller's money, not platform revenue. Both are surfaced here for
 	// context but only the fee counts toward platform revenue.
-	database.DB.Model(&models.DesignPurchase{}).
+	database.DB.Model(&models.ProductPurchase{}).
 		Where("status = ?", models.PaymentSuccess).
 		Select("COALESCE(SUM(fee_in_paise), 0) AS fee, COALESCE(SUM(amount_in_paise), 0) AS gross, COALESCE(SUM(seller_net_in_paise), 0) AS payouts").
 		Row().Scan(&feeRevenue, &grossSales, &sellerPayouts)
-	database.DB.Model(&models.DesignPurchase{}).
+	database.DB.Model(&models.ProductPurchase{}).
 		Where("status = ?", models.PaymentSuccess).Count(&saleCount)
 
 	return response.OK(c, fiber.Map{
@@ -51,7 +51,7 @@ func HandleMarketRevenueSummary(c *fiber.Ctx) error {
 }
 
 // HandleMarketRevenueMonthly godoc
-// @Summary     Monthly Design Market revenue breakdown — market-only (admin)
+// @Summary     Monthly Product Market revenue breakdown — market-only (admin)
 // @Tags        Admin Market Revenue
 // @Produce     json
 // @Security    AdminAuth
@@ -79,7 +79,7 @@ func HandleMarketRevenueMonthly(c *fiber.Ctx) error {
 	database.DB.Raw(`
 		SELECT EXTRACT(MONTH FROM paid_at)::int AS month,
 		       COALESCE(SUM(fee_in_paise), 0) AS total
-		FROM design_purchases
+		FROM product_purchases
 		WHERE status = ? AND EXTRACT(YEAR FROM paid_at) = ?
 		GROUP BY month
 	`, models.PaymentSuccess, year).Scan(&feeRows)

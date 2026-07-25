@@ -7,26 +7,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_colors.dart';
-import '../models/design_category_model.dart';
-import '../providers/designs_provider.dart';
+import '../models/product_category_model.dart';
+import '../providers/products_provider.dart';
 import '../providers/my_market_provider.dart';
 import '../providers/wallet_provider.dart';
 
-class UploadDesignTab extends ConsumerStatefulWidget {
+class UploadProductTab extends ConsumerStatefulWidget {
   final VoidCallback? onUploaded;
-  const UploadDesignTab({super.key, this.onUploaded});
+  const UploadProductTab({super.key, this.onUploaded});
 
   @override
-  ConsumerState<UploadDesignTab> createState() => _UploadDesignTabState();
+  ConsumerState<UploadProductTab> createState() => _UploadProductTabState();
 }
 
-class _UploadDesignTabState extends ConsumerState<UploadDesignTab> {
+class _UploadProductTabState extends ConsumerState<UploadProductTab> {
   final _titleCtrl = TextEditingController();
   final _descriptionCtrl = TextEditingController();
   final _priceCtrl = TextEditingController();
   final _otherCategoryCtrl = TextEditingController();
   final List<XFile> _previews = [];
-  PlatformFile? _designFile;
+  PlatformFile? _productFile;
   String? _selectedCategoryId;
   bool _isSubmitting = false;
 
@@ -46,7 +46,7 @@ class _UploadDesignTabState extends ConsumerState<UploadDesignTab> {
     // BERNINA / Dahao / template / vector-cutting
     'art', 'art50', 'art60', 'art70', 'art80', 'dhp', 'dha', 'dhe',
     'tpl', 'plt', 'dxf',
-    // Document formats (e.g. digitized-design reference sheets / instructions)
+    // Document formats (e.g. digitized-product reference sheets / instructions)
     'pdf',
   ];
 
@@ -123,7 +123,7 @@ class _UploadDesignTabState extends ConsumerState<UploadDesignTab> {
     );
   }
 
-  Future<void> _pickDesignFile() async {
+  Future<void> _pickProductFile() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: _allowedExtensions,
@@ -132,10 +132,10 @@ class _UploadDesignTabState extends ConsumerState<UploadDesignTab> {
     if (result == null || result.files.isEmpty || !mounted) return;
     final file = result.files.first;
     if (file.size > _maxFileBytes) {
-      _snack('Design file must be under 5 MB');
+      _snack('Product file must be under 5 MB');
       return;
     }
-    setState(() => _designFile = file);
+    setState(() => _productFile = file);
   }
 
   Future<void> _pickPreview() async {
@@ -166,8 +166,8 @@ class _UploadDesignTabState extends ConsumerState<UploadDesignTab> {
       _snack('Price must be between ₹10 and ₹1,00,000');
       return;
     }
-    if (_designFile == null) {
-      _snack('Please select your embroidery design file');
+    if (_productFile == null) {
+      _snack('Please select your embroidery product file');
       return;
     }
     if (_previews.isEmpty) {
@@ -175,7 +175,7 @@ class _UploadDesignTabState extends ConsumerState<UploadDesignTab> {
       return;
     }
     if (_selectedCategoryId == null) {
-      _snack('Please select a category for your design');
+      _snack('Please select a category for your product');
       return;
     }
     final categories = ref.read(categoriesProvider).valueOrNull ?? [];
@@ -184,17 +184,17 @@ class _UploadDesignTabState extends ConsumerState<UploadDesignTab> {
         .any((c) => c.isOther);
     final otherText = _otherCategoryCtrl.text.trim();
     if (isOtherCategory && otherText.isEmpty) {
-      _snack('Please describe what kind of design this is');
+      _snack('Please describe what kind of product this is');
       return;
     }
 
     setState(() => _isSubmitting = true);
     try {
-      await ref.read(marketServiceProvider).uploadDesign(
+      await ref.read(marketServiceProvider).uploadProduct(
             title: title,
             description: _descriptionCtrl.text.trim(),
             priceInPaise: priceRupees * 100,
-            file: _designFile!,
+            file: _productFile!,
             previews: _previews,
             categoryId: _selectedCategoryId!,
             categoryOther: isOtherCategory ? otherText : null,
@@ -206,12 +206,12 @@ class _UploadDesignTabState extends ConsumerState<UploadDesignTab> {
         _priceCtrl.clear();
         _otherCategoryCtrl.clear();
         _previews.clear();
-        _designFile = null;
+        _productFile = null;
         _selectedCategoryId = null;
       });
-      _snack('Design listed for sale!');
-      ref.read(designsProvider.notifier).load();
-      ref.invalidate(myDesignsProvider);
+      _snack('Product listed for sale!');
+      ref.read(productsProvider.notifier).load();
+      ref.invalidate(myProductsProvider);
       widget.onUploaded?.call();
     } on DioException catch (e) {
       if (!mounted) return;
@@ -255,13 +255,13 @@ class _UploadDesignTabState extends ConsumerState<UploadDesignTab> {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
       children: [
         const Text(
-          'Sell Your Design',
+          'Sell Your Product',
           style: TextStyle(
               fontSize: 17, fontWeight: FontWeight.w700, color: kForeground),
         ),
         const SizedBox(height: 4),
         const Text(
-          'Upload your embroidery design and set your price.',
+          'Upload your embroidery product and set your price.',
           style: TextStyle(fontSize: 13, color: kMutedForeground),
         ),
         const SizedBox(height: 16),
@@ -269,7 +269,7 @@ class _UploadDesignTabState extends ConsumerState<UploadDesignTab> {
           controller: _titleCtrl,
           maxLength: 120,
           decoration:
-              _decoration('Title', hint: 'e.g. Rose Border Design'),
+              _decoration('Title', hint: 'e.g. Rose Border Product'),
         ),
         const SizedBox(height: 12),
         TextField(
@@ -298,29 +298,29 @@ class _UploadDesignTabState extends ConsumerState<UploadDesignTab> {
           TextField(
             controller: _otherCategoryCtrl,
             maxLength: 200,
-            decoration: _decoration('What kind of design is this?',
+            decoration: _decoration('What kind of product is this?',
                 hint: 'e.g. Kids cartoon appliqué'),
           ),
         ],
         const SizedBox(height: 16),
 
-        // Design file picker
+        // Product file picker
         GestureDetector(
-          onTap: _pickDesignFile,
+          onTap: _pickProductFile,
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: kCard,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: _designFile != null ? kGold : kBorder),
+              border: Border.all(color: _productFile != null ? kGold : kBorder),
             ),
             child: Row(
               children: [
                 Icon(
-                  _designFile != null
+                  _productFile != null
                       ? Icons.check_circle_rounded
                       : Icons.attach_file_rounded,
-                  color: _designFile != null ? kSage : kMutedForeground,
+                  color: _productFile != null ? kSage : kMutedForeground,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -328,7 +328,7 @@ class _UploadDesignTabState extends ConsumerState<UploadDesignTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _designFile?.name ?? 'Select design file',
+                        _productFile?.name ?? 'Select product file',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -338,8 +338,8 @@ class _UploadDesignTabState extends ConsumerState<UploadDesignTab> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        _designFile != null
-                            ? '${(_designFile!.size / 1024).toStringAsFixed(0)} KB'
+                        _productFile != null
+                            ? '${(_productFile!.size / 1024).toStringAsFixed(0)} KB'
                             : 'DST, PES, EXP, JEF, VP3, PDF, and 30+ other machine formats · max 5 MB',
                         style: const TextStyle(
                             fontSize: 11, color: kMutedForeground),
@@ -347,11 +347,11 @@ class _UploadDesignTabState extends ConsumerState<UploadDesignTab> {
                     ],
                   ),
                 ),
-                if (_designFile != null)
+                if (_productFile != null)
                   IconButton(
                     icon: const Icon(Icons.close,
                         size: 18, color: kMutedForeground),
-                    onPressed: () => setState(() => _designFile = null),
+                    onPressed: () => setState(() => _productFile = null),
                   ),
               ],
             ),
@@ -476,7 +476,7 @@ class _CategoryPicker extends ConsumerWidget {
         style: TextStyle(fontSize: 12, color: kTerracotta),
       ),
       data: (categories) {
-        final sections = buildDesignCategorySections(categories);
+        final sections = buildProductCategorySections(categories);
         final other = categories.where((c) => c.isOther).toList();
 
         final items = <DropdownMenuItem<String>>[

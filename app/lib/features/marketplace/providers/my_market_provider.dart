@@ -1,14 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/design_model.dart';
+import '../models/product_model.dart';
 import '../models/earnings_model.dart';
 import '../models/purchase_model.dart';
-import 'designs_provider.dart';
+import 'products_provider.dart';
 
 /// The current user's own listings (including unlisted ones).
-final myDesignsProvider =
-    FutureProvider.autoDispose<List<DesignModel>>((ref) async {
-  return ref.read(marketServiceProvider).fetchMyDesigns();
+final myProductsProvider =
+    FutureProvider.autoDispose<List<ProductModel>>((ref) async {
+  return ref.read(marketServiceProvider).fetchMyProducts();
 });
 
 /// The current user's successful purchases.

@@ -59,8 +59,8 @@ class WalletTransactionModel {
 
   String get label => switch (type) {
         'TOPUP' => 'Money added',
-        'PURCHASE_DEBIT' => 'Design purchased',
-        'SALE_CREDIT' => 'Design sold',
+        'PURCHASE_DEBIT' => 'Product purchased',
+        'SALE_CREDIT' => 'Product sold',
         'WITHDRAWAL' => 'Withdrawal',
         'PLAN_DEBIT' => 'Plan subscription',
         _ => type,

@@ -221,7 +221,7 @@ export default function MarketPlansPage() {
 
   return (
     <div>
-      <PageHeader title="Market Plans" subtitle="Manage Design Market seller plan pricing and perks">
+      <PageHeader title="Market Plans" subtitle="Manage Product Market seller plan pricing and perks">
         <label className="flex items-center gap-2 cursor-pointer select-none">
           <button
             type="button"

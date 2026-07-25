@@ -49,12 +49,12 @@ class NotificationService {
         appRouter.go('/home');
         break;
       default:
-        // No explicit screen — every per-user notification (Design Sold,
+        // No explicit screen — every per-user notification (Product Sold,
         // Payout Sent, purchase-thread replies, subscription updates, ...)
         // sends none. Forcing '/home' here used to hijack cold starts:
         // tapping one of these to reopen the app fired before (or right
         // after) SplashScreen's own mode-aware landing navigation, always
-        // dumping a Design Market user into Learning regardless of their
+        // dumping a Product Market user into Learning regardless of their
         // last-used mode. Do nothing instead and let the normal splash/auth
         // flow decide where to land.
         break;

@@ -2,14 +2,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
-import '../models/design_model.dart';
-import 'design_favorite_button.dart';
+import '../models/product_model.dart';
+import 'product_favorite_button.dart';
 
-class DesignCard extends StatelessWidget {
-  final DesignModel design;
+class ProductCard extends StatelessWidget {
+  final ProductModel product;
   final VoidCallback onTap;
 
-  const DesignCard({super.key, required this.design, required this.onTap});
+  const ProductCard({super.key, required this.product, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -29,9 +29,9 @@ class DesignCard extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  design.previewUrls.isNotEmpty
+                  product.previewUrls.isNotEmpty
                       ? CachedNetworkImage(
-                          imageUrl: design.previewUrls.first,
+                          imageUrl: product.previewUrls.first,
                           fit: BoxFit.cover,
                           placeholder: (_, __) =>
                               Container(color: kMuted),
@@ -49,16 +49,16 @@ class DesignCard extends StatelessWidget {
                   Positioned(
                     top: 6,
                     left: 6,
-                    child: DesignFavoriteButton(design: design),
+                    child: ProductFavoriteButton(product: product),
                   ),
-                  if (design.isPurchased)
+                  if (product.isPurchased)
                     Positioned(
                       top: 6,
                       right: 6,
                       child: GestureDetector(
                         onTap: () => context.push(
-                          '/market/design/${design.id}/messages',
-                          extra: design.title,
+                          '/market/product/${product.id}/messages',
+                          extra: product.title,
                         ),
                         child: Container(
                           padding: const EdgeInsets.all(4),
@@ -71,19 +71,19 @@ class DesignCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (design.isPurchased || design.isMine)
+                  if (product.isPurchased || product.isMine)
                     Positioned(
-                      top: design.isPurchased ? 34 : 6,
+                      top: product.isPurchased ? 34 : 6,
                       right: 6,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: design.isMine ? kGold : kSage,
+                          color: product.isMine ? kGold : kSage,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          design.isMine ? 'Yours' : 'Owned',
+                          product.isMine ? 'Yours' : 'Owned',
                           style: const TextStyle(
                               fontSize: 10,
                               color: Colors.white,
@@ -100,7 +100,7 @@ class DesignCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    design.title,
+                    product.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -108,20 +108,20 @@ class DesignCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                         color: kForeground),
                   ),
-                  if (design.sellerName.isNotEmpty) ...[
+                  if (product.sellerName.isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Row(
                       children: [
                         Flexible(
                           child: Text(
-                            design.sellerName,
+                            product.sellerName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                                 fontSize: 11, color: kMutedForeground),
                           ),
                         ),
-                        if (design.featuredSeller) ...[
+                        if (product.featuredSeller) ...[
                           const SizedBox(width: 4),
                           const Icon(Icons.workspace_premium,
                               size: 12, color: kGold),
@@ -133,7 +133,7 @@ class DesignCard extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        design.formattedPrice,
+                        product.formattedPrice,
                         style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -141,7 +141,7 @@ class DesignCard extends StatelessWidget {
                       ),
                       const Spacer(),
                       Text(
-                        design.fileFormat.toUpperCase(),
+                        product.fileFormat.toUpperCase(),
                         style: const TextStyle(
                             fontSize: 10, color: kMutedForeground),
                       ),

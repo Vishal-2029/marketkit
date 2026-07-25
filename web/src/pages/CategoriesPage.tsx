@@ -6,12 +6,12 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { designCategoriesService, DesignCategory, DesignCategoryPayload } from "@/services/designCategories";
-import { designsService } from "@/services/designs";
+import { productCategoriesService, ProductCategory, ProductCategoryPayload } from "@/services/productCategories";
+import { productsService } from "@/services/products";
 
 const formatPrice = (paise: number) => `₹${(paise / 100).toLocaleString("en-IN")}`;
 
-const emptyForm = (): DesignCategoryPayload => ({ name: "", display_order: 0 });
+const emptyForm = (): ProductCategoryPayload => ({ name: "", display_order: 0 });
 
 function SectionRow({
   category,
@@ -22,7 +22,7 @@ function SectionRow({
   onDelete,
   deleteDisabledReason,
 }: {
-  category: DesignCategory;
+  category: ProductCategory;
   extraCount?: string;
   selected: boolean;
   onSelect: () => void;
@@ -50,7 +50,7 @@ function SectionRow({
         <div className="min-w-0">
           <p className="text-sm font-medium text-foreground truncate">{category.name}</p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {category.design_count} design{category.design_count !== 1 ? "s" : ""}
+            {category.product_count} product{category.product_count !== 1 ? "s" : ""}
             {extraCount ? ` · ${extraCount}` : ""}
           </p>
         </div>
@@ -90,15 +90,15 @@ export default function CategoriesPage() {
 
   const [selectedParentId, setSelectedParentId] = useState<string | null>(null);
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
-  const [modal, setModal] = useState<null | "create-parent" | "create-child" | DesignCategory>(null);
-  const [form, setForm] = useState<DesignCategoryPayload>(emptyForm());
-  const [deleteTarget, setDeleteTarget] = useState<DesignCategory | null>(null);
+  const [modal, setModal] = useState<null | "create-parent" | "create-child" | ProductCategory>(null);
+  const [form, setForm] = useState<ProductCategoryPayload>(emptyForm());
+  const [deleteTarget, setDeleteTarget] = useState<ProductCategory | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const { data: categories = [], isLoading } = useQuery({
-    queryKey: ["design-categories"],
-    queryFn: designCategoriesService.list,
+    queryKey: ["product-categories"],
+    queryFn: productCategoriesService.list,
   });
 
   const parents = categories.filter((c) => !c.parent_id && !c.is_other);
@@ -107,18 +107,18 @@ export default function CategoriesPage() {
   const selectedParent = parents.find((p) => p.id === selectedParentId) ?? null;
   const selectedChild = children.find((c) => c.id === selectedChildId) ?? null;
 
-  const { data: designsData, isLoading: designsLoading } = useQuery({
-    queryKey: ["market-designs-by-category", selectedChildId],
-    queryFn: () => designsService.listDesigns(1, "", selectedChildId!),
+  const { data: productsData, isLoading: productsLoading } = useQuery({
+    queryKey: ["market-products-by-category", selectedChildId],
+    queryFn: () => productsService.listProducts(1, "", selectedChildId!),
     enabled: !!selectedChildId,
   });
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["design-categories"] });
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["product-categories"] });
 
   const createMut = useMutation({
-    mutationFn: async (data: DesignCategoryPayload) => {
-      const created = await designCategoriesService.create(data);
-      return photoFile ? designCategoriesService.uploadPhoto(created.id, photoFile) : created;
+    mutationFn: async (data: ProductCategoryPayload) => {
+      const created = await productCategoriesService.create(data);
+      return photoFile ? productCategoriesService.uploadPhoto(created.id, photoFile) : created;
     },
     onSuccess: () => {
       invalidate();
@@ -129,9 +129,9 @@ export default function CategoriesPage() {
   });
 
   const updateMut = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: DesignCategoryPayload }) => {
-      const updated = await designCategoriesService.update(id, data);
-      return photoFile ? designCategoriesService.uploadPhoto(id, photoFile) : updated;
+    mutationFn: async ({ id, data }: { id: string; data: ProductCategoryPayload }) => {
+      const updated = await productCategoriesService.update(id, data);
+      return photoFile ? productCategoriesService.uploadPhoto(id, photoFile) : updated;
     },
     onSuccess: () => {
       invalidate();
@@ -142,7 +142,7 @@ export default function CategoriesPage() {
   });
 
   const deleteMut = useMutation({
-    mutationFn: (id: string) => designCategoriesService.delete(id),
+    mutationFn: (id: string) => productCategoriesService.delete(id),
     onSuccess: (_data, id) => {
       invalidate();
       setDeleteTarget(null);
@@ -177,7 +177,7 @@ export default function CategoriesPage() {
     setModal("create-child");
   };
 
-  const openEdit = (cat: DesignCategory) => {
+  const openEdit = (cat: ProductCategory) => {
     setForm({ name: cat.name, display_order: cat.display_order });
     resetPhoto();
     setModal(cat);
@@ -210,8 +210,8 @@ export default function CategoriesPage() {
 
   const isPending = createMut.isPending || updateMut.isPending;
 
-  const deleteReason = (cat: DesignCategory) => {
-    if (cat.design_count > 0) return "Cannot delete — designs are assigned to this section";
+  const deleteReason = (cat: ProductCategory) => {
+    if (cat.product_count > 0) return "Cannot delete — products are assigned to this section";
     if (!cat.parent_id) {
       const childCount = categories.filter((c) => c.parent_id === cat.id).length;
       if (childCount > 0) return "Cannot delete — remove its sub-sections first";
@@ -219,11 +219,11 @@ export default function CategoriesPage() {
     return null;
   };
 
-  const designs = designsData?.data ?? [];
+  const products = productsData?.data ?? [];
 
   return (
     <div>
-      <PageHeader title="Design Market Sections" subtitle="Manage parent and child sections, and browse designs by section" />
+      <PageHeader title="Product Market Sections" subtitle="Manage parent and child sections, and browse products by section" />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Parent sections */}
@@ -271,7 +271,7 @@ export default function CategoriesPage() {
             <div className="mt-3 pt-3 border-t border-border flex items-center gap-2 text-xs text-muted-foreground">
               <Lock className="h-3 w-3 shrink-0" />
               <span>
-                "Other" (system) — {otherCategory.design_count} design{otherCategory.design_count !== 1 ? "s" : ""}, protected
+                "Other" (system) — {otherCategory.product_count} product{otherCategory.product_count !== 1 ? "s" : ""}, protected
               </span>
             </div>
           )}
@@ -315,23 +315,23 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      {/* Designs in selected child section */}
+      {/* Products in selected child section */}
       {selectedChildId && (
         <div className="mt-8">
           <h2 className="text-section-title mb-4">
-            Designs in "{selectedChild?.name ?? ""}"
+            Products in "{selectedChild?.name ?? ""}"
           </h2>
-          {designsLoading ? (
+          {productsLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {Array(6).fill(0).map((_, i) => <Skeleton key={i} className="aspect-square rounded-xl" />)}
             </div>
-          ) : designs.length === 0 ? (
+          ) : products.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center border border-dashed border-border rounded-xl">
-              No designs have been uploaded into this section yet.
+              No products have been uploaded into this section yet.
             </p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {designs.map((d) => (
+              {products.map((d) => (
                 <a
                   key={d.id}
                   href={d.preview_urls?.[0] ?? undefined}
@@ -398,12 +398,12 @@ export default function CategoriesPage() {
               <div>
                 <label className="text-sm font-medium text-foreground">Section Photo</label>
                 <p className="text-xs text-muted-foreground mt-0.5 mb-2">
-                  Shown as this section's banner on the Design Market home page. If not set, the app falls back to the first design uploaded into it.
+                  Shown as this section's banner on the Product Market home page. If not set, the app falls back to the first product uploaded into it.
                 </p>
                 <div className="flex items-center gap-3">
                   {photoPreview || (typeof modal === "object" && modal?.photo_url) ? (
                     <img
-                      src={photoPreview ?? (modal as DesignCategory).photo_url}
+                      src={photoPreview ?? (modal as ProductCategory).photo_url}
                       alt=""
                       className="h-14 w-14 rounded-lg object-cover border border-border"
                     />

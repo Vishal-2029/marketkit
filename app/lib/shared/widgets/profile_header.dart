@@ -6,7 +6,7 @@ import '../../core/network/api_endpoints.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/auth/providers/auth_provider.dart';
 
-/// Avatar + name + email header, shared by the Learning and Design Market
+/// Avatar + name + email header, shared by the Learning and Product Market
 /// profile screens so both stay visually identical for free. Identity data
 /// itself already comes from the single shared [authProvider].
 class ProfileHeader extends ConsumerWidget {

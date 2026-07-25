@@ -3,18 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../providers/design_favorites_provider.dart';
-import '../widgets/design_card.dart';
+import '../providers/product_favorites_provider.dart';
+import '../widgets/product_card.dart';
 
-/// Grid of the buyer's starred designs — device-only, mirrors the video
-/// FavoritesScreen but embedded as a Design Market tab instead of a pushed
-/// route, since the wireframe puts it alongside Design/Upload/Profile.
-class FavoriteDesignsTab extends ConsumerWidget {
-  const FavoriteDesignsTab({super.key});
+/// Grid of the buyer's starred products — device-only, mirrors the video
+/// FavoritesScreen but embedded as a Product Market tab instead of a pushed
+/// route, since the wireframe puts it alongside Product/Upload/Profile.
+class FavoriteProductsTab extends ConsumerWidget {
+  const FavoriteProductsTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entries = ref.watch(designFavoritesProvider).entries;
+    final entries = ref.watch(productFavoritesProvider).entries;
 
     if (entries.isEmpty) {
       return Center(
@@ -26,13 +26,13 @@ class FavoriteDesignsTab extends ConsumerWidget {
               Icon(Icons.star_outline_rounded,
                   size: 56, color: kMutedForeground),
               SizedBox(height: 12),
-              Text('No favorite designs yet',
+              Text('No favorite products yet',
                   style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: kForeground)),
               SizedBox(height: 6),
-              Text('Tap the star icon on a design to save it here.',
+              Text('Tap the star icon on a product to save it here.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 13, color: kMutedForeground)),
             ],
@@ -51,10 +51,10 @@ class FavoriteDesignsTab extends ConsumerWidget {
       ),
       itemCount: entries.length,
       itemBuilder: (_, i) {
-        final design = entries[i].design;
-        return DesignCard(
-          design: design,
-          onTap: () => context.push('/market/design/${design.id}'),
+        final product = entries[i].product;
+        return ProductCard(
+          product: product,
+          onTap: () => context.push('/market/product/${product.id}'),
         );
       },
     );

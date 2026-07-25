@@ -26,8 +26,8 @@ var imageMIMETypes = map[string]string{
 	".png": "image/png", ".webp": "image/webp",
 }
 
-// designFileExts whitelists embroidery machine / stitch / related export formats.
-var designFileExts = map[string]bool{
+// productFileExts whitelists embroidery machine / stitch / related export formats.
+var productFileExts = map[string]bool{
 	// Core stitch formats
 	".dst": true, ".pes": true, ".exp": true, ".jef": true,
 	".vp3": true, ".xxx": true, ".hus": true, ".pec": true,
@@ -47,24 +47,24 @@ var designFileExts = map[string]bool{
 	".art": true, ".art50": true, ".art60": true, ".art70": true, ".art80": true,
 	".dhp": true, ".dha": true, ".dhe": true,
 	".tpl": true, ".plt": true, ".dxf": true,
-	// Document formats (e.g. digitized-design reference sheets / instructions)
+	// Document formats (e.g. digitized-product reference sheets / instructions)
 	".pdf": true,
 }
 
 const (
 	maxPreviewImageBytes = 5 * 1024 * 1024 // 5 MB
-	maxDesignFileBytes   = 5 * 1024 * 1024 // 5 MB
+	maxProductFileBytes  = 5 * 1024 * 1024 // 5 MB
 	maxPreviewImages     = 7
 	minPriceInPaise      = 1000     // ₹10
 	maxPriceInPaise      = 10000000 // ₹1,00,000
 )
 
-// populateDesignURLs resolves preview keys → public URLs and computes
+// populateProductURLs resolves preview keys → public URLs and computes
 // per-viewer flags. FileKey is never exposed; the machine file is only
 // reachable via the signed download-url endpoint.
-func populateDesignURLs(designs []models.Design, viewerID string, purchased map[string]bool) {
-	for i := range designs {
-		d := &designs[i]
+func populateProductURLs(products []models.Product, viewerID string, purchased map[string]bool) {
+	for i := range products {
+		d := &products[i]
 		d.PreviewURLs = make([]string, 0, len(d.PreviewKeys))
 		for _, k := range d.PreviewKeys {
 			d.PreviewURLs = append(d.PreviewURLs, storage.Store.PublicURL(k))
@@ -76,31 +76,31 @@ func populateDesignURLs(designs []models.Design, viewerID string, purchased map[
 	}
 }
 
-// purchasedDesignIDs returns the set of design IDs the user has successfully bought.
-func purchasedDesignIDs(userID string, designIDs []string) map[string]bool {
+// purchasedProductIDs returns the set of product IDs the user has successfully bought.
+func purchasedProductIDs(userID string, productIDs []string) map[string]bool {
 	out := map[string]bool{}
-	if len(designIDs) == 0 {
+	if len(productIDs) == 0 {
 		return out
 	}
 	var ids []string
-	database.DB.Model(&models.DesignPurchase{}).
-		Where("buyer_id = ? AND status = ? AND design_id IN ?", userID, models.PaymentSuccess, designIDs).
-		Pluck("design_id", &ids)
+	database.DB.Model(&models.ProductPurchase{}).
+		Where("buyer_id = ? AND status = ? AND product_id IN ?", userID, models.PaymentSuccess, productIDs).
+		Pluck("product_id", &ids)
 	for _, id := range ids {
 		out[id] = true
 	}
 	return out
 }
 
-// attachSellerNames fills SellerName for a slice of designs in one query.
+// attachSellerNames fills SellerName for a slice of products in one query.
 // Also stamps FeaturedSeller from active market plan subscriptions (placeholder perk).
-func attachSellerNames(designs []models.Design) {
-	if len(designs) == 0 {
+func attachSellerNames(products []models.Product) {
+	if len(products) == 0 {
 		return
 	}
-	sellerIDs := make([]string, 0, len(designs))
+	sellerIDs := make([]string, 0, len(products))
 	seen := map[string]bool{}
-	for _, d := range designs {
+	for _, d := range products {
 		if !seen[d.SellerID] {
 			seen[d.SellerID] = true
 			sellerIDs = append(sellerIDs, d.SellerID)
@@ -114,9 +114,9 @@ func attachSellerNames(designs []models.Design) {
 		names[r.ID] = r.Name
 	}
 	featured := activeFeaturedSellerIDs(sellerIDs)
-	for i := range designs {
-		designs[i].SellerName = names[designs[i].SellerID]
-		designs[i].FeaturedSeller = featured[designs[i].SellerID]
+	for i := range products {
+		products[i].SellerName = names[products[i].SellerID]
+		products[i].FeaturedSeller = featured[products[i].SellerID]
 	}
 }
 
@@ -149,14 +149,14 @@ func uploadPreviewImage(fileHeader *multipart.FileHeader) (string, error) {
 	return fileKey, nil
 }
 
-// uploadDesignFile validates and stores the embroidery machine file privately.
-func uploadDesignFile(fileHeader *multipart.FileHeader) (key, format string, err error) {
-	if fileHeader.Size > maxDesignFileBytes {
-		return "", "", fmt.Errorf("design file must be under 5 MB")
+// uploadProductFile validates and stores the embroidery machine file privately.
+func uploadProductFile(fileHeader *multipart.FileHeader) (key, format string, err error) {
+	if fileHeader.Size > maxProductFileBytes {
+		return "", "", fmt.Errorf("product file must be under 5 MB")
 	}
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
-	if !designFileExts[ext] {
-		return "", "", fmt.Errorf("unsupported design format %s", ext)
+	if !productFileExts[ext] {
+		return "", "", fmt.Errorf("unsupported product format %s", ext)
 	}
 
 	src, err := fileHeader.Open()
@@ -167,7 +167,7 @@ func uploadDesignFile(fileHeader *multipart.FileHeader) (key, format string, err
 
 	key = fmt.Sprintf("market/files/%s%s", uuid.New().String(), ext)
 	if err := storage.Store.Upload(context.Background(), key, "application/octet-stream", src, fileHeader.Size); err != nil {
-		slog.Error("market: failed to store design file", "key", key, "error", err)
+		slog.Error("market: failed to store product file", "key", key, "error", err)
 		return "", "", err
 	}
 	return key, strings.TrimPrefix(ext, "."), nil
@@ -184,17 +184,17 @@ func cleanupKeys(keys []string) {
 	}
 }
 
-// HandleListDesigns godoc
-// @Summary     Browse marketplace designs
+// HandleListProducts godoc
+// @Summary     Browse marketplace products
 // @Tags        User Market
 // @Produce     json
 // @Security    UserAuth
 // @Param       search  query  string  false  "Search by title"
 // @Param       page    query  int     false  "Page number (default: 1)"
-// @Success     200  {object}  []models.Design
+// @Success     200  {object}  []models.Product
 // @Failure     401  {object}  map[string]string
-// @Router      /user/market/designs [get]
-func HandleListDesigns(c *fiber.Ctx) error {
+// @Router      /user/market/products [get]
+func HandleListProducts(c *fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(string)
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	if page < 1 {
@@ -203,7 +203,7 @@ func HandleListDesigns(c *fiber.Ctx) error {
 	limit := 20
 	offset := (page - 1) * limit
 
-	query := database.DB.Model(&models.Design{}).
+	query := database.DB.Model(&models.Product{}).
 		Where("is_active = true").
 		Order("created_at DESC").
 		Limit(limit).Offset(offset)
@@ -212,12 +212,12 @@ func HandleListDesigns(c *fiber.Ctx) error {
 	}
 	if catID := c.Query("category_id"); catID != "" {
 		// catID may be a leaf category (exact match is correct) or a
-		// top-level section — designs are filed against the specific leaf
+		// top-level section — products are filed against the specific leaf
 		// category chosen at upload time, never against the parent section
-		// itself, so a section's preview strip must also pick up any design
+		// itself, so a section's preview strip must also pick up any product
 		// filed under one of its children.
 		var childIDs []string
-		database.DB.Model(&models.DesignCategory{}).
+		database.DB.Model(&models.ProductCategory{}).
 			Where("parent_id = ?", catID).
 			Pluck("id", &childIDs)
 		if len(childIDs) > 0 {
@@ -227,71 +227,71 @@ func HandleListDesigns(c *fiber.Ctx) error {
 		}
 	}
 
-	var designs []models.Design
-	if err := query.Find(&designs).Error; err != nil {
-		return response.InternalError(c, "failed to fetch designs")
+	var products []models.Product
+	if err := query.Find(&products).Error; err != nil {
+		return response.InternalError(c, "failed to fetch products")
 	}
-	if designs == nil {
-		designs = []models.Design{}
+	if products == nil {
+		products = []models.Product{}
 	}
 
-	ids := make([]string, len(designs))
-	for i, d := range designs {
+	ids := make([]string, len(products))
+	for i, d := range products {
 		ids[i] = d.ID
 	}
-	attachSellerNames(designs)
-	populateDesignURLs(designs, userID, purchasedDesignIDs(userID, ids))
-	return response.OK(c, designs)
+	attachSellerNames(products)
+	populateProductURLs(products, userID, purchasedProductIDs(userID, ids))
+	return response.OK(c, products)
 }
 
-// HandleGetDesign godoc
-// @Summary     Get a marketplace design
+// HandleGetProduct godoc
+// @Summary     Get a marketplace product
 // @Tags        User Market
 // @Produce     json
 // @Security    UserAuth
-// @Param       id  path  string  true  "Design ID"
-// @Success     200  {object}  models.Design
+// @Param       id  path  string  true  "Product ID"
+// @Success     200  {object}  models.Product
 // @Failure     401  {object}  map[string]string
 // @Failure     404  {object}  map[string]string
-// @Router      /user/market/designs/{id} [get]
-func HandleGetDesign(c *fiber.Ctx) error {
+// @Router      /user/market/products/{id} [get]
+func HandleGetProduct(c *fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(string)
 
-	var d models.Design
+	var d models.Product
 	if err := database.DB.Where("id = ? AND is_active = true", c.Params("id")).First(&d).Error; err != nil {
-		return response.NotFound(c, "design not found")
+		return response.NotFound(c, "product not found")
 	}
 
 	// Don't let sellers inflate their own view count by previewing.
 	if d.SellerID != userID {
-		_ = database.DB.Model(&models.Design{}).
+		_ = database.DB.Model(&models.Product{}).
 			Where("id = ?", d.ID).
 			UpdateColumn("view_count", gorm.Expr("view_count + 1")).Error
 		d.ViewCount++
 	}
 
-	designs := []models.Design{d}
-	attachSellerNames(designs)
-	populateDesignURLs(designs, userID, purchasedDesignIDs(userID, []string{d.ID}))
-	return response.OK(c, designs[0])
+	products := []models.Product{d}
+	attachSellerNames(products)
+	populateProductURLs(products, userID, purchasedProductIDs(userID, []string{d.ID}))
+	return response.OK(c, products[0])
 }
 
-// HandleCreateDesign godoc
-// @Summary     List a design for sale
+// HandleCreateProduct godoc
+// @Summary     List a product for sale
 // @Tags        User Market
 // @Accept      multipart/form-data
 // @Produce     json
 // @Security    UserAuth
-// @Param       title           formData  string  true   "Design title"
+// @Param       title           formData  string  true   "Product title"
 // @Param       description     formData  string  false  "Description"
 // @Param       price_in_paise  formData  int     true   "Price in paise (min 1000 = ₹10)"
 // @Param       file            formData  file    true   "Embroidery machine file (.dst/.pes/...)"
 // @Param       previews        formData  file    true   "1-7 preview images"
-// @Success     201  {object}  models.Design
+// @Success     201  {object}  models.Product
 // @Failure     400  {object}  map[string]string
 // @Failure     401  {object}  map[string]string
-// @Router      /user/market/designs [post]
-func HandleCreateDesign(c *fiber.Ctx) error {
+// @Router      /user/market/products [post]
+func HandleCreateProduct(c *fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(string)
 
 	title := strings.TrimSpace(c.FormValue("title"))
@@ -309,7 +309,7 @@ func HandleCreateDesign(c *fiber.Ctx) error {
 	if categoryID == "" {
 		return response.BadRequest(c, "category_id is required")
 	}
-	var category models.DesignCategory
+	var category models.ProductCategory
 	if err := database.DB.First(&category, "id = ?", categoryID).Error; err != nil {
 		return response.BadRequest(c, "invalid category")
 	}
@@ -319,7 +319,7 @@ func HandleCreateDesign(c *fiber.Ctx) error {
 
 	fileHeader, err := c.FormFile("file")
 	if err != nil || fileHeader == nil {
-		return response.BadRequest(c, "design file is required")
+		return response.BadRequest(c, "product file is required")
 	}
 
 	form, err := c.MultipartForm()
@@ -331,9 +331,9 @@ func HandleCreateDesign(c *fiber.Ctx) error {
 		previewHeaders = previewHeaders[:maxPreviewImages]
 	}
 
-	fileKey, fileFormat, err := uploadDesignFile(fileHeader)
+	fileKey, fileFormat, err := uploadProductFile(fileHeader)
 	if err != nil {
-		return response.BadRequest(c, "invalid design file: "+err.Error())
+		return response.BadRequest(c, "invalid product file: "+err.Error())
 	}
 
 	// Upload previews concurrently, mirroring the community image pipeline.
@@ -355,7 +355,7 @@ func HandleCreateDesign(c *fiber.Ctx) error {
 		return response.BadRequest(c, "invalid preview image: "+err.Error())
 	}
 
-	design := models.Design{
+	product := models.Product{
 		SellerID:      userID,
 		Title:         title,
 		Description:   description,
@@ -369,106 +369,106 @@ func HandleCreateDesign(c *fiber.Ctx) error {
 		CategoryID:    &category.ID,
 	}
 	if category.IsOther {
-		design.CategoryOther = &categoryOther
+		product.CategoryOther = &categoryOther
 	}
-	if err := database.DB.Create(&design).Error; err != nil {
+	if err := database.DB.Create(&product).Error; err != nil {
 		cleanupKeys(append(previewKeys, fileKey))
-		return response.InternalError(c, "failed to create design")
+		return response.InternalError(c, "failed to create product")
 	}
 
-	designs := []models.Design{design}
-	attachSellerNames(designs)
-	populateDesignURLs(designs, userID, nil)
-	return response.Created(c, designs[0])
+	products := []models.Product{product}
+	attachSellerNames(products)
+	populateProductURLs(products, userID, nil)
+	return response.Created(c, products[0])
 }
 
-// deleteDesignRow applies the shared takedown rule: designs with sales are
-// soft-deactivated (buyers keep download rights); unsold designs are removed
+// deleteProductRow applies the shared takedown rule: products with sales are
+// soft-deactivated (buyers keep download rights); unsold products are removed
 // along with their stored files.
-func deleteDesignRow(d *models.Design) error {
+func deleteProductRow(d *models.Product) error {
 	if d.SalesCount > 0 {
-		return database.DB.Model(&models.Design{}).
+		return database.DB.Model(&models.Product{}).
 			Where("id = ?", d.ID).
 			Update("is_active", false).Error
 	}
-	if err := database.DB.Delete(&models.Design{}, "id = ?", d.ID).Error; err != nil {
+	if err := database.DB.Delete(&models.Product{}, "id = ?", d.ID).Error; err != nil {
 		return err
 	}
 	cleanupKeys(append(append([]string{}, d.PreviewKeys...), d.FileKey))
 	return nil
 }
 
-// HandleDeleteDesign godoc
-// @Summary     Remove own design listing
+// HandleDeleteProduct godoc
+// @Summary     Remove own product listing
 // @Tags        User Market
 // @Produce     json
 // @Security    UserAuth
-// @Param       id  path  string  true  "Design ID"
+// @Param       id  path  string  true  "Product ID"
 // @Success     200  {object}  map[string]string
 // @Failure     401  {object}  map[string]string
 // @Failure     404  {object}  map[string]string
-// @Router      /user/market/designs/{id} [delete]
-func HandleDeleteDesign(c *fiber.Ctx) error {
+// @Router      /user/market/products/{id} [delete]
+func HandleDeleteProduct(c *fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(string)
 
-	var d models.Design
+	var d models.Product
 	if err := database.DB.Where("id = ? AND seller_id = ?", c.Params("id"), userID).First(&d).Error; err != nil {
-		return response.NotFound(c, "design not found")
+		return response.NotFound(c, "product not found")
 	}
-	if err := deleteDesignRow(&d); err != nil {
-		return response.InternalError(c, "failed to delete design")
+	if err := deleteProductRow(&d); err != nil {
+		return response.InternalError(c, "failed to delete product")
 	}
-	return response.OK(c, fiber.Map{"message": "design removed"})
+	return response.OK(c, fiber.Map{"message": "product removed"})
 }
 
-// HandleMyDesigns godoc
-// @Summary     List own design listings (including unlisted)
+// HandleMyProducts godoc
+// @Summary     List own product listings (including unlisted)
 // @Tags        User Market
 // @Produce     json
 // @Security    UserAuth
-// @Success     200  {object}  []models.Design
+// @Success     200  {object}  []models.Product
 // @Failure     401  {object}  map[string]string
-// @Router      /user/market/my/designs [get]
-func HandleMyDesigns(c *fiber.Ctx) error {
+// @Router      /user/market/my/products [get]
+func HandleMyProducts(c *fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(string)
 
-	var designs []models.Design
+	var products []models.Product
 	if err := database.DB.
 		Where("seller_id = ?", userID).
 		Order("created_at DESC").
-		Find(&designs).Error; err != nil {
-		return response.InternalError(c, "failed to fetch designs")
+		Find(&products).Error; err != nil {
+		return response.InternalError(c, "failed to fetch products")
 	}
-	if designs == nil {
-		designs = []models.Design{}
+	if products == nil {
+		products = []models.Product{}
 	}
-	attachSellerNames(designs)
-	populateDesignURLs(designs, userID, nil)
-	return response.OK(c, designs)
+	attachSellerNames(products)
+	populateProductURLs(products, userID, nil)
+	return response.OK(c, products)
 }
 
-// HandleMyDesignStats godoc
-// @Summary     Seller analytics for one of their designs
+// HandleMyProductStats godoc
+// @Summary     Seller analytics for one of their products
 // @Tags        User Market
 // @Produce     json
 // @Security    UserAuth
-// @Param       id  path  string  true  "Design ID"
+// @Param       id  path  string  true  "Product ID"
 // @Success     200  {object}  map[string]interface{}
 // @Failure     401  {object}  map[string]string
 // @Failure     404  {object}  map[string]string
-// @Router      /user/market/my/designs/{id}/stats [get]
-func HandleMyDesignStats(c *fiber.Ctx) error {
+// @Router      /user/market/my/products/{id}/stats [get]
+func HandleMyProductStats(c *fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(string)
-	designID := c.Params("id")
+	productID := c.Params("id")
 
-	var d models.Design
-	if err := database.DB.Where("id = ? AND seller_id = ?", designID, userID).First(&d).Error; err != nil {
-		return response.NotFound(c, "design not found")
+	var d models.Product
+	if err := database.DB.Where("id = ? AND seller_id = ?", productID, userID).First(&d).Error; err != nil {
+		return response.NotFound(c, "product not found")
 	}
 
 	var revenue int64
-	database.DB.Model(&models.DesignPurchase{}).
-		Where("design_id = ? AND seller_id = ? AND status = ?", designID, userID, models.PaymentSuccess).
+	database.DB.Model(&models.ProductPurchase{}).
+		Where("product_id = ? AND seller_id = ? AND status = ?", productID, userID, models.PaymentSuccess).
 		Select("COALESCE(SUM(seller_net_in_paise), 0)").
 		Scan(&revenue)
 
@@ -480,22 +480,22 @@ func HandleMyDesignStats(c *fiber.Ctx) error {
 }
 
 // HandleListCategories godoc
-// @Summary     List Design Market categories
+// @Summary     List Product Market categories
 // @Tags        User Market
 // @Produce     json
 // @Security    UserAuth
-// @Success     200  {object}  []models.DesignCategory
+// @Success     200  {object}  []models.ProductCategory
 // @Failure     401  {object}  map[string]string
 // @Router      /user/market/categories [get]
 func HandleListCategories(c *fiber.Ctx) error {
-	var categories []models.DesignCategory
+	var categories []models.ProductCategory
 	if err := database.DB.
 		Order("display_order ASC").
 		Find(&categories).Error; err != nil {
 		return response.InternalError(c, "failed to fetch categories")
 	}
 	if categories == nil {
-		categories = []models.DesignCategory{}
+		categories = []models.ProductCategory{}
 	}
 	populateCategoryPhotoURLs(categories)
 	return response.OK(c, categories)

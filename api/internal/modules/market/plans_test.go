@@ -50,7 +50,7 @@ func TestActivateMarketPlanSub_CreditsPlatformWalletExactlyOnce(t *testing.T) {
 // TestHandleSubscribeMarketPlanWithWallet_CreditsFullAmount covers the
 // wallet-funded path: money in the buyer's internal wallet was already real
 // money the platform held, so spending it on a plan realizes the full amount
-// as platform revenue (unlike a design sale, where only the fee is new
+// as platform revenue (unlike a product sale, where only the fee is new
 // revenue — the net still belongs to the seller).
 func TestHandleSubscribeMarketPlanWithWallet_CreditsFullAmount(t *testing.T) {
 	testutil.WithTx(t, func() {

@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../models/design_thread_message.dart';
-import '../providers/designs_provider.dart';
+import '../models/product_thread_message.dart';
+import '../providers/products_provider.dart';
 
-/// Private buyer <-> admin support thread for a purchased design. Only the
+/// Private buyer <-> admin support thread for a purchased product. Only the
 /// buyer and admins can see this conversation — the seller has no access.
 class PurchaseThreadScreen extends ConsumerStatefulWidget {
-  final String designId;
-  final String designTitle;
+  final String productId;
+  final String productTitle;
 
   const PurchaseThreadScreen({
     super.key,
-    required this.designId,
-    required this.designTitle,
+    required this.productId,
+    required this.productTitle,
   });
 
   @override
@@ -24,7 +24,7 @@ class PurchaseThreadScreen extends ConsumerStatefulWidget {
 
 class _PurchaseThreadScreenState extends ConsumerState<PurchaseThreadScreen> {
   final _controller = TextEditingController();
-  List<DesignThreadMessage> _messages = [];
+  List<ProductThreadMessage> _messages = [];
   bool _isLoading = true;
   bool _isPosting = false;
 
@@ -43,7 +43,7 @@ class _PurchaseThreadScreenState extends ConsumerState<PurchaseThreadScreen> {
   Future<void> _load() async {
     try {
       final messages =
-          await ref.read(marketServiceProvider).fetchDesignMessages(widget.designId);
+          await ref.read(marketServiceProvider).fetchProductMessages(widget.productId);
       if (!mounted) return;
       setState(() {
         _messages = messages;
@@ -62,7 +62,7 @@ class _PurchaseThreadScreenState extends ConsumerState<PurchaseThreadScreen> {
     try {
       final message = await ref
           .read(marketServiceProvider)
-          .postDesignMessage(widget.designId, content);
+          .postProductMessage(widget.productId, content);
       if (!mounted) return;
       _controller.clear();
       setState(() => _messages = [..._messages, message]);
@@ -92,7 +92,7 @@ class _PurchaseThreadScreenState extends ConsumerState<PurchaseThreadScreen> {
       appBar: AppBar(
         backgroundColor: kBackground,
         title: Text(
-          widget.designTitle,
+          widget.productTitle,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
@@ -121,7 +121,7 @@ class _PurchaseThreadScreenState extends ConsumerState<PurchaseThreadScreen> {
                           child: Padding(
                             padding: EdgeInsets.all(24),
                             child: Text(
-                              'Have a question or an issue with this design?\nAsk here — the admin will respond.',
+                              'Have a question or an issue with this product?\nAsk here — the admin will respond.',
                               textAlign: TextAlign.center,
                               style: TextStyle(color: kMutedForeground, fontSize: 13),
                             ),

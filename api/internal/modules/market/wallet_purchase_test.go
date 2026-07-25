@@ -22,9 +22,9 @@ func TestPurchaseWithWallet_CreditsOnlyFee(t *testing.T) {
 		seller := testutil.MustCreateUser(t, tx)
 		buyer := testutil.MustCreateUser(t, tx)
 		require.NoError(t, tx.Model(&buyer).Update("wallet_balance_in_paise", int64(200000)).Error)
-		design := testutil.MustCreateDesign(t, tx, seller.ID, 100000)
+		product := testutil.MustCreateProduct(t, tx, seller.ID, 100000)
 
-		_, err := purchaseWithWallet(&design, buyer.ID)
+		_, err := purchaseWithWallet(&product, buyer.ID)
 		require.NoError(t, err)
 
 		var buyerAfter, sellerAfter models.User

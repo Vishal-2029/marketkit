@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 
-export interface Design {
+export interface Product {
   id: string;
   title: string;
   description: string;
@@ -18,9 +18,9 @@ export interface Design {
   category?: { id: string; parent_id: string | null; name: string; is_other: boolean } | null;
 }
 
-export interface DesignPurchase {
+export interface ProductPurchase {
   id: string;
-  design_id: string;
+  product_id: string;
   amount_in_paise: number;
   currency: string;
   status: string;
@@ -30,7 +30,7 @@ export interface DesignPurchase {
   buyer_email?: string;
   seller_name?: string;
   seller_email?: string;
-  design_title?: string;
+  product_title?: string;
 }
 
 export interface PaginatedMeta {
@@ -45,14 +45,14 @@ export interface MarketUser {
   name: string;
   email: string;
   phone: string;
-  design_count: number;
+  product_count: number;
   purchase_count: number;
   total_income_in_paise: number;
   seller_income_in_paise: number;
   platform_income_in_paise: number;
 }
 
-export interface MarketUserDesign {
+export interface MarketUserProduct {
   id: string;
   title: string;
   price_in_paise: number;
@@ -64,8 +64,8 @@ export interface MarketUserDesign {
 
 export interface MarketUserPurchase {
   id: string;
-  design_id: string;
-  design_title: string;
+  product_id: string;
+  product_title: string;
   preview_url?: string;
   amount_in_paise: number;
   fee_in_paise: number;
@@ -74,30 +74,30 @@ export interface MarketUserPurchase {
   paid_at?: string;
 }
 
-export const designsService = {
-  listDesigns: (page = 1, search = "", categoryId?: string) =>
+export const productsService = {
+  listProducts: (page = 1, search = "", categoryId?: string) =>
     api
-      .get("/market/designs", {
+      .get("/market/products", {
         params: { page, search: search || undefined, category_id: categoryId || undefined },
       })
-      .then((r) => r.data as { data: Design[]; meta: PaginatedMeta }),
-  deleteDesign: (id: string) => api.delete(`/market/designs/${id}`),
+      .then((r) => r.data as { data: Product[]; meta: PaginatedMeta }),
+  deleteProduct: (id: string) => api.delete(`/market/products/${id}`),
   listPurchases: (page = 1) =>
     api
       .get("/market/purchases", { params: { page } })
-      .then((r) => r.data as { data: DesignPurchase[]; meta: PaginatedMeta }),
+      .then((r) => r.data as { data: ProductPurchase[]; meta: PaginatedMeta }),
   listMarketUsers: (role: "seller" | "buyer" | undefined, page = 1, search = "") =>
     api
       .get("/market/users", { params: { role, page, search: search || undefined } })
       .then((r) => r.data as { data: MarketUser[]; meta: PaginatedMeta }),
-  getMarketUserDesigns: (id: string) =>
+  getMarketUserProducts: (id: string) =>
     api
-      .get(`/market/users/${id}/designs`)
+      .get(`/market/users/${id}/products`)
       .then(
         (r) =>
           r.data.data as {
             user: { id: string; name: string; email: string; phone: string };
-            designs_sold: MarketUserDesign[];
+            products_sold: MarketUserProduct[];
             purchases: MarketUserPurchase[];
           }
       ),

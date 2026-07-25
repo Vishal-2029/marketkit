@@ -9,28 +9,28 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
-import '../models/design_model.dart';
+import '../models/product_model.dart';
 import '../models/wallet_model.dart';
-import '../providers/designs_provider.dart';
+import '../providers/products_provider.dart';
 import '../providers/my_market_provider.dart';
 import '../providers/wallet_provider.dart';
-import '../widgets/design_card.dart';
-import '../widgets/design_favorite_button.dart';
+import '../widgets/product_card.dart';
+import '../widgets/product_favorite_button.dart';
 
-class DesignDetailScreen extends ConsumerStatefulWidget {
-  final String designId;
-  const DesignDetailScreen({super.key, required this.designId});
+class ProductDetailScreen extends ConsumerStatefulWidget {
+  final String productId;
+  const ProductDetailScreen({super.key, required this.productId});
 
   @override
-  ConsumerState<DesignDetailScreen> createState() => _DesignDetailScreenState();
+  ConsumerState<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
 
-class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
+class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   late Razorpay _razorpay;
   final _pageCtrl = PageController();
   Timer? _carouselTimer;
-  DesignModel? _design;
-  List<DesignModel> _otherDesigns = [];
+  ProductModel? _product;
+  List<ProductModel> _otherProducts = [];
   bool _isLoading = true;
   bool _isPaying = false;
   String? _error;
@@ -59,21 +59,21 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
       _error = null;
     });
     try {
-      final design = await ref
+      final product = await ref
           .read(marketServiceProvider)
-          .fetchDesign(widget.designId);
+          .fetchProduct(widget.productId);
       if (!mounted) return;
       setState(() {
-        _design = design;
+        _product = product;
         _isLoading = false;
       });
       _startCarouselTimer();
-      _loadOtherDesigns(design);
+      _loadOtherProducts(product);
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _error = 'Could not load this design.';
+        _error = 'Could not load this product.';
       });
     }
   }
@@ -82,7 +82,7 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
   /// becomes the new starting point for the next automatic tick.
   void _startCarouselTimer() {
     _carouselTimer?.cancel();
-    final count = _design?.previewUrls.length ?? 0;
+    final count = _product?.previewUrls.length ?? 0;
     if (count <= 1) return;
     _carouselTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!_pageCtrl.hasClients) return;
@@ -95,20 +95,20 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
     });
   }
 
-  /// "Other designs" row — prefers the same category, excludes this design,
+  /// "Other products" row — prefers the same category, excludes this product,
   /// capped at 8. Falls back to the general list if the category is empty.
-  Future<void> _loadOtherDesigns(DesignModel design) async {
+  Future<void> _loadOtherProducts(ProductModel product) async {
     try {
       var results = await ref
           .read(marketServiceProvider)
-          .fetchDesigns(categoryId: design.categoryId);
-      results = results.where((d) => d.id != design.id).toList();
-      if (results.isEmpty && design.categoryId != null) {
-        results = await ref.read(marketServiceProvider).fetchDesigns();
-        results = results.where((d) => d.id != design.id).toList();
+          .fetchProducts(categoryId: product.categoryId);
+      results = results.where((d) => d.id != product.id).toList();
+      if (results.isEmpty && product.categoryId != null) {
+        results = await ref.read(marketServiceProvider).fetchProducts();
+        results = results.where((d) => d.id != product.id).toList();
       }
       if (!mounted) return;
-      setState(() => _otherDesigns = results.take(8).toList());
+      setState(() => _otherProducts = results.take(8).toList());
     } catch (_) {
       // Non-fatal — the rest of the screen still works without this row.
     }
@@ -122,19 +122,19 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
   }
 
   Future<void> _buy() async {
-    final design = _design;
-    if (design == null) return;
+    final product = _product;
+    if (product == null) return;
 
     // Wallet first: if the balance covers the price, offer an instant
     // in-wallet purchase; Razorpay stays as the fallback (and the user can
     // still pick it explicitly).
     try {
       final wallet = await ref.read(walletServiceProvider).fetchSummary();
-      if (wallet.balanceInPaise >= design.priceInPaise && mounted) {
-        final useWallet = await _confirmWalletPay(design, wallet);
+      if (wallet.balanceInPaise >= product.priceInPaise && mounted) {
+        final useWallet = await _confirmWalletPay(product, wallet);
         if (useWallet == null) return; // dialog dismissed — no purchase
         if (useWallet) {
-          await _buyWithWallet(design);
+          await _buyWithWallet(product);
           return;
         }
         // false → user chose "Use Razorpay instead"; fall through.
@@ -149,7 +149,7 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
     try {
       final order = await ref
           .read(marketServiceProvider)
-          .createOrder(design.id);
+          .createOrder(product.id);
       final keyId = order['key_id'] as String?;
       final orderId = order['order_id'] as String?;
       final amount = order['amount'];
@@ -163,7 +163,7 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
         'order_id': orderId,
         'currency': order['currency'] ?? 'INR',
         'name': 'Stitch Craft Learn',
-        'description': design.title,
+        'description': product.title,
         'prefill': {
           'contact': auth.user?.phone ?? '',
           'email': auth.user?.email ?? '',
@@ -177,16 +177,16 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
   }
 
   /// null = dismissed, true = pay from wallet, false = use Razorpay.
-  Future<bool?> _confirmWalletPay(DesignModel design, WalletSummary wallet) {
+  Future<bool?> _confirmWalletPay(ProductModel product, WalletSummary wallet) {
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Pay from wallet?'),
         content: Text(
-          'Pay ${design.formattedPrice} from your wallet balance of '
-          '${wallet.formattedBalance}? The design unlocks instantly.\n\n'
+          'Pay ${product.formattedPrice} from your wallet balance of '
+          '${wallet.formattedBalance}? The product unlocks instantly.\n\n'
           'This sale is final — no returns or refunds. If there\'s an '
-          'issue with the design, you can contact support afterward.',
+          'issue with the product, you can contact support afterward.',
         ),
         actions: [
           TextButton(
@@ -206,17 +206,17 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
     );
   }
 
-  Future<void> _buyWithWallet(DesignModel design) async {
+  Future<void> _buyWithWallet(ProductModel product) async {
     setState(() => _isPaying = true);
     try {
       final purchase = await ref
           .read(walletServiceProvider)
-          .purchaseWithWallet(design.id);
+          .purchaseWithWallet(product.id);
       if (!mounted) return;
       ref.invalidate(myPurchasesProvider);
       ref.invalidate(walletSummaryProvider);
       ref.invalidate(walletTransactionsProvider);
-      ref.read(designsProvider.notifier).load();
+      ref.read(productsProvider.notifier).load();
       context.push('/market/purchase/${purchase.id}/receipt');
     } catch (e) {
       // Covers the balance-changed-underneath race (server returns 400) and
@@ -234,7 +234,7 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
     final paymentId = response.paymentId;
     final signature = response.signature;
 
-    _snack('Payment successful! Unlocking your design...', color: kSage);
+    _snack('Payment successful! Unlocking your product...', color: kSage);
 
     String purchaseId = '';
     try {
@@ -256,7 +256,7 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
 
     if (!mounted) return;
     ref.invalidate(myPurchasesProvider);
-    ref.read(designsProvider.notifier).load();
+    ref.read(productsProvider.notifier).load();
     if (purchaseId.isNotEmpty) {
       context.push('/market/purchase/$purchaseId/receipt');
     } else {
@@ -276,12 +276,12 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
   }
 
   Future<void> _download() async {
-    final design = _design;
-    if (design == null) return;
+    final product = _product;
+    if (product == null) return;
     try {
       final data = await ref
           .read(marketServiceProvider)
-          .fetchDownloadUrl(design.id);
+          .fetchDownloadUrl(product.id);
       final url = data['url'] as String?;
       if (url == null) throw Exception('no url');
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
@@ -297,7 +297,7 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
       appBar: AppBar(
         backgroundColor: kBackground,
         title: const Text(
-          'Design',
+          'Product',
           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
         ),
         centerTitle: false,
@@ -312,17 +312,17 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
             ? _errorState()
             : _content(),
       ),
-      bottomNavigationBar: _design == null ? null : _bottomBar(),
+      bottomNavigationBar: _product == null ? null : _bottomBar(),
     );
   }
 
   Widget _content() {
-    final design = _design!;
+    final product = _product!;
     final categoriesAsync = ref.watch(categoriesProvider);
     String? categoryName;
     categoriesAsync.whenData((cats) {
       for (final c in cats) {
-        if (c.id == design.categoryId) {
+        if (c.id == product.categoryId) {
           categoryName = c.name;
           break;
         }
@@ -340,7 +340,7 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
               borderRadius: BorderRadius.circular(14),
               child: SizedBox(
                 height: 260,
-                child: design.previewUrls.isEmpty
+                child: product.previewUrls.isEmpty
                     ? Container(
                         color: kMuted,
                         child: const Icon(
@@ -352,7 +352,7 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
                     : PageView(
                         controller: _pageCtrl,
                         children: [
-                          for (final url in design.previewUrls)
+                          for (final url in product.previewUrls)
                             CachedNetworkImage(
                               imageUrl: url,
                               fit: BoxFit.cover,
@@ -372,16 +372,16 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
             Positioned(
               top: 10,
               right: 10,
-              child: DesignFavoriteButton(design: design),
+              child: ProductFavoriteButton(product: product),
             ),
           ],
         ),
-        if (design.previewUrls.length > 1) ...[
+        if (product.previewUrls.length > 1) ...[
           const SizedBox(height: 10),
           Center(
             child: SmoothPageIndicator(
               controller: _pageCtrl,
-              count: design.previewUrls.length,
+              count: product.previewUrls.length,
               effect: const WormEffect(
                 dotWidth: 8,
                 dotHeight: 8,
@@ -393,9 +393,9 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
         ],
         const SizedBox(height: 18),
 
-        // 2. Design name
+        // 2. Product name
         Text(
-          design.title,
+          product.title,
           style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -404,7 +404,7 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
         ),
         const SizedBox(height: 12),
 
-        // 3. Design price — the buyer-facing gross price, not the seller net.
+        // 3. Product price — the buyer-facing gross price, not the seller net.
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
@@ -415,7 +415,7 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                design.formattedPrice,
+                product.formattedPrice,
                 style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
@@ -424,7 +424,7 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
               ),
               const SizedBox(height: 2),
               const Text(
-                'Price to buy this design',
+                'Price to buy this product',
                 style: TextStyle(fontSize: 12, color: kMutedForeground),
               ),
             ],
@@ -432,8 +432,8 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
         ),
         const SizedBox(height: 20),
 
-        // 4. Design information
-        _sectionTitle('Design information'),
+        // 4. Product information
+        _sectionTitle('Product information'),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
@@ -445,17 +445,17 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
           child: Column(
             children: [
               _specRow(Icons.description_outlined, 'File format',
-                  design.fileFormat.toUpperCase()),
+                  product.fileFormat.toUpperCase()),
               _specRow(Icons.sd_storage_outlined, 'File size',
-                  '${(design.fileSizeBytes / 1024).toStringAsFixed(0)} KB'),
+                  '${(product.fileSizeBytes / 1024).toStringAsFixed(0)} KB'),
               _specRow(Icons.category_outlined, 'Category',
                   categoryName ?? '—'),
-              _specRow(Icons.sell_outlined, 'Sold', '${design.salesCount}'),
+              _specRow(Icons.sell_outlined, 'Sold', '${product.salesCount}'),
               _specRow(
                 Icons.person_outline_rounded,
                 'Seller',
-                design.sellerName.isNotEmpty ? design.sellerName : 'Seller',
-                trailing: design.featuredSeller
+                product.sellerName.isNotEmpty ? product.sellerName : 'Seller',
+                trailing: product.featuredSeller
                     ? const Icon(Icons.workspace_premium,
                         size: 14, color: kGold)
                     : null,
@@ -465,13 +465,13 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
           ),
         ),
 
-        // 5. Design description
-        if (design.description.isNotEmpty) ...[
+        // 5. Product description
+        if (product.description.isNotEmpty) ...[
           const SizedBox(height: 20),
           _sectionTitle('Description'),
           const SizedBox(height: 8),
           Text(
-            design.description,
+            product.description,
             style: const TextStyle(
               fontSize: 14,
               color: kForeground,
@@ -480,24 +480,24 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
           ),
         ],
 
-        // 6. Other designs — horizontally scrollable, same category preferred.
-        if (_otherDesigns.isNotEmpty) ...[
+        // 6. Other products — horizontally scrollable, same category preferred.
+        if (_otherProducts.isNotEmpty) ...[
           const SizedBox(height: 20),
-          _sectionTitle('Other designs'),
+          _sectionTitle('Other products'),
           const SizedBox(height: 10),
           SizedBox(
             height: 210,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: _otherDesigns.length,
+              itemCount: _otherProducts.length,
               separatorBuilder: (_, __) => const SizedBox(width: 10),
               itemBuilder: (_, i) {
-                final d = _otherDesigns[i];
+                final d = _otherProducts[i];
                 return SizedBox(
                   width: 140,
-                  child: DesignCard(
-                    design: d,
-                    onTap: () => context.push('/market/design/${d.id}'),
+                  child: ProductCard(
+                    product: d,
+                    onTap: () => context.push('/market/product/${d.id}'),
                   ),
                 );
               },
@@ -563,8 +563,8 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
   }
 
   Widget _bottomBar() {
-    final design = _design!;
-    final owned = design.isPurchased || design.isMine;
+    final product = _product!;
+    final owned = product.isPurchased || product.isMine;
     return Container(
       padding: EdgeInsets.fromLTRB(
         16,
@@ -592,7 +592,7 @@ class _DesignDetailScreenState extends ConsumerState<DesignDetailScreen> {
                 style: TextStyle(fontSize: 11, color: kMutedForeground),
               ),
               Text(
-                design.formattedPrice,
+                product.formattedPrice,
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,

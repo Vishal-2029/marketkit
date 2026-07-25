@@ -191,7 +191,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 const MenuDivider(),
                 MenuTile(
                   icon: Icons.storefront_outlined,
-                  label: 'Design Market',
+                  label: 'Product Market',
                   onTap: _switchToMarket,
                 ),
                 const MenuDivider(),

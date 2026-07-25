@@ -2,10 +2,10 @@ package models
 
 import "time"
 
-// DesignPurchaseMessage is a private support thread scoped to one purchase,
+// ProductPurchaseMessage is a private support thread scoped to one purchase,
 // visible only to the buyer and admins — the seller is never a participant.
 // Mirrors VideoComment's ThreadUserID/IsAdmin pattern.
-type DesignPurchaseMessage struct {
+type ProductPurchaseMessage struct {
 	ID         string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	PurchaseID string `gorm:"index;not null"                                 json:"purchase_id"`
 

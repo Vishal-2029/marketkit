@@ -29,20 +29,20 @@
             <td style="padding:0 40px 36px;">
               <p style="margin:0 0 14px;font-size:15px;color:#333333;">Dear {{.Name}},</p>
               <p style="margin:0 0 20px;font-size:15px;color:#333333;line-height:1.7;">
-                Your Design Market purchase was successful. Your invoice and design file
+                Your Product Market purchase was successful. Your invoice and product file
                 {{if .DownloadLink}}download link are{{else}}are attached to{{end}} this email as a permanent backup.
               </p>
 
               {{if .PreviewURL}}
               <p style="margin:0 0 20px;text-align:center;">
-                <img src="{{.PreviewURL}}" alt="{{.DesignTitle}}" style="max-width:240px;border-radius:8px;border:1px solid #eee;" />
+                <img src="{{.PreviewURL}}" alt="{{.ProductTitle}}" style="max-width:240px;border-radius:8px;border:1px solid #eee;" />
               </p>
               {{end}}
 
               <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #eeeeee;margin-bottom:24px;">
                 <tr style="background:#f9f9f9;">
-                  <td style="padding:11px 16px;font-size:13px;color:#888888;width:45%;border-bottom:1px solid #eeeeee;">Design</td>
-                  <td style="padding:11px 16px;font-size:14px;color:#111111;font-weight:700;text-align:right;border-bottom:1px solid #eeeeee;">{{.DesignTitle}}</td>
+                  <td style="padding:11px 16px;font-size:13px;color:#888888;width:45%;border-bottom:1px solid #eeeeee;">Product</td>
+                  <td style="padding:11px 16px;font-size:14px;color:#111111;font-weight:700;text-align:right;border-bottom:1px solid #eeeeee;">{{.ProductTitle}}</td>
                 </tr>
                 <tr>
                   <td style="padding:11px 16px;font-size:13px;color:#888888;border-bottom:1px solid #eeeeee;">Seller</td>
@@ -64,16 +64,16 @@
 
               {{if .DownloadLink}}
               <p style="margin:0 0 20px;font-size:14px;color:#333333;line-height:1.6;">
-                The design file was too large to attach. Download it securely here
+                The product file was too large to attach. Download it securely here
                 (link expires in 7 days):<br />
-                <a href="{{.DownloadLink}}" style="color:#C49A28;font-weight:600;">Download your design</a>
+                <a href="{{.DownloadLink}}" style="color:#C49A28;font-weight:600;">Download your product</a>
               </p>
               {{end}}
 
               <p style="margin:0 0 16px;font-size:13px;color:#888888;line-height:1.6;font-style:italic;">
                 This sale is final — no returns or refunds are processed through the app.
-                If there's an issue with the design you purchased, please contact support
-                from the design's page instead of requesting a return.
+                If there's an issue with the product you purchased, please contact support
+                from the product's page instead of requesting a return.
               </p>
               <p style="margin:0;font-size:15px;color:#333333;">Regards,<br /><strong>Design Express Team</strong></p>
             </td>

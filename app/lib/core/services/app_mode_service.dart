@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The app runs in one of two modes chosen on first login: 'learning'
-/// (videos, the classic shell) or 'market' (the design marketplace). The
+/// (videos, the classic shell) or 'market' (the product marketplace). The
 /// choice is stored per user so a second account on the same device gets its
 /// own chooser, and it can be flipped anytime from either profile screen.
 class AppModeService {
@@ -10,7 +10,7 @@ class AppModeService {
 
   /// Learning kill-switch. While true the Learning side is locked behind
   /// "Coming soon…" everywhere (mode chooser, market profile) and users
-  /// whose stored mode is learning land in the Design Market instead. Flip
+  /// whose stored mode is learning land in the Product Market instead. Flip
   /// to false to re-open Learning — no other change needed.
   static const bool learningLocked = false;
 

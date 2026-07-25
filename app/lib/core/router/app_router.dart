@@ -14,9 +14,9 @@ import '../../features/home/models/video_model.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/home/screens/playlist_detail_screen.dart';
 import '../../features/library/screens/library_screen.dart';
-import '../../features/marketplace/screens/design_detail_screen.dart';
+import '../../features/marketplace/screens/product_detail_screen.dart';
 import '../../features/marketplace/screens/marketplace_shell.dart';
-import '../../features/marketplace/screens/my_designs_screen.dart';
+import '../../features/marketplace/screens/my_products_screen.dart';
 import '../../features/marketplace/screens/payout_details_screen.dart';
 import '../../features/marketplace/screens/purchase_receipt_screen.dart';
 import '../../features/marketplace/screens/purchase_thread_screen.dart';
@@ -103,22 +103,22 @@ final appRouter = GoRouter(
       path: '/choose-mode',
       builder: (context, state) => const ModeChooserScreen(),
     ),
-    // Design market — full-screen with its own internal bottom nav
+    // Product market — full-screen with its own internal bottom nav
     GoRoute(
       path: '/market',
       builder: (context, state) => const MarketplaceShell(),
     ),
     GoRoute(
-      path: '/market/design/:id',
-      builder: (context, state) => DesignDetailScreen(
-        designId: state.pathParameters['id']!,
+      path: '/market/product/:id',
+      builder: (context, state) => ProductDetailScreen(
+        productId: state.pathParameters['id']!,
       ),
     ),
     GoRoute(
-      path: '/market/design/:id/messages',
+      path: '/market/product/:id/messages',
       builder: (context, state) => PurchaseThreadScreen(
-        designId: state.pathParameters['id']!,
-        designTitle: (state.extra as String?) ?? 'Design',
+        productId: state.pathParameters['id']!,
+        productTitle: (state.extra as String?) ?? 'Product',
       ),
     ),
     // Wallet sub-screens — full-screen, no bottom nav
@@ -137,8 +137,8 @@ final appRouter = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/market/my-designs',
-      builder: (context, state) => const MyDesignsScreen(),
+      path: '/market/my-products',
+      builder: (context, state) => const MyProductsScreen(),
     ),
     // Playlist detail — full-screen, no bottom nav
     GoRoute(

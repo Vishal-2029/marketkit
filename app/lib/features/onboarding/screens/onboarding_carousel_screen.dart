@@ -22,7 +22,7 @@ const _slides = [
   _OnboardingSlide(
     icon: Icons.swap_horizontal_circle_rounded,
     title: 'Learn or sell — your choice',
-    subtitle: 'Watch embroidery courses, or buy and sell designs in the marketplace.',
+    subtitle: 'Watch embroidery courses, or buy and sell products in the marketplace.',
   ),
   _OnboardingSlide(
     icon: Icons.rocket_launch_rounded,

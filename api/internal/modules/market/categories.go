@@ -19,8 +19,8 @@ import (
 
 // populateCategoryPhotoURLs resolves each section's PhotoKey to a public URL
 // in place. Sections with no admin-set photo are left with an empty URL —
-// the app falls back to the first design's own preview in that case.
-func populateCategoryPhotoURLs(cats []models.DesignCategory) {
+// the app falls back to the first product's own preview in that case.
+func populateCategoryPhotoURLs(cats []models.ProductCategory) {
 	for i := range cats {
 		if cats[i].PhotoKey != nil && *cats[i].PhotoKey != "" {
 			cats[i].PhotoURL = storage.Store.PublicURL(*cats[i].PhotoKey)
@@ -28,23 +28,23 @@ func populateCategoryPhotoURLs(cats []models.DesignCategory) {
 	}
 }
 
-// categoryWithCount is a DesignCategory row annotated with how many designs
+// categoryWithCount is a ProductCategory row annotated with how many products
 // currently point at it — lets the admin UI disable/explain a blocked delete
 // without a second round trip per row.
 type categoryWithCount struct {
-	models.DesignCategory
-	DesignCount int64 `json:"design_count"`
+	models.ProductCategory
+	ProductCount int64 `json:"product_count"`
 }
 
 // HandleAdminListCategories godoc
-// @Summary     List all Design Market sections, flat, with design counts (admin)
+// @Summary     List all Product Market sections, flat, with product counts (admin)
 // @Tags        Admin Market Categories
 // @Produce     json
 // @Security    AdminAuth
 // @Success     200  {object}  []categoryWithCount
 // @Router      /market/categories [get]
 func HandleAdminListCategories(c *fiber.Ctx) error {
-	var categories []models.DesignCategory
+	var categories []models.ProductCategory
 	if err := database.DB.
 		Order("display_order ASC, created_at ASC").
 		Find(&categories).Error; err != nil {
@@ -55,12 +55,12 @@ func HandleAdminListCategories(c *fiber.Ctx) error {
 		CategoryID string `json:"category_id"`
 		Count      int64  `json:"count"`
 	}
-	if err := database.DB.Model(&models.Design{}).
+	if err := database.DB.Model(&models.Product{}).
 		Select("category_id, COUNT(*) as count").
 		Where("category_id IS NOT NULL").
 		Group("category_id").
 		Scan(&counts).Error; err != nil {
-		return response.InternalError(c, "failed to fetch section design counts")
+		return response.InternalError(c, "failed to fetch section product counts")
 	}
 	countByID := make(map[string]int64, len(counts))
 	for _, row := range counts {
@@ -71,15 +71,15 @@ func HandleAdminListCategories(c *fiber.Ctx) error {
 	result := make([]categoryWithCount, 0, len(categories))
 	for _, cat := range categories {
 		result = append(result, categoryWithCount{
-			DesignCategory: cat,
-			DesignCount:    countByID[cat.ID],
+			ProductCategory: cat,
+			ProductCount:    countByID[cat.ID],
 		})
 	}
 	return response.OK(c, result)
 }
 
 // HandleAdminCreateCategory godoc
-// @Summary     Create a Design Market section or sub-section (admin)
+// @Summary     Create a Product Market section or sub-section (admin)
 // @Tags        Admin Market Categories
 // @Produce     json
 // @Security    AdminAuth
@@ -99,7 +99,7 @@ func HandleAdminCreateCategory(c *fiber.Ctx) error {
 	}
 
 	if body.ParentID != nil {
-		var parent models.DesignCategory
+		var parent models.ProductCategory
 		if err := database.DB.First(&parent, "id = ?", *body.ParentID).Error; err != nil {
 			return response.BadRequest(c, "parent section not found")
 		}
@@ -111,7 +111,7 @@ func HandleAdminCreateCategory(c *fiber.Ctx) error {
 		}
 	}
 
-	category := models.DesignCategory{
+	category := models.ProductCategory{
 		Name:         body.Name,
 		ParentID:     body.ParentID,
 		DisplayOrder: body.DisplayOrder,
@@ -119,7 +119,7 @@ func HandleAdminCreateCategory(c *fiber.Ctx) error {
 	if err := database.DB.Create(&category).Error; err != nil {
 		return response.InternalError(c, "failed to create section")
 	}
-	return response.Created(c, categoryWithCount{DesignCategory: category, DesignCount: 0})
+	return response.Created(c, categoryWithCount{ProductCategory: category, ProductCount: 0})
 }
 
 // HandleAdminUploadCategoryPhoto godoc
@@ -132,7 +132,7 @@ func HandleAdminCreateCategory(c *fiber.Ctx) error {
 // @Param       photo  formData  file  true  "Section banner photo"
 // @Router      /market/categories/{id}/photo [post]
 func HandleAdminUploadCategoryPhoto(c *fiber.Ctx) error {
-	var cat models.DesignCategory
+	var cat models.ProductCategory
 	if err := database.DB.First(&cat, "id = ?", c.Params("id")).Error; err != nil {
 		return response.NotFound(c, "section not found")
 	}
@@ -161,9 +161,9 @@ func HandleAdminUploadCategoryPhoto(c *fiber.Ctx) error {
 
 	cat.PhotoKey = &photoKey
 	cat.PhotoURL = storage.Store.PublicURL(photoKey)
-	var designCount int64
-	database.DB.Model(&models.Design{}).Where("category_id = ?", cat.ID).Count(&designCount)
-	return response.OK(c, categoryWithCount{DesignCategory: cat, DesignCount: designCount})
+	var productCount int64
+	database.DB.Model(&models.Product{}).Where("category_id = ?", cat.ID).Count(&productCount)
+	return response.OK(c, categoryWithCount{ProductCategory: cat, ProductCount: productCount})
 }
 
 // uploadCategoryPhoto validates, compresses, and stores a section banner
@@ -196,14 +196,14 @@ func uploadCategoryPhoto(fileHeader *multipart.FileHeader) (string, error) {
 }
 
 // HandleAdminUpdateCategory godoc
-// @Summary     Rename or reorder a Design Market section (admin)
+// @Summary     Rename or reorder a Product Market section (admin)
 // @Tags        Admin Market Categories
 // @Produce     json
 // @Security    AdminAuth
 // @Param       id  path  string  true  "Category ID"
 // @Router      /market/categories/{id} [put]
 func HandleAdminUpdateCategory(c *fiber.Ctx) error {
-	var cat models.DesignCategory
+	var cat models.ProductCategory
 	if err := database.DB.First(&cat, "id = ?", c.Params("id")).Error; err != nil {
 		return response.NotFound(c, "section not found")
 	}
@@ -241,20 +241,20 @@ func HandleAdminUpdateCategory(c *fiber.Ctx) error {
 	if cat.PhotoKey != nil && *cat.PhotoKey != "" {
 		cat.PhotoURL = storage.Store.PublicURL(*cat.PhotoKey)
 	}
-	var designCount int64
-	database.DB.Model(&models.Design{}).Where("category_id = ?", cat.ID).Count(&designCount)
-	return response.OK(c, categoryWithCount{DesignCategory: cat, DesignCount: designCount})
+	var productCount int64
+	database.DB.Model(&models.Product{}).Where("category_id = ?", cat.ID).Count(&productCount)
+	return response.OK(c, categoryWithCount{ProductCategory: cat, ProductCount: productCount})
 }
 
 // HandleAdminDeleteCategory godoc
-// @Summary     Delete a Design Market section (admin)
+// @Summary     Delete a Product Market section (admin)
 // @Tags        Admin Market Categories
 // @Produce     json
 // @Security    AdminAuth
 // @Param       id  path  string  true  "Category ID"
 // @Router      /market/categories/{id} [delete]
 func HandleAdminDeleteCategory(c *fiber.Ctx) error {
-	var cat models.DesignCategory
+	var cat models.ProductCategory
 	if err := database.DB.First(&cat, "id = ?", c.Params("id")).Error; err != nil {
 		return response.NotFound(c, "section not found")
 	}
@@ -264,19 +264,19 @@ func HandleAdminDeleteCategory(c *fiber.Ctx) error {
 
 	if cat.ParentID == nil {
 		var childCount int64
-		database.DB.Model(&models.DesignCategory{}).Where("parent_id = ?", cat.ID).Count(&childCount)
+		database.DB.Model(&models.ProductCategory{}).Where("parent_id = ?", cat.ID).Count(&childCount)
 		if childCount > 0 {
 			return response.BadRequest(c, "cannot delete a section that still has sub-sections — delete or move them first")
 		}
 	}
 
-	var designCount int64
-	database.DB.Model(&models.Design{}).Where("category_id = ?", cat.ID).Count(&designCount)
-	if designCount > 0 {
-		return response.BadRequest(c, "cannot delete a section that still has designs assigned to it")
+	var productCount int64
+	database.DB.Model(&models.Product{}).Where("category_id = ?", cat.ID).Count(&productCount)
+	if productCount > 0 {
+		return response.BadRequest(c, "cannot delete a section that still has products assigned to it")
 	}
 
-	if err := database.DB.Delete(&models.DesignCategory{}, "id = ?", cat.ID).Error; err != nil {
+	if err := database.DB.Delete(&models.ProductCategory{}, "id = ?", cat.ID).Error; err != nil {
 		return response.InternalError(c, "failed to delete section")
 	}
 	if cat.PhotoKey != nil && *cat.PhotoKey != "" {

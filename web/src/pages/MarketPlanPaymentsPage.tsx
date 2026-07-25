@@ -91,7 +91,7 @@ export default function MarketPlanPaymentsPage() {
     <div>
       <PageHeader
         title="Plan Payments"
-        subtitle="Design Market plan subscription transactions"
+        subtitle="Product Market plan subscription transactions"
       >
         <Button variant="outline" onClick={exportCSV}>
           <Download className="h-4 w-4" /> Export CSV

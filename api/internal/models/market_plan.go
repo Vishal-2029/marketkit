@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-// MarketPlan is a Design Market seller subscription tier.
+// MarketPlan is a Product Market seller subscription tier.
 // Completely separate from learning Plan (plan.go).
 //
 // Placeholder perks (do not invent more):

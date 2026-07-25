@@ -15,10 +15,10 @@ import (
 
 func TestMain(m *testing.M) { testutil.RunMain(m) }
 
-// TestHandleSummary_ExcludesDesignMarketMoney is the cross-cutting isolation
-// guarantee: no design-market money (design sale, market-plan payment) may
+// TestHandleSummary_ExcludesProductMarketMoney is the cross-cutting isolation
+// guarantee: no product-market money (product sale, market-plan payment) may
 // ever leak into the learning Revenue page.
-func TestHandleSummary_ExcludesDesignMarketMoney(t *testing.T) {
+func TestHandleSummary_ExcludesProductMarketMoney(t *testing.T) {
 	testutil.WithTx(t, func() {
 		tx := database.DB
 
@@ -29,8 +29,8 @@ func TestHandleSummary_ExcludesDesignMarketMoney(t *testing.T) {
 		marketPlan := testutil.MustCreateMarketPlan(t, tx, 49900)
 		testutil.MustCreateMarketPlanSub(t, tx, user.ID, marketPlan.ID, 49900, true)
 
-		design := testutil.MustCreateDesign(t, tx, user.ID, 20000)
-		testutil.MustCreateDesignPurchase(t, tx, design.ID, user.ID, user.ID, 20000, 2000, models.PaymentSuccess)
+		product := testutil.MustCreateProduct(t, tx, user.ID, 20000)
+		testutil.MustCreateProductPurchase(t, tx, product.ID, user.ID, user.ID, 20000, 2000, models.PaymentSuccess)
 
 		app := testutil.FiberApp(nil)
 		app.Get("/x", HandleSummary)
@@ -48,6 +48,6 @@ func TestHandleSummary_ExcludesDesignMarketMoney(t *testing.T) {
 		}
 		require.NoError(t, json.Unmarshal(body, &parsed))
 		assert.Equal(t, int64(99900), parsed.Data.TotalRevenuePaise,
-			"learning revenue must equal only the learning payment — market-plan and design-sale money must not leak in")
+			"learning revenue must equal only the learning payment — market-plan and product-sale money must not leak in")
 	})
 }

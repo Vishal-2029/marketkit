@@ -26,7 +26,7 @@ type PlatformWallet struct {
 }
 
 // PlatformLedger is an append-only ledger row for the platform wallet,
-// mirroring WalletTransaction's design. Type is CREDIT/DEBIT (derived from
+// mirroring WalletTransaction's product. Type is CREDIT/DEBIT (derived from
 // the amount's sign); Source is one of the PlatformSource* constants.
 type PlatformLedger struct {
 	ID                  string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`

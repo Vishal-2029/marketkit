@@ -18,11 +18,11 @@ import AuditLogsPage from "./pages/AuditLogsPage";
 import PlaybackPage from "./pages/PlaybackPage";
 import RevenuePage from "./pages/RevenuePage";
 import CommunityPage from "./pages/CommunityPage";
-import DesignsPage from "./pages/DesignsPage";
+import ProductsPage from "./pages/ProductsPage";
 import CategoriesPage from "./pages/CategoriesPage";
 import MarketPlansPage from "./pages/MarketPlansPage";
 import MarketPlanPaymentsPage from "./pages/MarketPlanPaymentsPage";
-import DesignMarketRevenuePage from "./pages/DesignMarketRevenuePage";
+import ProductMarketRevenuePage from "./pages/ProductMarketRevenuePage";
 import NotificationsPage from "./pages/NotificationsPage";
 import AdminsPage from "./pages/AdminsPage";
 import RefundsPage from "./pages/RefundsPage";
@@ -72,11 +72,11 @@ function ProtectedLayout() {
         <Route path="/playback" element={<PlaybackPage />} />
         <Route path="/revenue" element={<RevenuePage />} />
         <Route path="/community" element={<CommunityPage />} />
-        <Route path="/designs" element={<DesignsPage />} />
-        <Route path="/design-categories" element={<CategoriesPage />} />
+        <Route path="/products" element={<ProductsPage />} />
+        <Route path="/product-categories" element={<CategoriesPage />} />
         <Route path="/market-plans" element={<MarketPlansPage />} />
         <Route path="/market-plan-payments" element={<MarketPlanPaymentsPage />} />
-        <Route path="/design-market-revenue" element={<DesignMarketRevenuePage />} />
+        <Route path="/product-market-revenue" element={<ProductMarketRevenuePage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/admins" element={<SuperAdminRoute><AdminsPage /></SuperAdminRoute>} />
         <Route path="/profile" element={<ProfilePage />} />

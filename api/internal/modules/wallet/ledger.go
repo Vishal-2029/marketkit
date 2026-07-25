@@ -64,7 +64,7 @@ func settingInt(key string, fallback int64) int64 {
 	return v
 }
 
-// FeePercent is the platform's cut on each design sale (admin-tunable).
+// FeePercent is the platform's cut on each product sale (admin-tunable).
 func FeePercent() int64 { return settingInt(models.SettingMarketFeePercent, 10) }
 
 // MinWithdrawal is the smallest allowed withdrawal, in paise (admin-tunable).

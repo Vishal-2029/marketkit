@@ -1,18 +1,18 @@
 class EarningsItem {
-  final String designId;
+  final String productId;
   final String title;
   final int sales;
   final int earnedInPaise;
 
   const EarningsItem({
-    required this.designId,
+    required this.productId,
     required this.title,
     required this.sales,
     required this.earnedInPaise,
   });
 
   factory EarningsItem.fromJson(Map<String, dynamic> json) => EarningsItem(
-        designId: json['design_id'] as String? ?? '',
+        productId: json['product_id'] as String? ?? '',
         title: json['title'] as String? ?? '',
         sales: (json['sales'] as num?)?.toInt() ?? 0,
         earnedInPaise: (json['earned_in_paise'] as num?)?.toInt() ?? 0,

@@ -84,9 +84,9 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.storefront_outlined, color: kGold),
-              title: const Text('Design Market',
+              title: const Text('Product Market',
                   style: TextStyle(fontWeight: FontWeight.w600)),
-              subtitle: const Text('Buy and sell embroidery designs',
+              subtitle: const Text('Buy and sell embroidery products',
                   style: TextStyle(fontSize: 12, color: kMutedForeground)),
               onTap: () {
                 Navigator.pop(sheetCtx);

@@ -100,7 +100,7 @@ definitions:
       post_id:
         type: string
     type: object
-  models.Design:
+  models.Product:
     properties:
       created_at:
         type: string
@@ -138,7 +138,7 @@ definitions:
       updated_at:
         type: string
     type: object
-  models.DesignPurchase:
+  models.ProductPurchase:
     properties:
       amount_in_paise:
         type: integer
@@ -154,11 +154,11 @@ definitions:
         type: string
       currency:
         type: string
-      design:
-        $ref: '#/definitions/models.Design'
-      design_id:
+      product:
+        $ref: '#/definitions/models.Product'
+      product_id:
         type: string
-      design_title:
+      product_title:
         type: string
       id:
         type: string
@@ -2475,7 +2475,7 @@ paths:
       summary: Get user growth by month over last 12 months (admin)
       tags:
       - Admin Dashboard
-  /market/designs:
+  /market/products:
     get:
       parameters:
       - description: Search by title or seller
@@ -2497,7 +2497,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Design'
+              $ref: '#/definitions/models.Product'
             type: array
         "401":
           description: Unauthorized
@@ -2507,13 +2507,13 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: List all marketplace designs (admin)
+      summary: List all marketplace products (admin)
       tags:
       - Admin Market
-  /market/designs/{id}:
+  /market/products/{id}:
     delete:
       parameters:
-      - description: Design ID
+      - description: Product ID
         in: path
         name: id
         required: true
@@ -2541,7 +2541,7 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Take down a marketplace design (admin)
+      summary: Take down a marketplace product (admin)
       tags:
       - Admin Market
   /market/purchases:
@@ -2562,7 +2562,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.DesignPurchase'
+              $ref: '#/definitions/models.ProductPurchase'
             type: array
         "401":
           description: Unauthorized
@@ -2572,7 +2572,7 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: List all design purchases (admin)
+      summary: List all product purchases (admin)
       tags:
       - Admin Market
   /photo-categories:
@@ -3386,7 +3386,7 @@ paths:
       summary: Reply to a community post
       tags:
       - User Community
-  /user/market/designs:
+  /user/market/products:
     get:
       parameters:
       - description: Search by title
@@ -3404,7 +3404,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Design'
+              $ref: '#/definitions/models.Product'
             type: array
         "401":
           description: Unauthorized
@@ -3414,14 +3414,14 @@ paths:
             type: object
       security:
       - UserAuth: []
-      summary: Browse marketplace designs
+      summary: Browse marketplace products
       tags:
       - User Market
     post:
       consumes:
       - multipart/form-data
       parameters:
-      - description: Design title
+      - description: Product title
         in: formData
         name: title
         required: true
@@ -3451,7 +3451,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.Design'
+            $ref: '#/definitions/models.Product'
         "400":
           description: Bad Request
           schema:
@@ -3466,13 +3466,13 @@ paths:
             type: object
       security:
       - UserAuth: []
-      summary: List a design for sale
+      summary: List a product for sale
       tags:
       - User Market
-  /user/market/designs/{id}:
+  /user/market/products/{id}:
     delete:
       parameters:
-      - description: Design ID
+      - description: Product ID
         in: path
         name: id
         required: true
@@ -3500,12 +3500,12 @@ paths:
             type: object
       security:
       - UserAuth: []
-      summary: Remove own design listing
+      summary: Remove own product listing
       tags:
       - User Market
     get:
       parameters:
-      - description: Design ID
+      - description: Product ID
         in: path
         name: id
         required: true
@@ -3516,7 +3516,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Design'
+            $ref: '#/definitions/models.Product'
         "401":
           description: Unauthorized
           schema:
@@ -3531,13 +3531,13 @@ paths:
             type: object
       security:
       - UserAuth: []
-      summary: Get a marketplace design
+      summary: Get a marketplace product
       tags:
       - User Market
-  /user/market/designs/{id}/download-url:
+  /user/market/products/{id}/download-url:
     get:
       parameters:
-      - description: Design ID
+      - description: Product ID
         in: path
         name: id
         required: true
@@ -3571,10 +3571,10 @@ paths:
             type: object
       security:
       - UserAuth: []
-      summary: Get a signed download URL for a purchased design file
+      summary: Get a signed download URL for a purchased product file
       tags:
       - User Market
-  /user/market/my/designs:
+  /user/market/my/products:
     get:
       produces:
       - application/json
@@ -3583,7 +3583,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Design'
+              $ref: '#/definitions/models.Product'
             type: array
         "401":
           description: Unauthorized
@@ -3593,7 +3593,7 @@ paths:
             type: object
       security:
       - UserAuth: []
-      summary: List own design listings (including unlisted)
+      summary: List own product listings (including unlisted)
       tags:
       - User Market
   /user/market/my/earnings:
@@ -3626,7 +3626,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.DesignPurchase'
+              $ref: '#/definitions/models.ProductPurchase'
             type: array
         "401":
           description: Unauthorized
@@ -3636,7 +3636,7 @@ paths:
             type: object
       security:
       - UserAuth: []
-      summary: List own successful design purchases
+      summary: List own successful product purchases
       tags:
       - User Market
   /user/market/purchases/order:
@@ -3644,7 +3644,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: design_id
+      - description: product_id
         in: body
         name: body
         required: true
@@ -3680,7 +3680,7 @@ paths:
             type: object
       security:
       - UserAuth: []
-      summary: Create a Razorpay order for a design purchase
+      summary: Create a Razorpay order for a product purchase
       tags:
       - User Market
   /user/market/purchases/verify:
@@ -3725,7 +3725,7 @@ paths:
             type: object
       security:
       - UserAuth: []
-      summary: Verify a Razorpay design purchase signature
+      summary: Verify a Razorpay product purchase signature
       tags:
       - User Market
   /user/notifications:

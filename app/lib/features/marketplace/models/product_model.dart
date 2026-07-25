@@ -1,4 +1,4 @@
-class DesignModel {
+class ProductModel {
   final String id;
   final String title;
   final String description;
@@ -17,7 +17,7 @@ class DesignModel {
   final DateTime? createdAt;
   final String? categoryId;
 
-  const DesignModel({
+  const ProductModel({
     required this.id,
     required this.title,
     required this.description,
@@ -39,7 +39,7 @@ class DesignModel {
 
   String get formattedPrice => '₹${(priceInPaise / 100).toStringAsFixed(0)}';
 
-  factory DesignModel.fromJson(Map<String, dynamic> json) => DesignModel(
+  factory ProductModel.fromJson(Map<String, dynamic> json) => ProductModel(
         id: json['id'] as String? ?? '',
         title: json['title'] as String? ?? '',
         description: json['description'] as String? ?? '',

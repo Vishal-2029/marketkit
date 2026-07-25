@@ -109,14 +109,14 @@ func MustCreateMarketPlanSub(t *testing.T, tx *gorm.DB, userID, planID string, a
 	return sub
 }
 
-func MustCreateDesign(t *testing.T, tx *gorm.DB, sellerID string, priceInPaise int64) models.Design {
+func MustCreateProduct(t *testing.T, tx *gorm.DB, sellerID string, priceInPaise int64) models.Product {
 	t.Helper()
 	n := nextSeq()
-	d := models.Design{
+	d := models.Product{
 		SellerID:     sellerID,
-		Title:        "Test Design " + strconv.FormatInt(n, 10),
+		Title:        "Test Product " + strconv.FormatInt(n, 10),
 		PriceInPaise: priceInPaise,
-		FileKey:      "designs/test-" + strconv.FormatInt(n, 10) + ".dst",
+		FileKey:      "products/test-" + strconv.FormatInt(n, 10) + ".dst",
 		FileName:     "test-" + strconv.FormatInt(n, 10) + ".dst",
 		IsActive:     true,
 	}
@@ -124,11 +124,11 @@ func MustCreateDesign(t *testing.T, tx *gorm.DB, sellerID string, priceInPaise i
 	return d
 }
 
-func MustCreateDesignPurchase(t *testing.T, tx *gorm.DB, designID, buyerID, sellerID string, amountInPaise, feeInPaise int64, status models.PaymentStatus) models.DesignPurchase {
+func MustCreateProductPurchase(t *testing.T, tx *gorm.DB, productID, buyerID, sellerID string, amountInPaise, feeInPaise int64, status models.PaymentStatus) models.ProductPurchase {
 	t.Helper()
 	now := time.Now()
-	p := models.DesignPurchase{
-		DesignID:      designID,
+	p := models.ProductPurchase{
+		ProductID:     productID,
 		BuyerID:       buyerID,
 		SellerID:      sellerID,
 		AmountInPaise: amountInPaise,

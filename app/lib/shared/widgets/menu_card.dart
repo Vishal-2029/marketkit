@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 
 /// Small labeled section heading, e.g. "ACCOUNT" — shared between the
-/// Learning and Design Market profile screens for a consistent look.
+/// Learning and Product Market profile screens for a consistent look.
 class SectionHeader extends StatelessWidget {
   final String title;
   const SectionHeader({super.key, required this.title});

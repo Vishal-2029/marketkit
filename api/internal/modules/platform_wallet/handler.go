@@ -186,7 +186,7 @@ func formatPaise(paise int64) string {
 var sourceLabel = map[string]string{
 	models.PlatformSourceLearningPlan: "Learning plan",
 	models.PlatformSourceMarketPlan:   "Market plan",
-	models.PlatformSourcePlatformFee:  "Design sale fee",
+	models.PlatformSourcePlatformFee:  "Product sale fee",
 	models.PlatformSourceWithdrawal:   "Withdrawal",
 }
 

@@ -72,8 +72,8 @@ func TestBackfill_SumsHistoricalRowsAndIsIdempotent(t *testing.T) {
 		// An unpaid (pending) subscription must never be counted.
 		testutil.MustCreateMarketPlanSub(t, tx, user.ID, marketPlan.ID, 49900, false)
 
-		design := testutil.MustCreateDesign(t, tx, user.ID, 20000)
-		testutil.MustCreateDesignPurchase(t, tx, design.ID, user.ID, user.ID, 20000, 2000, models.PaymentSuccess)
+		product := testutil.MustCreateProduct(t, tx, user.ID, 20000)
+		testutil.MustCreateProductPurchase(t, tx, product.ID, user.ID, user.ID, 20000, 2000, models.PaymentSuccess)
 
 		// Backfill reads database.DB directly (not the tx param), which
 		// testutil.WithTx has already swapped to this same transaction.

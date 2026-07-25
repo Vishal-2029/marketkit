@@ -5,16 +5,16 @@ import 'package:path_provider/path_provider.dart';
 import '../../../core/network/api_endpoints.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/utils/upload_filename.dart';
-import '../models/design_category_model.dart';
-import '../models/design_model.dart';
-import '../models/design_thread_message.dart';
+import '../models/product_category_model.dart';
+import '../models/product_model.dart';
+import '../models/product_thread_message.dart';
 import '../models/earnings_model.dart';
 import '../models/purchase_model.dart';
 
 class MarketService {
   final _dio = DioClient().dio;
 
-  Future<List<DesignModel>> fetchDesigns({
+  Future<List<ProductModel>> fetchProducts({
     String? search,
     String? categoryId,
     int page = 1,
@@ -25,29 +25,29 @@ class MarketService {
       params['category_id'] = categoryId;
     }
     final res = await _dio.get(
-      ApiEndpoints.marketDesigns,
+      ApiEndpoints.marketProducts,
       queryParameters: params,
     );
     final list = res.data['data'] as List<dynamic>;
     return list
-        .map((e) => DesignModel.fromJson(e as Map<String, dynamic>))
+        .map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
-  Future<List<DesignCategoryModel>> fetchCategories() async {
+  Future<List<ProductCategoryModel>> fetchCategories() async {
     final res = await _dio.get(ApiEndpoints.marketCategories);
     final list = res.data['data'] as List<dynamic>;
     return list
-        .map((e) => DesignCategoryModel.fromJson(e as Map<String, dynamic>))
+        .map((e) => ProductCategoryModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
-  Future<DesignModel> fetchDesign(String id) async {
-    final res = await _dio.get(ApiEndpoints.marketDesign(id));
-    return DesignModel.fromJson(res.data['data'] as Map<String, dynamic>);
+  Future<ProductModel> fetchProduct(String id) async {
+    final res = await _dio.get(ApiEndpoints.marketProduct(id));
+    return ProductModel.fromJson(res.data['data'] as Map<String, dynamic>);
   }
 
-  Future<DesignModel> uploadDesign({
+  Future<ProductModel> uploadProduct({
     required String title,
     required String description,
     required int priceInPaise,
@@ -93,26 +93,26 @@ class MarketService {
     );
     formData.files.addAll(previewParts);
 
-    final res = await _dio.post(ApiEndpoints.marketDesigns, data: formData);
-    return DesignModel.fromJson(res.data['data'] as Map<String, dynamic>);
+    final res = await _dio.post(ApiEndpoints.marketProducts, data: formData);
+    return ProductModel.fromJson(res.data['data'] as Map<String, dynamic>);
   }
 
-  Future<void> deleteDesign(String id) async {
-    await _dio.delete(ApiEndpoints.marketDesign(id));
+  Future<void> deleteProduct(String id) async {
+    await _dio.delete(ApiEndpoints.marketProduct(id));
   }
 
-  Future<List<DesignModel>> fetchMyDesigns() async {
-    final res = await _dio.get(ApiEndpoints.marketMyDesigns);
+  Future<List<ProductModel>> fetchMyProducts() async {
+    final res = await _dio.get(ApiEndpoints.marketMyProducts);
     final list = res.data['data'] as List<dynamic>;
     return list
-        .map((e) => DesignModel.fromJson(e as Map<String, dynamic>))
+        .map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
   /// Returns {view_count, sales_count, revenue_in_paise} for one of the
-  /// caller's own designs — how many times it sold and total earned from it.
-  Future<Map<String, dynamic>> fetchMyDesignStats(String designId) async {
-    final res = await _dio.get(ApiEndpoints.marketMyDesignStats(designId));
+  /// caller's own products — how many times it sold and total earned from it.
+  Future<Map<String, dynamic>> fetchMyProductStats(String productId) async {
+    final res = await _dio.get(ApiEndpoints.marketMyProductStats(productId));
     return res.data['data'] as Map<String, dynamic>;
   }
 
@@ -129,10 +129,10 @@ class MarketService {
     return EarningsModel.fromJson(res.data['data'] as Map<String, dynamic>);
   }
 
-  Future<Map<String, dynamic>> createOrder(String designId) async {
+  Future<Map<String, dynamic>> createOrder(String productId) async {
     final res = await _dio.post(
       ApiEndpoints.marketOrder,
-      data: {'design_id': designId},
+      data: {'product_id': productId},
     );
     return res.data['data'] as Map<String, dynamic>;
   }
@@ -154,9 +154,9 @@ class MarketService {
     return data?['purchase_id'] as String? ?? '';
   }
 
-  /// Returns {url, file_name} for a purchased (or own) design file.
-  Future<Map<String, dynamic>> fetchDownloadUrl(String designId) async {
-    final res = await _dio.get(ApiEndpoints.marketDownloadUrl(designId));
+  /// Returns {url, file_name} for a purchased (or own) product file.
+  Future<Map<String, dynamic>> fetchDownloadUrl(String productId) async {
+    final res = await _dio.get(ApiEndpoints.marketDownloadUrl(productId));
     return res.data['data'] as Map<String, dynamic>;
   }
 
@@ -169,30 +169,30 @@ class MarketService {
     return savePath;
   }
 
-  /// Saves a remote file (e.g. signed design URL) to [savePath] on disk.
+  /// Saves a remote file (e.g. signed product URL) to [savePath] on disk.
   Future<void> downloadFileToPath(String url, String savePath) async {
     await _dio.download(url, savePath);
   }
 
-  /// The buyer's private support thread for a purchased design — only they
+  /// The buyer's private support thread for a purchased product — only they
   /// and admins can see it; the seller never has access.
-  Future<List<DesignThreadMessage>> fetchDesignMessages(String designId) async {
-    final res = await _dio.get(ApiEndpoints.marketDesignMessages(designId));
+  Future<List<ProductThreadMessage>> fetchProductMessages(String productId) async {
+    final res = await _dio.get(ApiEndpoints.marketProductMessages(productId));
     final list = res.data['data'] as List<dynamic>;
     return list
-        .map((e) => DesignThreadMessage.fromJson(e as Map<String, dynamic>))
+        .map((e) => ProductThreadMessage.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
-  Future<DesignThreadMessage> postDesignMessage(
-    String designId,
+  Future<ProductThreadMessage> postProductMessage(
+    String productId,
     String content,
   ) async {
     final res = await _dio.post(
-      ApiEndpoints.marketDesignMessages(designId),
+      ApiEndpoints.marketProductMessages(productId),
       data: {'content': content},
     );
-    return DesignThreadMessage.fromJson(
+    return ProductThreadMessage.fromJson(
       res.data['data'] as Map<String, dynamic>,
     );
   }

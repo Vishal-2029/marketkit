@@ -25,12 +25,12 @@ import (
 )
 
 // HandleCreatePurchaseOrder godoc
-// @Summary     Create a Razorpay order for a design purchase
+// @Summary     Create a Razorpay order for a product purchase
 // @Tags        User Market
 // @Accept      json
 // @Produce     json
 // @Security    UserAuth
-// @Param       body  body  map[string]string  true  "design_id"
+// @Param       body  body  map[string]string  true  "product_id"
 // @Success     200  {object}  map[string]interface{}
 // @Failure     400  {object}  map[string]string
 // @Failure     401  {object}  map[string]string
@@ -38,28 +38,28 @@ import (
 // @Router      /user/market/purchases/order [post]
 func HandleCreatePurchaseOrder(c *fiber.Ctx) error {
 	var body struct {
-		DesignID string `json:"design_id"`
+		ProductID string `json:"product_id"`
 	}
-	if err := c.BodyParser(&body); err != nil || body.DesignID == "" {
-		return response.BadRequest(c, "design_id is required")
+	if err := c.BodyParser(&body); err != nil || body.ProductID == "" {
+		return response.BadRequest(c, "product_id is required")
 	}
 
 	userID, _ := c.Locals("userID").(string)
 
-	var design models.Design
-	if err := database.DB.First(&design, "id = ? AND is_active = true", body.DesignID).Error; err != nil {
-		return response.NotFound(c, "design not found")
+	var product models.Product
+	if err := database.DB.First(&product, "id = ? AND is_active = true", body.ProductID).Error; err != nil {
+		return response.NotFound(c, "product not found")
 	}
-	if design.SellerID == userID {
-		return response.BadRequest(c, "you own this design")
+	if product.SellerID == userID {
+		return response.BadRequest(c, "you own this product")
 	}
 
 	var existing int64
-	database.DB.Model(&models.DesignPurchase{}).
-		Where("buyer_id = ? AND design_id = ? AND status = ?", userID, design.ID, models.PaymentSuccess).
+	database.DB.Model(&models.ProductPurchase{}).
+		Where("buyer_id = ? AND product_id = ? AND status = ?", userID, product.ID, models.PaymentSuccess).
 		Count(&existing)
 	if existing > 0 {
-		return response.BadRequest(c, "you already purchased this design")
+		return response.BadRequest(c, "you already purchased this product")
 	}
 
 	if config.App.RazorpayKeyID == "" || config.App.RazorpayKeySecret == "" ||
@@ -67,17 +67,17 @@ func HandleCreatePurchaseOrder(c *fiber.Ctx) error {
 		return response.InternalError(c, "razorpay is not configured on the server")
 	}
 
-	rzpOrderID, err := createRazorpayOrder(design.PriceInPaise, userID, design.ID)
+	rzpOrderID, err := createRazorpayOrder(product.PriceInPaise, userID, product.ID)
 	if err != nil {
-		slog.Error("market: razorpay order creation failed", "error", err, "user_id", userID, "design_id", design.ID)
+		slog.Error("market: razorpay order creation failed", "error", err, "user_id", userID, "product_id", product.ID)
 		return response.InternalError(c, "failed to create payment order")
 	}
 
-	purchase := models.DesignPurchase{
-		DesignID:        design.ID,
+	purchase := models.ProductPurchase{
+		ProductID:       product.ID,
 		BuyerID:         userID,
-		SellerID:        design.SellerID,
-		AmountInPaise:   design.PriceInPaise,
+		SellerID:        product.SellerID,
+		AmountInPaise:   product.PriceInPaise,
 		Status:          models.PaymentPending,
 		RazorpayOrderID: &rzpOrderID,
 	}
@@ -86,14 +86,14 @@ func HandleCreatePurchaseOrder(c *fiber.Ctx) error {
 	// Same response shape as the plans order endpoint so the app checkout code is shared.
 	return response.OK(c, fiber.Map{
 		"order_id": rzpOrderID,
-		"amount":   design.PriceInPaise,
+		"amount":   product.PriceInPaise,
 		"currency": "INR",
 		"key_id":   config.App.RazorpayKeyID,
 	})
 }
 
 // HandleVerifyPurchase godoc
-// @Summary     Verify a Razorpay design purchase signature
+// @Summary     Verify a Razorpay product purchase signature
 // @Tags        User Market
 // @Accept      json
 // @Produce     json
@@ -128,7 +128,7 @@ func HandleVerifyPurchase(c *fiber.Ctx) error {
 		return response.BadRequest(c, "invalid razorpay signature")
 	}
 
-	var p models.DesignPurchase
+	var p models.ProductPurchase
 	if err := database.DB.
 		Where("buyer_id = ? AND razorpay_order_id = ?", userID, body.RazorpayOrderID).
 		First(&p).Error; err != nil {
@@ -142,20 +142,20 @@ func HandleVerifyPurchase(c *fiber.Ctx) error {
 		return response.OK(c, fiber.Map{"message": "purchase already verified", "purchase_id": p.ID})
 	}
 
-	go notifySeller(p.SellerID, p.DesignID, p.AmountInPaise)
+	go notifySeller(p.SellerID, p.ProductID, p.AmountInPaise)
 	sendPurchaseEmailAsync(p.ID)
 
 	return response.OK(c, fiber.Map{"message": "purchase verified", "purchase_id": p.ID})
 }
 
 // capturePurchase atomically flips a purchase to SUCCESS, increments the
-// design's sales counter, and credits the seller's wallet with the sale
+// product's sales counter, and credits the seller's wallet with the sale
 // amount net of the platform fee. The status != SUCCESS guard makes it
 // idempotent across the verify endpoint and the webhook racing each other —
 // only the caller that flips the row reaches the wallet credit, and both live
 // in one transaction, so the credit is exactly-once. Returns true only for
 // the request that actually flipped the row.
-func capturePurchase(p *models.DesignPurchase, razorpayPaymentID string, gatewayResponse models.JSONMap) bool {
+func capturePurchase(p *models.ProductPurchase, razorpayPaymentID string, gatewayResponse models.JSONMap) bool {
 	// Read the fee outside the transaction to keep the locked section short;
 	// the snapshot on the purchase row is what makes it durable.
 	pct := sellerFeePercent(p.SellerID)
@@ -174,7 +174,7 @@ func capturePurchase(p *models.DesignPurchase, razorpayPaymentID string, gateway
 		if gatewayResponse != nil {
 			updates["gateway_response"] = gatewayResponse
 		}
-		result := tx.Model(&models.DesignPurchase{}).
+		result := tx.Model(&models.ProductPurchase{}).
 			Where("id = ? AND status != ?", p.ID, models.PaymentSuccess).
 			Updates(updates)
 		if result.Error != nil {
@@ -183,18 +183,18 @@ func capturePurchase(p *models.DesignPurchase, razorpayPaymentID string, gateway
 		if result.RowsAffected == 0 {
 			return nil
 		}
-		if err := tx.Model(&models.Design{}).
-			Where("id = ?", p.DesignID).
+		if err := tx.Model(&models.Product{}).
+			Where("id = ?", p.ProductID).
 			UpdateColumn("sales_count", gorm.Expr("sales_count + 1")).Error; err != nil {
 			return err
 		}
 		if _, err := wallet.Apply(tx, p.SellerID, models.WalletTxSaleCredit, net, &p.ID,
-			models.JSONMap{"fee_in_paise": fee, "fee_percent": pct, "design_id": p.DesignID}); err != nil {
+			models.JSONMap{"fee_in_paise": fee, "fee_percent": pct, "product_id": p.ProductID}); err != nil {
 			return err
 		}
 		if fee > 0 {
 			if _, err := platform_wallet.Apply(tx, models.PlatformSourcePlatformFee, fee, &p.ID,
-				models.JSONMap{"fee_percent": pct, "design_id": p.DesignID, "seller_id": p.SellerID}); err != nil {
+				models.JSONMap{"fee_percent": pct, "product_id": p.ProductID, "seller_id": p.SellerID}); err != nil {
 				return err
 			}
 		}
@@ -209,11 +209,11 @@ func capturePurchase(p *models.DesignPurchase, razorpayPaymentID string, gateway
 }
 
 // CaptureRazorpayOrder resolves a webhook payment.captured event against the
-// design_purchases table. Called by the payments webhook handler when no
+// product_purchases table. Called by the payments webhook handler when no
 // subscription payment matches the order ID. Returns true if a marketplace
 // purchase was captured.
 func CaptureRazorpayOrder(orderID, razorpayPaymentID string, entity models.JSONMap) bool {
-	var p models.DesignPurchase
+	var p models.ProductPurchase
 	if err := database.DB.Where("razorpay_order_id = ?", orderID).First(&p).Error; err != nil {
 		return false
 	}
@@ -223,50 +223,50 @@ func CaptureRazorpayOrder(orderID, razorpayPaymentID string, entity models.JSONM
 	if !capturePurchase(&p, razorpayPaymentID, entity) {
 		return true
 	}
-	go notifySeller(p.SellerID, p.DesignID, p.AmountInPaise)
+	go notifySeller(p.SellerID, p.ProductID, p.AmountInPaise)
 	sendPurchaseEmailAsync(p.ID)
 	return true
 }
 
-func notifySeller(sellerID, designID string, amountInPaise int64) {
-	var d models.Design
-	title := "your design"
-	if err := database.DB.Select("title").First(&d, "id = ?", designID).Error; err == nil {
+func notifySeller(sellerID, productID string, amountInPaise int64) {
+	var d models.Product
+	title := "your product"
+	if err := database.DB.Select("title").First(&d, "id = ?", productID).Error; err == nil {
 		title = "'" + d.Title + "'"
 	}
 	_, net := wallet.SplitFee(amountInPaise, sellerFeePercent(sellerID))
-	msg := fmt.Sprintf("Your design %s just sold! ₹%d has been added to your wallet.", title, net/100)
-	if err := fcm.SendToUser(sellerID, "Design Sold", msg); err != nil {
+	msg := fmt.Sprintf("Your product %s just sold! ₹%d has been added to your wallet.", title, net/100)
+	if err := fcm.SendToUser(sellerID, "Product Sold", msg); err != nil {
 		slog.Error("market: seller sale notification failed", "seller_id", sellerID, "error", err)
 	}
 }
 
 // HandleDownloadURL godoc
-// @Summary     Get a signed download URL for a purchased design file
+// @Summary     Get a signed download URL for a purchased product file
 // @Tags        User Market
 // @Produce     json
 // @Security    UserAuth
-// @Param       id  path  string  true  "Design ID"
+// @Param       id  path  string  true  "Product ID"
 // @Success     200  {object}  map[string]string
 // @Failure     401  {object}  map[string]string
 // @Failure     403  {object}  map[string]string
 // @Failure     404  {object}  map[string]string
-// @Router      /user/market/designs/{id}/download-url [get]
+// @Router      /user/market/products/{id}/download-url [get]
 func HandleDownloadURL(c *fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(string)
 
-	var d models.Design
+	var d models.Product
 	if err := database.DB.First(&d, "id = ?", c.Params("id")).Error; err != nil {
-		return response.NotFound(c, "design not found")
+		return response.NotFound(c, "product not found")
 	}
 
 	if d.SellerID != userID {
 		var purchased int64
-		database.DB.Model(&models.DesignPurchase{}).
-			Where("buyer_id = ? AND design_id = ? AND status = ?", userID, d.ID, models.PaymentSuccess).
+		database.DB.Model(&models.ProductPurchase{}).
+			Where("buyer_id = ? AND product_id = ? AND status = ?", userID, d.ID, models.PaymentSuccess).
 			Count(&purchased)
 		if purchased == 0 {
-			return response.Forbidden(c, "purchase this design to download it")
+			return response.Forbidden(c, "purchase this product to download it")
 		}
 	}
 
@@ -281,31 +281,31 @@ func HandleDownloadURL(c *fiber.Ctx) error {
 }
 
 // HandleMyPurchases godoc
-// @Summary     List own successful design purchases
+// @Summary     List own successful product purchases
 // @Tags        User Market
 // @Produce     json
 // @Security    UserAuth
-// @Success     200  {object}  []models.DesignPurchase
+// @Success     200  {object}  []models.ProductPurchase
 // @Failure     401  {object}  map[string]string
 // @Router      /user/market/my/purchases [get]
 func HandleMyPurchases(c *fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(string)
 
-	var purchases []models.DesignPurchase
-	if err := database.DB.Preload("Design").
+	var purchases []models.ProductPurchase
+	if err := database.DB.Preload("Product").
 		Where("buyer_id = ? AND status = ?", userID, models.PaymentSuccess).
 		Order("paid_at DESC").
 		Find(&purchases).Error; err != nil {
 		return response.InternalError(c, "failed to fetch purchases")
 	}
 	if purchases == nil {
-		purchases = []models.DesignPurchase{}
+		purchases = []models.ProductPurchase{}
 	}
 	for i := range purchases {
-		designs := []models.Design{purchases[i].Design}
-		attachSellerNames(designs)
-		populateDesignURLs(designs, userID, map[string]bool{purchases[i].DesignID: true})
-		purchases[i].Design = designs[0]
+		products := []models.Product{purchases[i].Product}
+		attachSellerNames(products)
+		populateProductURLs(products, userID, map[string]bool{purchases[i].ProductID: true})
+		purchases[i].Product = products[0]
 	}
 	return response.OK(c, purchases)
 }
@@ -328,23 +328,23 @@ func HandleEarnings(c *fiber.Ctx) error {
 	// Rows from before the wallet era have seller_net_in_paise = 0 and were
 	// paid out gross — count those at amount_in_paise, new rows at net.
 	netExpr := "CASE WHEN seller_net_in_paise > 0 THEN seller_net_in_paise ELSE amount_in_paise END"
-	database.DB.Model(&models.DesignPurchase{}).
+	database.DB.Model(&models.ProductPurchase{}).
 		Where("seller_id = ? AND status = ?", userID, models.PaymentSuccess).
 		Select("COALESCE(SUM(" + netExpr + "), 0) AS total_earned_in_paise, COUNT(*) AS total_sales").
 		Scan(&summary)
 
 	type item struct {
-		DesignID      string `json:"design_id"`
+		ProductID     string `json:"product_id"`
 		Title         string `json:"title"`
 		Sales         int64  `json:"sales"`
 		EarnedInPaise int64  `json:"earned_in_paise"`
 	}
 	var items []item
-	database.DB.Model(&models.DesignPurchase{}).
-		Joins("JOIN designs ON designs.id = design_purchases.design_id").
-		Where("design_purchases.seller_id = ? AND design_purchases.status = ?", userID, models.PaymentSuccess).
-		Select("design_purchases.design_id, designs.title, COUNT(*) AS sales, SUM(CASE WHEN design_purchases.seller_net_in_paise > 0 THEN design_purchases.seller_net_in_paise ELSE design_purchases.amount_in_paise END) AS earned_in_paise").
-		Group("design_purchases.design_id, designs.title").
+	database.DB.Model(&models.ProductPurchase{}).
+		Joins("JOIN products ON products.id = product_purchases.product_id").
+		Where("product_purchases.seller_id = ? AND product_purchases.status = ?", userID, models.PaymentSuccess).
+		Select("product_purchases.product_id, products.title, COUNT(*) AS sales, SUM(CASE WHEN product_purchases.seller_net_in_paise > 0 THEN product_purchases.seller_net_in_paise ELSE product_purchases.amount_in_paise END) AS earned_in_paise").
+		Group("product_purchases.product_id, products.title").
 		Order("earned_in_paise DESC").
 		Scan(&items)
 	if items == nil {
@@ -360,11 +360,11 @@ func HandleEarnings(c *fiber.Ctx) error {
 
 // createRazorpayOrder creates an order via the Razorpay REST API (no SDK),
 // mirroring the user_payments module's helper.
-func createRazorpayOrder(amountInPaise int64, buyerID, designID string) (string, error) {
+func createRazorpayOrder(amountInPaise int64, buyerID, productID string) (string, error) {
 	payload := map[string]interface{}{
 		"amount":   amountInPaise,
 		"currency": "INR",
-		"receipt":  fmt.Sprintf("mkt_%s_%s", buyerID[:8], designID[:8]),
+		"receipt":  fmt.Sprintf("mkt_%s_%s", buyerID[:8], productID[:8]),
 	}
 	body, _ := json.Marshal(payload)
 

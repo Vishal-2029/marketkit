@@ -215,7 +215,7 @@ func HandleRazorpayWebhook(c *fiber.Ctx) error {
 		}
 		if !flipped {
 			// Not a subscription payment (or already captured). Razorpay order
-			// IDs are account-unique, so try the design marketplace, then
+			// IDs are account-unique, so try the product marketplace, then
 			// wallet topups. Either way return 200 — Razorpay retries on
 			// anything else.
 			if !market.CaptureRazorpayOrder(orderID, razorpayPaymentID, models.JSONMap(entity)) {
