@@ -4,9 +4,7 @@ export interface PlanPayload {
   name?: string;
   description?: string;
   price_in_paise?: number;
-  has_willcom?: boolean;
-  has_e4?: boolean;
-  has_mecad?: boolean;
+  features?: string[];
   duration_days?: number;
   is_active?: boolean;
 }

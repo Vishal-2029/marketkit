@@ -94,7 +94,7 @@ func HandleGetDetail(c *fiber.Ctx) error {
 	}
 
 	// User subscription access
-	hasWillcom, hasE4, hasMecad := subscriptions.UserFeatureAccess(userID)
+	features := subscriptions.UserFeatureAccess(userID)
 
 	// Progress
 	var progresses []models.VideoProgress
@@ -112,14 +112,7 @@ func HandleGetDetail(c *fiber.Ctx) error {
 		}
 		accessible := v.IsFree
 		if !accessible {
-			switch v.Category {
-			case models.CategoryWillcom:
-				accessible = hasWillcom
-			case models.CategoryE4:
-				accessible = hasE4
-			case models.CategoryMecad:
-				accessible = hasMecad
-			}
+			accessible = subscriptions.HasFeature(features, string(v.Category))
 		}
 		if !accessible {
 			v.PreviewURL = ""

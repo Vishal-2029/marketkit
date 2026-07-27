@@ -1,3 +1,4 @@
+import 'package:design_express/core/config/feature_catalog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +12,7 @@ import '../services/photo_downloader.dart';
 class GalleryScreen extends ConsumerWidget {
   const GalleryScreen({super.key});
 
-  static const _categoryOrder = ['GENERAL', 'WILLCOM', 'E4', 'MECAD'];
+  static final _categoryOrder = FeatureCatalog.postCategoryKeys;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -98,15 +99,7 @@ class _FolderCard extends StatelessWidget {
     required this.onTap,
   });
 
-  String get _displayName {
-    switch (category) {
-      case 'WILLCOM': return 'Wilcom 2006';
-      case 'E4': return 'E4';
-      case 'MECAD': return 'meCAD';
-      case 'GENERAL': return 'General';
-      default: return category;
-    }
-  }
+  String get _displayName => FeatureCatalog.label(category);
 
   String _resolvedUrl(PhotoModel p) =>
       p.url.isNotEmpty ? p.url : PhotosService().photoUrl(p.fileKey);
@@ -212,15 +205,7 @@ class GalleryFolderScreen extends StatelessWidget {
     required this.photos,
   });
 
-  String get _displayName {
-    switch (category) {
-      case 'WILLCOM': return 'Wilcom 2006';
-      case 'E4': return 'E4';
-      case 'MECAD': return 'meCAD';
-      case 'GENERAL': return 'General';
-      default: return category;
-    }
-  }
+  String get _displayName => FeatureCatalog.label(category);
 
   String _resolvedUrl(PhotoModel p) =>
       p.url.isNotEmpty ? p.url : PhotosService().photoUrl(p.fileKey);

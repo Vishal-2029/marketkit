@@ -29,7 +29,7 @@ type videoWithAccess struct {
 // @Produce     json
 // @Security    UserAuth
 // @Param       page      query  int     false  "Page number (default: 1)"
-// @Param       category  query  string  false  "Category filter (WILLCOM, E4, MECAD)"
+// @Param       category  query  string  false  "Category filter (CATEGORY_A, CATEGORY_B, CATEGORY_C)"
 // @Success     200  {object}  []user_videos.videoWithAccess
 // @Failure     401  {object}  map[string]string
 // @Router      /user/videos [get]
@@ -45,8 +45,8 @@ func HandleList(c *fiber.Ctx) error {
 	category := c.Query("category", "")
 
 	// Fetch union of features across all active subscriptions
-	hasWillcom, hasE4, hasMecad := subscriptions.UserFeatureAccess(userID)
-	hasActiveSub := hasWillcom || hasE4 || hasMecad
+	features := subscriptions.UserFeatureAccess(userID)
+	hasActiveSub := len(features) > 0
 
 	// Build paginated video query with optional category filter.
 	// The published video list is the same for all users, so cache it by page+category.
@@ -85,14 +85,7 @@ func HandleList(c *fiber.Ctx) error {
 		accessible := v.IsFree
 
 		if !accessible && hasActiveSub {
-			switch v.Category {
-			case models.CategoryWillcom:
-				accessible = hasWillcom
-			case models.CategoryE4:
-				accessible = hasE4
-			case models.CategoryMecad:
-				accessible = hasMecad
-			}
+			accessible = subscriptions.HasFeature(features, string(v.Category))
 		}
 		// A locked video must never carry a playable URL in the list
 		// response — PopulateVideoMedia resolves one unconditionally, so
@@ -141,7 +134,7 @@ func HandleGetIntro(c *fiber.Ctx) error {
 func HandleGetLatest(c *fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(string)
 
-	hasWillcom, hasE4, hasMecad := subscriptions.UserFeatureAccess(userID)
+	features := subscriptions.UserFeatureAccess(userID)
 
 	var videos []models.Video
 	if err := database.DB.
@@ -166,14 +159,7 @@ func HandleGetLatest(c *fiber.Ctx) error {
 	for _, v := range videos {
 		accessible := v.IsFree
 		if !accessible {
-			switch v.Category {
-			case models.CategoryWillcom:
-				accessible = hasWillcom
-			case models.CategoryE4:
-				accessible = hasE4
-			case models.CategoryMecad:
-				accessible = hasMecad
-			}
+			accessible = subscriptions.HasFeature(features, string(v.Category))
 		}
 		if !accessible {
 			v.PreviewURL = ""
@@ -294,21 +280,21 @@ func HandleStream(c *fiber.Ctx) error {
 	// Free and preview videos are accessible to any authenticated user.
 	// All other videos require an active subscription that covers the category.
 	if !v.IsFree && !v.IsPreview {
-		hasWillcom, hasE4, hasMecad := subscriptions.UserFeatureAccess(userID)
-		if !hasWillcom && !hasE4 && !hasMecad {
+		features := subscriptions.UserFeatureAccess(userID)
+		if len(features) == 0 {
 			return response.Forbidden(c, "subscription required to watch this video")
 		}
 
-		var hasAccess bool
-		switch v.Category {
-		case models.CategoryWillcom:
-			hasAccess = hasWillcom
-		case models.CategoryE4:
-			hasAccess = hasE4
-		case models.CategoryMecad:
-			hasAccess = hasMecad
-		default:
-			hasAccess = true
+		// A category outside the known set stays accessible to any subscriber,
+
+		// matching the behaviour before feature keys replaced the flags.
+
+		hasAccess := true
+
+		if models.IsValidVideoCategory(v.Category) {
+
+			hasAccess = subscriptions.HasFeature(features, string(v.Category))
+
 		}
 		if !hasAccess {
 			return response.Forbidden(c, "your plan does not include access to this content")
@@ -350,21 +336,21 @@ func HandleStreamURL(c *fiber.Ctx) error {
 	}
 
 	if !v.IsFree && !v.IsPreview {
-		hasWillcom, hasE4, hasMecad := subscriptions.UserFeatureAccess(userID)
-		if !hasWillcom && !hasE4 && !hasMecad {
+		features := subscriptions.UserFeatureAccess(userID)
+		if len(features) == 0 {
 			return response.Forbidden(c, "subscription required to watch this video")
 		}
 
-		var hasAccess bool
-		switch v.Category {
-		case models.CategoryWillcom:
-			hasAccess = hasWillcom
-		case models.CategoryE4:
-			hasAccess = hasE4
-		case models.CategoryMecad:
-			hasAccess = hasMecad
-		default:
-			hasAccess = true
+		// A category outside the known set stays accessible to any subscriber,
+
+		// matching the behaviour before feature keys replaced the flags.
+
+		hasAccess := true
+
+		if models.IsValidVideoCategory(v.Category) {
+
+			hasAccess = subscriptions.HasFeature(features, string(v.Category))
+
 		}
 		if !hasAccess {
 			return response.Forbidden(c, "your plan does not include access to this content")
@@ -427,20 +413,20 @@ func HandleDownloadURL(c *fiber.Ctx) error {
 	}
 
 	if !v.IsFree && !v.IsPreview {
-		hasWillcom, hasE4, hasMecad := subscriptions.UserFeatureAccess(userID)
-		if !hasWillcom && !hasE4 && !hasMecad {
+		features := subscriptions.UserFeatureAccess(userID)
+		if len(features) == 0 {
 			return response.Forbidden(c, "subscription required to download this video")
 		}
-		var hasAccess bool
-		switch v.Category {
-		case models.CategoryWillcom:
-			hasAccess = hasWillcom
-		case models.CategoryE4:
-			hasAccess = hasE4
-		case models.CategoryMecad:
-			hasAccess = hasMecad
-		default:
-			hasAccess = true
+		// A category outside the known set stays accessible to any subscriber,
+
+		// matching the behaviour before feature keys replaced the flags.
+
+		hasAccess := true
+
+		if models.IsValidVideoCategory(v.Category) {
+
+			hasAccess = subscriptions.HasFeature(features, string(v.Category))
+
 		}
 		if !hasAccess {
 			return response.Forbidden(c, "your plan does not include access to this content")
@@ -491,20 +477,20 @@ func HandleGetQualities(c *fiber.Ctx) error {
 	}
 
 	if !v.IsFree && !v.IsPreview {
-		hasWillcom, hasE4, hasMecad := subscriptions.UserFeatureAccess(userID)
-		if !hasWillcom && !hasE4 && !hasMecad {
+		features := subscriptions.UserFeatureAccess(userID)
+		if len(features) == 0 {
 			return response.Forbidden(c, "subscription required to download this video")
 		}
-		var hasAccess bool
-		switch v.Category {
-		case models.CategoryWillcom:
-			hasAccess = hasWillcom
-		case models.CategoryE4:
-			hasAccess = hasE4
-		case models.CategoryMecad:
-			hasAccess = hasMecad
-		default:
-			hasAccess = true
+		// A category outside the known set stays accessible to any subscriber,
+
+		// matching the behaviour before feature keys replaced the flags.
+
+		hasAccess := true
+
+		if models.IsValidVideoCategory(v.Category) {
+
+			hasAccess = subscriptions.HasFeature(features, string(v.Category))
+
 		}
 		if !hasAccess {
 			return response.Forbidden(c, "your plan does not include access to this content")
@@ -597,17 +583,17 @@ func HandleGetPhotos(c *fiber.Ctx) error {
 	// Bonus photos are part of the lesson's paid content — same entitlement
 	// rule as streaming/downloading the video itself.
 	if !v.IsFree && !v.IsPreview {
-		hasWillcom, hasE4, hasMecad := subscriptions.UserFeatureAccess(userID)
-		var hasAccess bool
-		switch v.Category {
-		case models.CategoryWillcom:
-			hasAccess = hasWillcom
-		case models.CategoryE4:
-			hasAccess = hasE4
-		case models.CategoryMecad:
-			hasAccess = hasMecad
-		default:
-			hasAccess = true
+		features := subscriptions.UserFeatureAccess(userID)
+		// A category outside the known set stays accessible to any subscriber,
+
+		// matching the behaviour before feature keys replaced the flags.
+
+		hasAccess := true
+
+		if models.IsValidVideoCategory(v.Category) {
+
+			hasAccess = subscriptions.HasFeature(features, string(v.Category))
+
 		}
 		if !hasAccess {
 			return response.Forbidden(c, "your plan does not include access to this content")

@@ -1,6 +1,7 @@
 package subscriptions
 
 import (
+	"slices"
 	"time"
 
 	"github.com/marketkit/api/internal/database"
@@ -51,38 +52,46 @@ func ActivateOrExtend(tx *gorm.DB, userID, planID string, newExpiry time.Time, a
 	}).Error
 }
 
-// UserFeatureAccess returns the union of features across all active, unexpired subscriptions.
-func UserFeatureAccess(userID string) (hasWillcom, hasE4, hasMecad bool) {
+// UserFeatureAccess returns the union of feature keys across all active,
+// unexpired subscriptions, de-duplicated and never nil. An empty result means
+// the user has no active entitlement.
+//
+// Holding two plans is additive: "A only" plus "B only" grants both, the same
+// as a single "A + B" plan.
+func UserFeatureAccess(userID string) []string {
 	var subs []models.Subscription
 	database.DB.
 		Preload("Plan").
 		Where("user_id = ? AND status = ? AND expiry_date > ?", userID, models.SubscriptionActive, time.Now()).
 		Find(&subs)
 
+	seen := make(map[string]bool)
+	features := make([]string, 0)
 	for _, s := range subs {
-		if s.Plan.HasWillcom {
-			hasWillcom = true
-		}
-		if s.Plan.HasE4 {
-			hasE4 = true
-		}
-		if s.Plan.HasMecad {
-			hasMecad = true
+		for _, f := range s.Plan.Features {
+			if !seen[f] {
+				seen[f] = true
+				features = append(features, f)
+			}
 		}
 	}
-	return hasWillcom, hasE4, hasMecad
+	return features
+}
+
+// HasFeature reports whether key is present in features. Use it for any
+// entitlement check so the comparison stays in one place.
+func HasFeature(features []string, key string) bool {
+	return slices.Contains(features, key)
 }
 
 // SubscriptionData builds a JSON-friendly map for a subscription with its plan.
 func SubscriptionData(sub *models.Subscription, plan *models.Plan) map[string]interface{} {
 	return map[string]interface{}{
-		"id":          sub.ID,
-		"plan_id":     sub.PlanID,
-		"plan_name":   plan.Name,
-		"status":      string(sub.Status),
-		"expires_at":  sub.ExpiryDate,
-		"has_willcom": plan.HasWillcom,
-		"has_e4":      plan.HasE4,
-		"has_mecad":   plan.HasMecad,
+		"id":         sub.ID,
+		"plan_id":    sub.PlanID,
+		"plan_name":  plan.Name,
+		"status":     string(sub.Status),
+		"expires_at": sub.ExpiryDate,
+		"features":   plan.FeatureList(),
 	}
 }

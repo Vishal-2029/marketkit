@@ -71,13 +71,20 @@ func main() {
 	}
 
 	// ── Plans ──────────────────────────────────────────────────────────────────
+	// Feature keys match the video categories in models/video.go, so these
+	// plans gate content out of the box. The mix below shows both shapes the
+	// model supports: à-la-carte single-category plans and bundles.
+	catA := string(models.CategoryA)
+	catB := string(models.CategoryB)
+	catC := string(models.CategoryC)
+
 	plans := []models.Plan{
-		{Name: "Willcom Only", PriceInPaise: 99900, HasWillcom: true, DurationDays: 365},
-		{Name: "E4 Only", PriceInPaise: 99900, HasE4: true, DurationDays: 365},
-		{Name: "meCAD Only", PriceInPaise: 99900, HasMecad: true, DurationDays: 365},
-		{Name: "Willcom + E4", PriceInPaise: 179900, HasWillcom: true, HasE4: true, DurationDays: 365},
-		{Name: "Willcom + meCAD", PriceInPaise: 179900, HasWillcom: true, HasMecad: true, DurationDays: 365},
-		{Name: "Willcom + E4 + meCAD", PriceInPaise: 249900, HasWillcom: true, HasE4: true, HasMecad: true, DurationDays: 365},
+		{Name: "Category A", PriceInPaise: 99900, Features: []string{catA}, DurationDays: 365},
+		{Name: "Category B", PriceInPaise: 99900, Features: []string{catB}, DurationDays: 365},
+		{Name: "Category C", PriceInPaise: 99900, Features: []string{catC}, DurationDays: 365},
+		{Name: "A + B", PriceInPaise: 179900, Features: []string{catA, catB}, DurationDays: 365},
+		{Name: "A + C", PriceInPaise: 179900, Features: []string{catA, catC}, DurationDays: 365},
+		{Name: "All Access", PriceInPaise: 249900, Features: []string{catA, catB, catC}, DurationDays: 365},
 	}
 	for _, p := range plans {
 		var existing models.Plan

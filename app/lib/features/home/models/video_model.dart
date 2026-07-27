@@ -1,3 +1,4 @@
+import 'package:design_express/core/config/feature_catalog.dart';
 import '../../../core/network/api_endpoints.dart';
 
 class VideoModel {
@@ -105,16 +106,5 @@ class VideoModel {
         'progress_seconds': progressSeconds,
       };
 
-  String get categoryLabel {
-    switch (category) {
-      case 'WILLCOM':
-        return 'Wilcom 2006';
-      case 'E4':
-        return 'E4';
-      case 'MECAD':
-        return 'meCAD';
-      default:
-        return category;
-    }
-  }
+  String get categoryLabel => FeatureCatalog.label(category);
 }

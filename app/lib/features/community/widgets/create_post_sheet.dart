@@ -1,3 +1,4 @@
+import 'package:design_express/core/config/feature_catalog.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -23,7 +24,7 @@ class _CreatePostSheetState extends ConsumerState<CreatePostSheet> {
   final List<int> _imageSizes = [];
   int _totalBytes = 0;
 
-  static const _categories = ['GENERAL', 'WILLCOM', 'E4', 'MECAD'];
+  static final _categories = FeatureCatalog.postCategoryKeys;
   static const _maxImages = 3;
   static const _maxImageBytes = 5 * 1024 * 1024; // 5 MB per photo
   static const _maxTotalBytes = 15 * 1024 * 1024; // 15 MB combined

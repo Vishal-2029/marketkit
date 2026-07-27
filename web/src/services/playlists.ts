@@ -1,3 +1,4 @@
+import type { ContentCategory } from "@/lib/featureCatalog";
 import { api } from "@/lib/api";
 
 export interface AdminPlaylist {
@@ -5,7 +6,7 @@ export interface AdminPlaylist {
   name: string;
   description: string;
   thumbnail_url: string;
-  category: "" | "WILLCOM" | "E4" | "MECAD";
+  category: "" | ContentCategory;
   video_count: number;
   created_at: string;
 }

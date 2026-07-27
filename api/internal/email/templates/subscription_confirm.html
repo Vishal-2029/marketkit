@@ -54,9 +54,7 @@
 
               <p style="margin:0 0 8px;font-size:14px;color:#555555;font-weight:bold;">Your plan includes:</p>
               <ul style="margin:0 0 20px;padding-left:20px;">
-                {{if .HasWillcom}}<li style="font-size:14px;color:#333333;line-height:1.9;">Willcom Videos</li>{{end}}
-                {{if .HasE4}}<li style="font-size:14px;color:#333333;line-height:1.9;">E4 Videos</li>{{end}}
-                {{if .HasMecad}}<li style="font-size:14px;color:#333333;line-height:1.9;">meCAD Videos</li>{{end}}
+                {{range .Features}}<li style="font-size:14px;color:#333333;line-height:1.9;">{{.}}</li>{{end}}
               </ul>
 
               <p style="margin:0 0 24px;font-size:15px;color:#333333;line-height:1.7;">

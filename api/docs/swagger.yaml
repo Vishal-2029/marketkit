@@ -27,6 +27,77 @@ definitions:
       otp:
         type: string
     type: object
+  market.MarketUserSummary:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      platform_income_in_paise:
+        type: integer
+      product_count:
+        type: integer
+      purchase_count:
+        type: integer
+      seller_income_in_paise:
+        type: integer
+      total_income_in_paise:
+        type: integer
+    type: object
+  market.categoryWithCount:
+    properties:
+      created_at:
+        type: string
+      display_order:
+        type: integer
+      id:
+        type: string
+      is_other:
+        description: |-
+          IsOther marks the single catch-all category sellers pick when nothing
+          else fits; selecting it reveals Product.CategoryOther for a free-text
+          description instead of relying on a fragile name match.
+        type: boolean
+      name:
+        type: string
+      parent_id:
+        type: string
+      photo_url:
+        type: string
+      product_count:
+        type: integer
+    type: object
+  market.marketPlanWithStats:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      duration_days:
+        type: integer
+      featured_seller:
+        description: placeholder perk
+        type: boolean
+      fee_discount_pct:
+        description: 0-100; placeholder perk
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      price_in_paise:
+        type: integer
+      subscribers:
+        type: integer
+      updated_at:
+        type: string
+    type: object
   models.Admin:
     properties:
       avatar_url:
@@ -100,79 +171,64 @@ definitions:
       post_id:
         type: string
     type: object
-  models.Product:
+  models.JSONMap:
+    additionalProperties: true
+    type: object
+  models.MarketPlan:
     properties:
       created_at:
         type: string
       description:
         type: string
-      file_format:
-        type: string
-      file_name:
-        type: string
-      file_size_bytes:
+      duration_days:
+        type: integer
+      featured_seller:
+        description: placeholder perk
+        type: boolean
+      fee_discount_pct:
+        description: 0-100; placeholder perk
         type: integer
       id:
         type: string
       is_active:
         type: boolean
-      is_mine:
-        type: boolean
-      is_purchased:
-        type: boolean
-      preview_urls:
-        items:
-          type: string
-        type: array
+      name:
+        type: string
       price_in_paise:
         type: integer
-      sales_count:
-        type: integer
-      seller_email:
-        type: string
-      seller_name:
-        description: Populated at query time; not stored in DB.
-        type: string
-      title:
-        type: string
       updated_at:
         type: string
     type: object
-  models.ProductPurchase:
+  models.MarketPlanSubscription:
     properties:
       amount_in_paise:
         type: integer
-      buyer:
-        $ref: '#/definitions/models.User'
-      buyer_email:
-        type: string
-      buyer_name:
-        description: Populated at query time for admin endpoints only; not stored
-          in DB.
-        type: string
       created_at:
         type: string
-      currency:
-        type: string
-      product:
-        $ref: '#/definitions/models.Product'
-      product_id:
-        type: string
-      product_title:
+      expiry_date:
         type: string
       id:
         type: string
       paid_at:
         type: string
+      plan:
+        $ref: '#/definitions/models.MarketPlan'
+      plan_id:
+        type: string
       razorpay_order_id:
         type: string
       razorpay_payment_id:
         type: string
+      start_date:
+        type: string
       status:
-        $ref: '#/definitions/models.PaymentStatus'
-    type: object
-  models.JSONMap:
-    additionalProperties: true
+        $ref: '#/definitions/models.SubscriptionStatus'
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      user_id:
+        type: string
     type: object
   models.Payment:
     properties:
@@ -227,6 +283,23 @@ definitions:
     - PaymentFailed
     - PaymentRefunded
     - PaymentPending
+  models.PayoutDetail:
+    properties:
+      bank_account_number:
+        type: string
+      bank_holder_name:
+        type: string
+      bank_ifsc:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+      upi_id:
+        type: string
+    type: object
   models.Photo:
     properties:
       category:
@@ -271,12 +344,20 @@ definitions:
         type: string
       duration_days:
         type: integer
-      has_e4:
-        type: boolean
-      has_mecad:
-        type: boolean
-      has_willcom:
-        type: boolean
+      features:
+        description: |-
+          Features lists the feature keys this plan grants. A user's entitlements
+          are the union of Features across all their active subscriptions, so
+          à-la-carte plans ("A only", "A + B") and ladder tiers both work without
+          a schema change — which is why this is a list rather than a tier number.
+
+          Keys are free-form strings you define. The kit ships with the video
+          category keys from VideoCategory (CATEGORY_A/B/C) so that content gating
+          works out of the box: a video is unlocked when its Category appears in
+          the viewer's feature set. Add your own keys for anything else you sell.
+        items:
+          type: string
+        type: array
       id:
         type: string
       is_active:
@@ -286,6 +367,25 @@ definitions:
       price_in_paise:
         type: integer
       updated_at:
+        type: string
+    type: object
+  models.PlatformLedger:
+    properties:
+      amount_in_paise:
+        type: integer
+      balance_after_in_paise:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/models.JSONMap'
+      reference_id:
+        type: string
+      source:
+        type: string
+      type:
         type: string
     type: object
   models.PlaybackLog:
@@ -307,6 +407,145 @@ definitions:
       watched_seconds:
         type: integer
       watermark_id:
+        type: string
+    type: object
+  models.Product:
+    properties:
+      category:
+        $ref: '#/definitions/models.ProductCategory'
+      category_id:
+        description: |-
+          CategoryID is nullable so pre-existing products aren't broken by this
+          field's addition. CategoryOther holds the seller's free-text
+          description when CategoryID points at the "Other" category.
+        type: string
+      category_other:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      featured_seller:
+        description: true when seller has active market plan with FeaturedSeller perk
+        type: boolean
+      file_format:
+        type: string
+      file_name:
+        type: string
+      file_size_bytes:
+        type: integer
+      id:
+        type: string
+      is_active:
+        type: boolean
+      is_mine:
+        type: boolean
+      is_purchased:
+        type: boolean
+      preview_urls:
+        items:
+          type: string
+        type: array
+      price_in_paise:
+        type: integer
+      sales_count:
+        type: integer
+      seller_email:
+        type: string
+      seller_name:
+        description: Populated at query time; not stored in DB.
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      view_count:
+        type: integer
+    type: object
+  models.ProductCategory:
+    properties:
+      created_at:
+        type: string
+      display_order:
+        type: integer
+      id:
+        type: string
+      is_other:
+        description: |-
+          IsOther marks the single catch-all category sellers pick when nothing
+          else fits; selecting it reveals Product.CategoryOther for a free-text
+          description instead of relying on a fragile name match.
+        type: boolean
+      name:
+        type: string
+      parent_id:
+        type: string
+      photo_url:
+        type: string
+    type: object
+  models.ProductPurchase:
+    properties:
+      amount_in_paise:
+        type: integer
+      buyer:
+        $ref: '#/definitions/models.User'
+      buyer_email:
+        type: string
+      buyer_name:
+        description: Populated at query time for admin endpoints only; not stored
+          in DB.
+        type: string
+      created_at:
+        type: string
+      currency:
+        type: string
+      fee_in_paise:
+        description: |-
+          Fee snapshot taken at capture time so historic sales keep the fee
+          percent they were sold under. Zero on rows from before the wallet era.
+        type: integer
+      id:
+        type: string
+      paid_at:
+        type: string
+      paid_via:
+        type: string
+      product:
+        $ref: '#/definitions/models.Product'
+      product_id:
+        type: string
+      product_title:
+        type: string
+      razorpay_order_id:
+        type: string
+      razorpay_payment_id:
+        type: string
+      seller:
+        $ref: '#/definitions/models.User'
+      seller_email:
+        type: string
+      seller_name:
+        type: string
+      seller_net_in_paise:
+        type: integer
+      status:
+        $ref: '#/definitions/models.PaymentStatus'
+    type: object
+  models.ProductPurchaseMessage:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      is_admin:
+        type: boolean
+      purchase_id:
+        type: string
+      thread_user_id:
+        type: string
+      user_name:
         type: string
     type: object
   models.Subscription:
@@ -338,12 +577,23 @@ definitions:
     type: object
   models.SubscriptionStatus:
     enum:
+    - PENDING
     - ACTIVE
     - EXPIRED
     - SUSPENDED
     - CANCELLED
     type: string
+    x-enum-comments:
+      SubscriptionPending: unused by Learning; reused by MarketPlanSubscription for
+        unpaid orders
+    x-enum-descriptions:
+    - unused by Learning; reused by MarketPlanSubscription for unpaid orders
+    - ""
+    - ""
+    - ""
+    - ""
     x-enum-varnames:
+    - SubscriptionPending
     - SubscriptionActive
     - SubscriptionExpired
     - SubscriptionSuspended
@@ -352,11 +602,22 @@ definitions:
     properties:
       avatar_url:
         type: string
+      current_app_mode:
+        description: |-
+          CurrentAppMode is the dual-mode app's active side for this user:
+          "" (legacy accounts predating this feature), "learning", or "market".
+          Set at registration now that mode is chosen before signup; changed later
+          only via the explicit mode-switch endpoint.
+        type: string
       email:
         type: string
       id:
         type: string
       joined_at:
+        type: string
+      learning_joined_at:
+        type: string
+      market_joined_at:
         type: string
       name:
         type: string
@@ -382,6 +643,11 @@ definitions:
         type: array
       updated_at:
         type: string
+      wallet_balance_in_paise:
+        description: |-
+          Cached wallet balance; source of truth is the wallet_transactions ledger.
+          Mutated only via wallet.Apply, which row-locks this record first.
+        type: integer
     type: object
   models.UserSession:
     properties:
@@ -422,10 +688,12 @@ definitions:
         type: string
       duration_seconds:
         type: integer
-      file_key:
-        type: string
-      hls_key:
-        type: string
+      has_hls:
+        description: |-
+          Safe "is transcoded" flag for clients — HLSKey itself is never
+          serialized (raw storage key), so the admin UI needs this to know
+          whether the HLS ladder exists. Set by the AfterFind hook.
+        type: boolean
       id:
         type: string
       is_free:
@@ -435,16 +703,6 @@ definitions:
       is_preview:
         type: boolean
       lqip:
-        type: string
-      mp4_key_240p:
-        type: string
-      mp4_key_360p:
-        type: string
-      mp4_key_480p:
-        type: string
-      mp4_key_720p:
-        type: string
-      mp4_key_1080p:
         type: string
       mp4_size_240p:
         type: integer
@@ -470,6 +728,12 @@ definitions:
         type: string
       transcode_error:
         type: string
+      transcode_finished_at:
+        type: string
+      transcode_started_at:
+        description: Transcode timing, shown in the admin panel (how long each video
+          took).
+        type: string
       updated_at:
         type: string
       uploaded_at:
@@ -477,14 +741,14 @@ definitions:
     type: object
   models.VideoCategory:
     enum:
-    - WILLCOM
-    - E4
-    - MECAD
+    - CATEGORY_A
+    - CATEGORY_B
+    - CATEGORY_C
     type: string
     x-enum-varnames:
-    - CategoryWillcom
-    - CategoryE4
-    - CategoryMecad
+    - CategoryA
+    - CategoryB
+    - CategoryC
   models.VideoComment:
     properties:
       content:
@@ -532,6 +796,60 @@ definitions:
     - VideoStatusProcessing
     - VideoStatusPublished
     - VideoStatusError
+  models.WalletTransaction:
+    properties:
+      amount_in_paise:
+        description: 'Signed: TOPUP/SALE_CREDIT positive, PURCHASE_DEBIT/WITHDRAWAL/PLAN_DEBIT
+          negative.'
+        type: integer
+      balance_after_in_paise:
+        description: Balance snapshot taken inside the row lock, for drift auditing.
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: string
+      metadata:
+        $ref: '#/definitions/models.JSONMap'
+      reference_id:
+        type: string
+      type:
+        type: string
+    type: object
+  models.Withdrawal:
+    properties:
+      amount_in_paise:
+        type: integer
+      bank_account_number:
+        type: string
+      bank_holder_name:
+        type: string
+      bank_ifsc:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      method:
+        type: string
+      note:
+        type: string
+      settled_at:
+        type: string
+      settled_by:
+        type: string
+      status:
+        type: string
+      upi_id:
+        description: Payout destination snapshotted at request time.
+        type: string
+      user_email:
+        type: string
+      user_name:
+        description: Populated at query time for admin endpoints only; not stored
+          in DB.
+        type: string
+    type: object
   plans.planWithStats:
     properties:
       created_at:
@@ -540,12 +858,20 @@ definitions:
         type: string
       duration_days:
         type: integer
-      has_e4:
-        type: boolean
-      has_mecad:
-        type: boolean
-      has_willcom:
-        type: boolean
+      features:
+        description: |-
+          Features lists the feature keys this plan grants. A user's entitlements
+          are the union of Features across all their active subscriptions, so
+          à-la-carte plans ("A only", "A + B") and ladder tiers both work without
+          a schema change — which is why this is a list rather than a tier number.
+
+          Keys are free-form strings you define. The kit ships with the video
+          category keys from VideoCategory (CATEGORY_A/B/C) so that content gating
+          works out of the box: a video is unlocked when its Category appears in
+          the viewer's feature set. Add your own keys for anything else you sell.
+        items:
+          type: string
+        type: array
       id:
         type: string
       is_active:
@@ -562,6 +888,11 @@ definitions:
   user_auth.registerRequest:
     properties:
       email:
+        type: string
+      mode:
+        description: |-
+          Mode is the app mode chosen before registration ("learning" or
+          "market") — the mode chooser now runs before the register form.
         type: string
       name:
         type: string
@@ -594,10 +925,12 @@ definitions:
         type: string
       duration_seconds:
         type: integer
-      file_key:
-        type: string
-      hls_key:
-        type: string
+      has_hls:
+        description: |-
+          Safe "is transcoded" flag for clients — HLSKey itself is never
+          serialized (raw storage key), so the admin UI needs this to know
+          whether the HLS ladder exists. Set by the AfterFind hook.
+        type: boolean
       id:
         type: string
       is_free:
@@ -607,16 +940,6 @@ definitions:
       is_preview:
         type: boolean
       lqip:
-        type: string
-      mp4_key_240p:
-        type: string
-      mp4_key_360p:
-        type: string
-      mp4_key_480p:
-        type: string
-      mp4_key_720p:
-        type: string
-      mp4_key_1080p:
         type: string
       mp4_size_240p:
         type: integer
@@ -643,6 +966,12 @@ definitions:
       title:
         type: string
       transcode_error:
+        type: string
+      transcode_finished_at:
+        type: string
+      transcode_started_at:
+        description: Transcode timing, shown in the admin panel (how long each video
+          took).
         type: string
       updated_at:
         type: string
@@ -2475,6 +2804,173 @@ paths:
       summary: Get user growth by month over last 12 months (admin)
       tags:
       - Admin Dashboard
+  /market/categories:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/market.categoryWithCount'
+            type: array
+      security:
+      - AdminAuth: []
+      summary: List all Product Market sections, flat, with product counts (admin)
+      tags:
+      - Admin Market Categories
+    post:
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - AdminAuth: []
+      summary: Create a Product Market section or sub-section (admin)
+      tags:
+      - Admin Market Categories
+  /market/categories/{id}:
+    delete:
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - AdminAuth: []
+      summary: Delete a Product Market section (admin)
+      tags:
+      - Admin Market Categories
+    put:
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - AdminAuth: []
+      summary: Rename or reorder a Product Market section (admin)
+      tags:
+      - Admin Market Categories
+  /market/categories/{id}/photo:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Section banner photo
+        in: formData
+        name: photo
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - AdminAuth: []
+      summary: Set (or replace) a section's banner photo (admin)
+      tags:
+      - Admin Market Categories
+  /market/plan-payments:
+    get:
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Search user name or email
+        in: query
+        name: search
+        type: string
+      - description: ACTIVE|EXPIRED|CANCELLED|PENDING
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - AdminAuth: []
+      summary: List Product Market plan subscription payments (admin)
+      tags:
+      - Admin Market Plans
+  /market/plans:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/market.marketPlanWithStats'
+            type: array
+      security:
+      - AdminAuth: []
+      summary: List all Product Market plans with subscriber counts (admin)
+      tags:
+      - Admin Market Plans
+    post:
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - AdminAuth: []
+      summary: Create a Product Market plan (admin)
+      tags:
+      - Admin Market Plans
+  /market/plans/{id}:
+    delete:
+      parameters:
+      - description: Plan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - AdminAuth: []
+      summary: Delete a Product Market plan (admin)
+      tags:
+      - Admin Market Plans
+    put:
+      parameters:
+      - description: Plan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - AdminAuth: []
+      summary: Update a Product Market plan (admin)
+      tags:
+      - Admin Market Plans
   /market/products:
     get:
       parameters:
@@ -2573,6 +3069,190 @@ paths:
       security:
       - BearerAuth: []
       summary: List all product purchases (admin)
+      tags:
+      - Admin Market
+  /market/purchases/{id}/messages:
+    get:
+      parameters:
+      - description: Purchase ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ProductPurchaseMessage'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List a purchase's private support thread (admin)
+      tags:
+      - Admin Market
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Purchase ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: content
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ProductPurchaseMessage'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Reply on a purchase's private support thread (admin)
+      tags:
+      - Admin Market
+  /market/revenue/monthly:
+    get:
+      parameters:
+      - description: 'Year (default: current year)'
+        in: query
+        name: year
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+      security:
+      - AdminAuth: []
+      summary: Monthly Product Market revenue breakdown — market-only (admin)
+      tags:
+      - Admin Market Revenue
+  /market/revenue/summary:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - AdminAuth: []
+      summary: Product Market revenue summary — market-only, never learning (admin)
+      tags:
+      - Admin Market Revenue
+  /market/users:
+    get:
+      parameters:
+      - description: Search by name or email
+        in: query
+        name: search
+        type: string
+      - description: 'Filter: seller | buyer (default: either)'
+        in: query
+        name: role
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/market.MarketUserSummary'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List Product Market participants with earnings (admin)
+      tags:
+      - Admin Market
+  /market/users/{id}/products:
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: One market user's products listed and products purchased (admin)
       tags:
       - Admin Market
   /photo-categories:
@@ -2978,6 +3658,99 @@ paths:
       summary: List active plans (public)
       tags:
       - Plans
+  /platform-wallet:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Platform wallet balance and per-source breakdown (super-admin)
+      tags:
+      - Admin Platform Wallet
+  /platform-wallet/transactions:
+    get:
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: csv for a full unpaginated export
+        in: query
+        name: format
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.PlatformLedger'
+            type: array
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Paginated platform ledger, or a full CSV export (super-admin)
+      tags:
+      - Admin Platform Wallet
+  /platform-wallet/withdrawals:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: amount_in_paise, note
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Record a super-admin withdrawal from the platform wallet
+      tags:
+      - Admin Platform Wallet
   /playback/by-user:
     get:
       produces:
@@ -3173,6 +3946,40 @@ paths:
       summary: Revenue summary
       tags:
       - Revenue
+  /user/auth/google:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id_token from Google Sign-In
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Sign in (or register) with a Google ID token
+      tags:
+      - User Auth
   /user/auth/me:
     delete:
       produces:
@@ -3199,6 +4006,43 @@ paths:
       security:
       - UserAuth: []
       summary: Delete current user account
+      tags:
+      - User Auth
+  /user/auth/me/app-mode:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: 'New mode: learning or market'
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Switch the current user's app mode (post-registration)
       tags:
       - User Auth
   /user/community/posts:
@@ -3386,6 +4230,270 @@ paths:
       summary: Reply to a community post
       tags:
       - User Community
+  /user/market/categories:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ProductCategory'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: List Product Market categories
+      tags:
+      - User Market
+  /user/market/fee:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              format: int64
+              type: integer
+            type: object
+      security:
+      - UserAuth: []
+      summary: Current platform fee percent (for the upload form breakdown)
+      tags:
+      - User Market
+  /user/market/my/earnings:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Seller earnings summary (net of platform fee; credited to wallet)
+      tags:
+      - User Market
+  /user/market/my/products:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Product'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: List own product listings (including unlisted)
+      tags:
+      - User Market
+  /user/market/my/products/{id}/stats:
+    get:
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Seller analytics for one of their products
+      tags:
+      - User Market
+  /user/market/my/purchases:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ProductPurchase'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: List own successful product purchases
+      tags:
+      - User Market
+  /user/market/plans:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.MarketPlan'
+            type: array
+      security:
+      - UserAuth: []
+      summary: List active Product Market plans
+      tags:
+      - User Market Plans
+  /user/market/plans/{id}/order:
+    post:
+      parameters:
+      - description: Market Plan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - UserAuth: []
+      summary: Create a Razorpay order for a Product Market plan
+      tags:
+      - User Market Plans
+  /user/market/plans/{id}/wallet:
+    post:
+      parameters:
+      - description: Market Plan ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Pay for a Product Market plan using wallet balance
+      tags:
+      - User Market Plans
+  /user/market/plans/my:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Cancel the current user's active Product Market plan (no refund)
+      tags:
+      - User Market Plans
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MarketPlanSubscription'
+      security:
+      - UserAuth: []
+      summary: Current user's active Product Market plan subscription
+      tags:
+      - User Market Plans
+  /user/market/plans/verify:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: razorpay_order_id, razorpay_payment_id, razorpay_signature
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Verify Razorpay payment and activate Product Market plan
+      tags:
+      - User Market Plans
   /user/market/products:
     get:
       parameters:
@@ -3440,7 +4548,7 @@ paths:
         name: file
         required: true
         type: file
-      - description: 1-3 preview images
+      - description: 1-7 preview images
         in: formData
         name: previews
         required: true
@@ -3574,8 +4682,14 @@ paths:
       summary: Get a signed download URL for a purchased product file
       tags:
       - User Market
-  /user/market/my/products:
+  /user/market/products/{id}/messages:
     get:
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -3583,7 +4697,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Product'
+              $ref: '#/definitions/models.ProductPurchaseMessage'
             type: array
         "401":
           description: Unauthorized
@@ -3591,52 +4705,89 @@ paths:
             additionalProperties:
               type: string
             type: object
-      security:
-      - UserAuth: []
-      summary: List own product listings (including unlisted)
-      tags:
-      - User Market
-  /user/market/my/earnings:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
+        "404":
+          description: Not Found
           schema:
             additionalProperties:
               type: string
             type: object
       security:
       - UserAuth: []
-      summary: Seller earnings summary (informational; payouts handled manually)
+      summary: List the buyer's private support thread for a purchased product
       tags:
       - User Market
-  /user/market/my/purchases:
-    get:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: content
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
-            items:
-              $ref: '#/definitions/models.ProductPurchase'
-            type: array
-        "401":
-          description: Unauthorized
+            $ref: '#/definitions/models.ProductPurchaseMessage'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
           schema:
             additionalProperties:
               type: string
             type: object
       security:
       - UserAuth: []
-      summary: List own successful product purchases
+      summary: Send a message on the buyer's private support thread for a purchased
+        product
+      tags:
+      - User Market
+  /user/market/purchases/{id}/invoice:
+    get:
+      parameters:
+      - description: Purchase ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/pdf
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Download a purchase invoice PDF
       tags:
       - User Market
   /user/market/purchases/order:
@@ -3728,7 +4879,71 @@ paths:
       summary: Verify a Razorpay product purchase signature
       tags:
       - User Market
+  /user/market/purchases/wallet:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: product_id
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ProductPurchase'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Buy a product instantly using wallet balance
+      tags:
+      - User Market
   /user/notifications:
+    delete:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Clear all notifications for the current user
+      tags:
+      - User Notifications
     get:
       produces:
       - application/json
@@ -3747,6 +4962,40 @@ paths:
       security:
       - UserAuth: []
       summary: List user notifications
+      tags:
+      - User Notifications
+  /user/notifications/{id}:
+    delete:
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Delete a single notification for the current user
       tags:
       - User Notifications
   /user/notifications/read:
@@ -3867,7 +5116,7 @@ paths:
         in: query
         name: page
         type: integer
-      - description: Category filter (WILLCOM, E4, MECAD)
+      - description: Category filter (CATEGORY_A, CATEGORY_B, CATEGORY_C)
         in: query
         name: category
         type: string
@@ -4076,6 +5325,18 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       security:
       - UserAuth: []
       summary: List photos attached to a video
@@ -4110,6 +5371,33 @@ paths:
       tags:
       - User Videos
   /user/videos/{id}/progress:
+    delete:
+      parameters:
+      - description: Video ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Remove a video from continue watching (clears saved progress)
+      tags:
+      - User Videos
     post:
       consumes:
       - application/json
@@ -4335,6 +5623,252 @@ paths:
       summary: Get signed video stream URL as JSON
       tags:
       - User Videos
+  /user/wallet:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Wallet balance and payout-method availability
+      tags:
+      - User Wallet
+  /user/wallet/payout-details:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PayoutDetail'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Get saved payout details (UPI / bank)
+      tags:
+      - User Wallet
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: payout details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.PayoutDetail'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PayoutDetail'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Save payout details (UPI ID and/or bank account)
+      tags:
+      - User Wallet
+  /user/wallet/topup/order:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: amount_in_paise
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: integer
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Create a Razorpay order to add money to the wallet
+      tags:
+      - User Wallet
+  /user/wallet/topup/verify:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: razorpay_order_id, razorpay_payment_id, razorpay_signature
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Verify a Razorpay wallet topup signature and credit the wallet
+      tags:
+      - User Wallet
+  /user/wallet/transactions:
+    get:
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.WalletTransaction'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Paginated wallet ledger for the current user
+      tags:
+      - User Wallet
+  /user/wallet/withdrawals:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Withdrawal'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: List own withdrawal requests
+      tags:
+      - User Wallet
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: amount_in_paise, method (UPI|BANK)
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Withdrawal'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - UserAuth: []
+      summary: Request a withdrawal (auto-approved; balance deducted immediately)
+      tags:
+      - User Wallet
   /videos/{id}/comments:
     get:
       parameters:
@@ -4590,6 +6124,181 @@ paths:
       summary: Get video stream URL
       tags:
       - Videos
+  /wallet/settings:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              format: int64
+              type: integer
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Wallet platform settings (admin)
+      tags:
+      - Admin Wallet
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: fee_percent, min_withdrawal_in_paise
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            format: int64
+            type: integer
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              format: int64
+              type: integer
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update wallet platform settings (super admin)
+      tags:
+      - Admin Wallet
+  /wallet/users/{id}/transactions:
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.WalletTransaction'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Paginated wallet ledger for a specific user (admin)
+      tags:
+      - Admin Wallet
+  /wallet/withdrawals:
+    get:
+      parameters:
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: APPROVED | SETTLED
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Withdrawal'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List withdrawal requests (admin)
+      tags:
+      - Admin Wallet
+  /wallet/withdrawals/{id}/settle:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Withdrawal ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: note
+        in: body
+        name: body
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Withdrawal'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Mark a withdrawal as settled after transferring the money manually
+      tags:
+      - Admin Wallet
 securityDefinitions:
   AdminAuth:
     description: Admin JWT — prefix with "Bearer "

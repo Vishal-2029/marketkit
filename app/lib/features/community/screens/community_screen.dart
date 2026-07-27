@@ -1,3 +1,4 @@
+import 'package:design_express/core/config/feature_catalog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -239,12 +240,10 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
-                  for (final cat in const [
+                  for (final cat in [
                     ('ALL', 'All'),
-                    ('GENERAL', 'General'),
-                    ('WILLCOM', 'Wilcom 2006'),
-                    ('E4', 'E4'),
-                    ('MECAD', 'meCAD'),
+                    for (final key in FeatureCatalog.postCategoryKeys)
+                      (key, FeatureCatalog.label(key)),
                   ]) ...[
                     CategoryPill(
                       label: cat.$2,

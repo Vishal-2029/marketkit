@@ -14,6 +14,7 @@ import { playlistsService, AdminPlaylist } from "@/services/playlists";
 import { videosService } from "@/services/videos";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { CONTENT_CATEGORIES, categoryLabel, categoryBadgeVariant, DEFAULT_CATEGORY, CATEGORY_TEXT_COLORS } from "@/lib/featureCatalog";
 
 interface PlaylistVideo {
   id: string;
@@ -56,16 +57,12 @@ const statusVariant = (s: string) => {
 };
 
 const catVariant = (c: string) =>
-  c === "WILLCOM" ? "gold" as const : c === "E4" ? "info" as const : "purple" as const;
+  categoryBadgeVariant(c);
 
 const catLabel = (c: string) =>
-  c === "WILLCOM" ? "Wilcom 2006" : c === "E4" ? "E4" : "meCAD";
+  categoryLabel(c);
 
-const catColor: Record<string, string> = {
-  WILLCOM: "text-amber-500",
-  E4: "text-blue-500",
-  MECAD: "text-purple-500",
-};
+const catColor = CATEGORY_TEXT_COLORS;
 
 export default function PlaylistsPage() {
   const qc = useQueryClient();
@@ -82,7 +79,7 @@ export default function PlaylistsPage() {
 
   const [formName, setFormName] = useState("");
   const [formDesc, setFormDesc] = useState("");
-  const [formCategory, setFormCategory] = useState("WILLCOM");
+  const [formCategory, setFormCategory] = useState<string>(DEFAULT_CATEGORY);
 
   // Thumbnail state for create modal
   const [createThumb, setCreateThumb] = useState<File | null>(null);
@@ -187,7 +184,7 @@ export default function PlaylistsPage() {
     setEditTarget(pl);
     setFormName(pl.name);
     setFormDesc(pl.description);
-    setFormCategory(pl.category || "WILLCOM");
+    setFormCategory(pl.category || DEFAULT_CATEGORY);
     setEditThumb(null);
     setEditThumbPreview(pl.thumbnail_url || null);
   }
@@ -257,7 +254,7 @@ export default function PlaylistsPage() {
         title="Playlists"
         description="Organise videos into playlists"
         action={
-          <Button onClick={() => { setShowCreate(true); setFormName(""); setFormDesc(""); setFormCategory("WILLCOM"); setCreateThumb(null); setCreateThumbPreview(null); }}>
+          <Button onClick={() => { setShowCreate(true); setFormName(""); setFormDesc(""); setFormCategory(DEFAULT_CATEGORY); setCreateThumb(null); setCreateThumbPreview(null); }}>
             <Plus className="h-4 w-4 mr-1.5" /> New Playlist
           </Button>
         }
@@ -607,7 +604,7 @@ export default function PlaylistsPage() {
                   value={formName}
                   onChange={e => setFormName(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter" && formName.trim()) createMut.mutate(); }}
-                  placeholder="e.g. Wilcom 2006"
+                  placeholder="e.g. Getting Started"
                 />
               </div>
               <div>
@@ -621,9 +618,9 @@ export default function PlaylistsPage() {
                   value={formCategory}
                   onChange={e => setFormCategory(e.target.value)}
                 >
-                  <option value="WILLCOM">Wilcom 2006</option>
-                  <option value="E4">E4</option>
-                  <option value="MECAD">meCAD</option>
+                  {CONTENT_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{categoryLabel(c)}</option>
+                  ))}
                 </select>
                 <p className="text-[11px] text-muted-foreground mt-1">Only videos of this category can be added to the playlist.</p>
               </div>
@@ -710,9 +707,9 @@ export default function PlaylistsPage() {
                   value={formCategory}
                   onChange={e => setFormCategory(e.target.value)}
                 >
-                  <option value="WILLCOM">Wilcom 2006</option>
-                  <option value="E4">E4</option>
-                  <option value="MECAD">meCAD</option>
+                  {CONTENT_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{categoryLabel(c)}</option>
+                  ))}
                 </select>
                 <p className="text-[11px] text-muted-foreground mt-1">Only videos of this category can be added to the playlist.</p>
               </div>

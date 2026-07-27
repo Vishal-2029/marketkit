@@ -97,7 +97,7 @@ func Migrate() error {
 
 	// Seed the legacy photo categories so existing photos' categories stay selectable.
 	// FirstOrCreate is idempotent — safe to run on every boot.
-	for _, name := range []string{"GENERAL", "WILLCOM", "E4", "MECAD"} {
+	for _, name := range []string{"GENERAL", "CATEGORY_A", "CATEGORY_B", "CATEGORY_C"} {
 		DB.Where("name = ?", name).FirstOrCreate(&models.PhotoCategory{}, models.PhotoCategory{Name: name})
 	}
 
@@ -152,9 +152,9 @@ type defaultPlaylistEntry struct {
 // its category playlist; a video is only ever auto-added to the playlist
 // matching its own category.
 var defaultPlaylists = []defaultPlaylistEntry{
-	{"Willcom 2006", models.CategoryWillcom},
-	{"E4.2", models.CategoryE4},
-	{"emCAD", models.CategoryMecad},
+	{"Category A", models.CategoryA},
+	{"Category B", models.CategoryB},
+	{"Category C", models.CategoryC},
 }
 
 // SeedDefaultPlaylists creates the three category playlists if they don't

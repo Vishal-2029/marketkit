@@ -3,9 +3,8 @@ class PlanModel {
   final String name;
   final String description;
   final int priceInPaise;
-  final bool hasWillcom;
-  final bool hasE4;
-  final bool hasMecad;
+  /// Feature keys this plan grants (e.g. video category keys).
+  final List<String> features;
   final int durationDays;
   final bool isActive;
 
@@ -14,12 +13,13 @@ class PlanModel {
     required this.name,
     this.description = '',
     required this.priceInPaise,
-    required this.hasWillcom,
-    required this.hasE4,
-    required this.hasMecad,
+    this.features = const [],
     required this.durationDays,
     required this.isActive,
   });
+
+  /// Whether this plan grants [key].
+  bool hasFeature(String key) => features.contains(key);
 
   double get priceInRupees => priceInPaise / 100.0;
   String get formattedPrice => '₹${priceInRupees.toStringAsFixed(0)}';
@@ -35,9 +35,7 @@ class PlanModel {
         'name': name,
         'description': description,
         'price_in_paise': priceInPaise,
-        'has_willcom': hasWillcom,
-        'has_e4': hasE4,
-        'has_mecad': hasMecad,
+        'features': features,
         'duration_days': durationDays,
         'is_active': isActive,
       };
@@ -47,9 +45,9 @@ class PlanModel {
         name: json['name'] as String,
         description: json['description'] as String? ?? '',
         priceInPaise: (json['price_in_paise'] as num).toInt(),
-        hasWillcom: json['has_willcom'] as bool? ?? false,
-        hasE4: json['has_e4'] as bool? ?? false,
-        hasMecad: json['has_mecad'] as bool? ?? false,
+        features:
+            (json['features'] as List?)?.map((e) => e as String).toList() ??
+                const [],
         durationDays: json['duration_days'] as int? ?? 365,
         isActive: json['is_active'] as bool? ?? false,
       );

@@ -72,13 +72,11 @@ func HandleList(c *fiber.Ctx) error {
 // @Router      /plans [post]
 func HandleCreate(c *fiber.Ctx) error {
 	var body struct {
-		Name         string `json:"name"`
-		Description  string `json:"description"`
-		PriceInPaise int64  `json:"price_in_paise"`
-		HasWillcom   bool   `json:"has_willcom"`
-		HasE4        bool   `json:"has_e4"`
-		HasMecad     bool   `json:"has_mecad"`
-		DurationDays int    `json:"duration_days"`
+		Name         string   `json:"name"`
+		Description  string   `json:"description"`
+		PriceInPaise int64    `json:"price_in_paise"`
+		Features     []string `json:"features"`
+		DurationDays int      `json:"duration_days"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return response.BadRequest(c, "invalid request body")
@@ -97,9 +95,7 @@ func HandleCreate(c *fiber.Ctx) error {
 		Name:         body.Name,
 		Description:  body.Description,
 		PriceInPaise: body.PriceInPaise,
-		HasWillcom:   body.HasWillcom,
-		HasE4:        body.HasE4,
-		HasMecad:     body.HasMecad,
+		Features:     body.Features,
 		DurationDays: body.DurationDays,
 		IsActive:     true,
 	}
@@ -131,14 +127,12 @@ func HandleUpdate(c *fiber.Ctx) error {
 	}
 
 	var body struct {
-		Name         *string `json:"name"`
-		Description  *string `json:"description"`
-		PriceInPaise *int64  `json:"price_in_paise"`
-		HasWillcom   *bool   `json:"has_willcom"`
-		HasE4        *bool   `json:"has_e4"`
-		HasMecad     *bool   `json:"has_mecad"`
-		DurationDays *int    `json:"duration_days"`
-		IsActive     *bool   `json:"is_active"`
+		Name         *string   `json:"name"`
+		Description  *string   `json:"description"`
+		PriceInPaise *int64    `json:"price_in_paise"`
+		Features     *[]string `json:"features"`
+		DurationDays *int      `json:"duration_days"`
+		IsActive     *bool     `json:"is_active"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return response.BadRequest(c, "invalid request body")
@@ -160,15 +154,6 @@ func HandleUpdate(c *fiber.Ctx) error {
 	if body.DurationDays != nil && *body.DurationDays <= 0 {
 		return response.BadRequest(c, "duration must be greater than 0 days")
 	}
-	if body.HasWillcom != nil {
-		updates["has_willcom"] = *body.HasWillcom
-	}
-	if body.HasE4 != nil {
-		updates["has_e4"] = *body.HasE4
-	}
-	if body.HasMecad != nil {
-		updates["has_mecad"] = *body.HasMecad
-	}
 	if body.DurationDays != nil {
 		updates["duration_days"] = *body.DurationDays
 	}
@@ -176,8 +161,27 @@ func HandleUpdate(c *fiber.Ctx) error {
 		updates["is_active"] = *body.IsActive
 	}
 
-	if err := database.DB.Model(&plan).Updates(updates).Error; err != nil {
-		return response.InternalError(c, "failed to update plan")
+	if len(updates) > 0 {
+		if err := database.DB.Model(&plan).Updates(updates).Error; err != nil {
+			return response.InternalError(c, "failed to update plan")
+		}
+	}
+
+	// Features is a json-serialized column. A map-based Updates() writes the
+	// raw Go slice and bypasses the serializer, storing "[CATEGORY_A]" instead
+	// of ["CATEGORY_A"] — which then fails to unmarshal on the next read. Go
+	// through the struct field so the serializer runs.
+	if body.Features != nil {
+		plan.Features = *body.Features
+		if err := database.DB.Model(&plan).Select("Features").Updates(&plan).Error; err != nil {
+			return response.InternalError(c, "failed to update plan")
+		}
+	}
+
+	// Re-read so the response reflects every column, not just the ones the
+	// caller happened to send.
+	if err := database.DB.First(&plan, "id = ?", plan.ID).Error; err != nil {
+		return response.InternalError(c, "failed to load updated plan")
 	}
 	return response.OK(c, plan)
 }

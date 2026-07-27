@@ -333,12 +333,10 @@ func sendSubscriptionEmails(user *models.User, plan *models.Plan, payment *model
 	})
 
 	subData := email.SubscriptionEmailData{
-		Name:       user.Name,
-		PlanName:   plan.Name,
-		ExpiresAt:  email.FormatDate(expiresAt),
-		HasWillcom: plan.HasWillcom,
-		HasE4:      plan.HasE4,
-		HasMecad:   plan.HasMecad,
+		Name:      user.Name,
+		PlanName:  plan.Name,
+		ExpiresAt: email.FormatDate(expiresAt),
+		Features:  plan.FeatureList(),
 	}
 	if isUpgrade {
 		email.SendPlanUpgradeEmail(user.Email, subData)

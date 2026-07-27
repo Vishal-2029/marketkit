@@ -497,12 +497,10 @@ func HandleAssignFreePlan(c *fiber.Ctx) error {
 
 	go func() {
 		subData := email.SubscriptionEmailData{
-			Name:       user.Name,
-			PlanName:   plan.Name,
-			ExpiresAt:  email.FormatDate(sub.ExpiryDate),
-			HasWillcom: plan.HasWillcom,
-			HasE4:      plan.HasE4,
-			HasMecad:   plan.HasMecad,
+			Name:      user.Name,
+			PlanName:  plan.Name,
+			ExpiresAt: email.FormatDate(sub.ExpiryDate),
+			Features:  plan.FeatureList(),
 		}
 		email.SendNewSubscriptionEmail(user.Email, subData)
 	}()
@@ -624,12 +622,10 @@ func HandleChangePlan(c *fiber.Ctx) error {
 
 	go func() {
 		subData := email.SubscriptionEmailData{
-			Name:       user.Name,
-			PlanName:   plan.Name,
-			ExpiresAt:  email.FormatDate(sub.ExpiryDate),
-			HasWillcom: plan.HasWillcom,
-			HasE4:      plan.HasE4,
-			HasMecad:   plan.HasMecad,
+			Name:      user.Name,
+			PlanName:  plan.Name,
+			ExpiresAt: email.FormatDate(sub.ExpiryDate),
+			Features:  plan.FeatureList(),
 		}
 		if isUpgrade {
 			email.SendPlanUpgradeEmail(user.Email, subData)

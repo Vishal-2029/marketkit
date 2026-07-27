@@ -1,3 +1,4 @@
+import 'package:design_express/core/config/feature_catalog.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/plan_model.dart';
@@ -107,11 +108,13 @@ class PlanCard extends StatelessWidget {
           const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 12),
-          _FeatureRow(label: 'Wilcom 2006', enabled: plan.hasWillcom),
-          const SizedBox(height: 8),
-          _FeatureRow(label: 'E4', enabled: plan.hasE4),
-          const SizedBox(height: 8),
-          _FeatureRow(label: 'meCAD', enabled: plan.hasMecad),
+          for (final key in FeatureCatalog.contentKeys) ...[
+            _FeatureRow(
+              label: FeatureCatalog.label(key),
+              enabled: plan.hasFeature(key),
+            ),
+            const SizedBox(height: 8),
+          ],
           const SizedBox(height: 20),
           if (!isCurrentPlan)
             SizedBox(

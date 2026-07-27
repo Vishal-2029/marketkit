@@ -4,9 +4,8 @@ class SubscriptionModel {
   final String planName;
   final String status;
   final DateTime? expiresAt;
-  final bool hasWillcom;
-  final bool hasE4;
-  final bool hasMecad;
+  /// Feature keys granted by this subscription's plan.
+  final List<String> features;
 
   const SubscriptionModel({
     required this.id,
@@ -14,10 +13,11 @@ class SubscriptionModel {
     required this.planName,
     required this.status,
     this.expiresAt,
-    required this.hasWillcom,
-    required this.hasE4,
-    required this.hasMecad,
+    this.features = const [],
   });
+
+  /// Whether this subscription grants [key].
+  bool hasFeature(String key) => features.contains(key);
 
   bool get isActive =>
       status == 'ACTIVE' &&
@@ -32,8 +32,8 @@ class SubscriptionModel {
         expiresAt: json['expires_at'] != null
             ? DateTime.tryParse(json['expires_at'] as String)
             : null,
-        hasWillcom: json['has_willcom'] as bool? ?? false,
-        hasE4: json['has_e4'] as bool? ?? false,
-        hasMecad: json['has_mecad'] as bool? ?? false,
+        features:
+            (json['features'] as List?)?.map((e) => e as String).toList() ??
+                const [],
       );
 }

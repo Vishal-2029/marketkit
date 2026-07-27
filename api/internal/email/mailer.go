@@ -141,14 +141,12 @@ type PaymentReceiptData struct {
 
 // SubscriptionEmailData is used for both new-subscription and plan-upgrade emails.
 type SubscriptionEmailData struct {
-	Name       string
-	PlanName   string
-	ExpiresAt  string
-	HasWillcom bool
-	HasE4      bool
-	HasMecad   bool
-	IsUpgrade  bool // true → "Plan Upgraded", false → "Subscription Activated"
-	Year       int
+	Name      string
+	PlanName  string
+	ExpiresAt string
+	Features  []string
+	IsUpgrade bool // true → "Plan Upgraded", false → "Subscription Activated"
+	Year      int
 }
 
 // ExpiryEmailData is used for both the 7-day warning and the expired email.

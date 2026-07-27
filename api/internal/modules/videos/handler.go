@@ -253,7 +253,8 @@ func HandleCreate(c *fiber.Ctx) error {
 		return response.BadRequest(c, "title and category are required")
 	}
 
-	isFree := category == models.CategoryWillcom
+	// Paid by default; admins opt a video into free access explicitly.
+	isFree := false
 	if isFreeStr := c.FormValue("is_free"); isFreeStr != "" {
 		if parsed, err := strconv.ParseBool(isFreeStr); err == nil {
 			isFree = parsed
@@ -359,10 +360,7 @@ func HandleUpdate(c *fiber.Ctx) error {
 			updates["description"] = ""
 		}
 		if cat := models.VideoCategory(c.FormValue("category")); cat != "" {
-			validCategories := map[models.VideoCategory]bool{
-				models.CategoryWillcom: true, models.CategoryE4: true, models.CategoryMecad: true,
-			}
-			if !validCategories[cat] {
+			if !models.IsValidVideoCategory(cat) {
 				return response.BadRequest(c, "invalid category")
 			}
 			if cat != v.Category {
@@ -588,7 +586,8 @@ func HandleFinalize(c *fiber.Ctx) error {
 	}
 
 	description := c.FormValue("description")
-	isFree := category == models.CategoryWillcom
+	// Paid by default; admins opt a video into free access explicitly.
+	isFree := false
 	if isFreeStr := c.FormValue("is_free"); isFreeStr != "" {
 		if parsed, err := strconv.ParseBool(isFreeStr); err == nil {
 			isFree = parsed

@@ -56,10 +56,10 @@ type playlistResult struct {
 // automatically since assignment requires a category match).
 func isValidPlaylistCategory(cat string) bool {
 	switch models.VideoCategory(cat) {
-	case "", models.CategoryWillcom, models.CategoryE4, models.CategoryMecad:
+	case "":
 		return true
 	}
-	return false
+	return models.IsValidVideoCategory(models.VideoCategory(cat))
 }
 
 // HandleList returns all playlists with their video counts and cover thumbnails.

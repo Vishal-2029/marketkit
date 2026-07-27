@@ -8,6 +8,7 @@ import { Check, X, Plus, Trash2, Pencil, Bold, Italic, Underline, List, ListOrde
 import { toast } from "sonner";
 import { plansService, PlanPayload } from "@/services/plans";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CONTENT_CATEGORIES, categoryLabel } from "@/lib/featureCatalog";
 
 // Plan descriptions only ever need the rich-text editor's own output
 // (bold/italic/underline/lists) — no attributes are needed for any of that,
@@ -24,9 +25,7 @@ interface Plan {
   name: string;
   description: string;
   price_in_paise: number;
-  has_willcom: boolean;
-  has_e4: boolean;
-  has_mecad: boolean;
+  features: string[];
   duration_days: number;
   is_active: boolean;
   subscribers: number;
@@ -36,9 +35,7 @@ const emptyForm = (): PlanPayload => ({
   name: "",
   description: "",
   price_in_paise: 0,
-  has_willcom: false,
-  has_e4: false,
-  has_mecad: false,
+  features: [],
   duration_days: 365,
   is_active: true,
 });
@@ -180,9 +177,7 @@ export default function PlansPage() {
       name: plan.name,
       description: plan.description ?? "",
       price_in_paise: plan.price_in_paise,
-      has_willcom: plan.has_willcom,
-      has_e4: plan.has_e4,
-      has_mecad: plan.has_mecad,
+      features: plan.features ?? [],
       duration_days: plan.duration_days,
       is_active: plan.is_active,
     });
@@ -285,15 +280,17 @@ export default function PlansPage() {
 
                 {/* Features — only show included categories */}
                 {[
-                  { label: "Wilcom 2006 Videos", included: plan.has_willcom },
-                  { label: "E4 Videos",      included: plan.has_e4 },
-                  { label: "meCAD Videos",   included: plan.has_mecad },
+                  ...CONTENT_CATEGORIES.map((key) => ({
+                    label: categoryLabel(key),
+                    included: (plan.features ?? []).includes(key),
+                  })),
                 ].filter(f => f.included).length > 0 && (
                   <div className="space-y-1.5 mb-4 mt-2">
                     {[
-                      { label: "Wilcom 2006 Videos", included: plan.has_willcom },
-                      { label: "E4 Videos",      included: plan.has_e4 },
-                      { label: "meCAD Videos",   included: plan.has_mecad },
+                      ...CONTENT_CATEGORIES.map((key) => ({
+                        label: categoryLabel(key),
+                        included: (plan.features ?? []).includes(key),
+                      })),
                     ].filter(f => f.included).map(f => (
                       <div key={f.label} className="flex items-center gap-2">
                         <Check className="h-4 w-4 text-success shrink-0" />
@@ -353,7 +350,7 @@ export default function PlansPage() {
                 <label className="text-sm font-medium text-foreground">Plan Name *</label>
                 <Input
                   className="mt-1"
-                  placeholder="e.g. Wilcom 2006 Basic"
+                  placeholder="e.g. Starter"
                   value={form.name ?? ""}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 />
@@ -447,22 +444,28 @@ export default function PlansPage() {
               <div>
                 <label className="text-sm font-medium text-foreground mb-2 block">Included Categories</label>
                 <div className="space-y-2">
-                  {([
-                    { key: "has_willcom", label: "Wilcom 2006 Videos" },
-                    { key: "has_e4",      label: "E4 Videos" },
-                    { key: "has_mecad",   label: "meCAD Videos" },
-                  ] as { key: keyof PlanPayload; label: string }[]).map(({ key, label }) => (
-                    <label key={key} className="flex items-center gap-3 cursor-pointer">
-                      <button
-                        type="button"
-                        className={`w-10 h-6 rounded-full relative transition-colors duration-200 ${form[key] ? "bg-primary" : "bg-muted"}`}
-                        onClick={() => setForm(f => ({ ...f, [key]: !f[key] }))}
-                      >
-                        <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-200 ${form[key] ? "translate-x-4" : "translate-x-0"}`} />
-                      </button>
-                      <span className="text-sm text-foreground">{label}</span>
-                    </label>
-                  ))}
+                  {CONTENT_CATEGORIES.map((key) => {
+                    const enabled = (form.features ?? []).includes(key);
+                    const toggle = () =>
+                      setForm(f => ({
+                        ...f,
+                        features: enabled
+                          ? (f.features ?? []).filter(k => k !== key)
+                          : [...(f.features ?? []), key],
+                      }));
+                    return (
+                      <label key={key} className="flex items-center gap-3 cursor-pointer">
+                        <button
+                          type="button"
+                          className={`w-10 h-6 rounded-full relative transition-colors duration-200 ${enabled ? "bg-primary" : "bg-muted"}`}
+                          onClick={toggle}
+                        >
+                          <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-200 ${enabled ? "translate-x-4" : "translate-x-0"}`} />
+                        </button>
+                        <span className="text-sm text-foreground">{categoryLabel(key)}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 

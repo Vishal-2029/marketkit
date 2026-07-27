@@ -1,3 +1,4 @@
+import 'package:design_express/core/config/feature_catalog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -442,13 +443,15 @@ class _SingleSubscriptionCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 12),
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              _FeatureBadge(label: 'Wilcom 2006', enabled: sub.hasWillcom),
-              const SizedBox(width: 8),
-              _FeatureBadge(label: 'E4', enabled: sub.hasE4),
-              const SizedBox(width: 8),
-              _FeatureBadge(label: 'meCAD', enabled: sub.hasMecad),
+              for (final key in FeatureCatalog.contentKeys)
+                _FeatureBadge(
+                  label: FeatureCatalog.label(key),
+                  enabled: sub.hasFeature(key),
+                ),
             ],
           ),
         ],

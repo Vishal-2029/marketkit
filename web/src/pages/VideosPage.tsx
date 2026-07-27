@@ -9,12 +9,13 @@ import { Search, Plus, MoreHorizontal, Upload, CloudUpload, Trash2, Eye, Lock, P
 import { toast } from "sonner";
 import { videosService, EngagementStats, VideoComment } from "@/services/videos";
 import { playlistsService } from "@/services/playlists";
+import { type ContentCategory, CONTENT_CATEGORIES, categoryLabel, categoryBadgeVariant, DEFAULT_CATEGORY } from "@/lib/featureCatalog";
 
 interface Video {
   id: string;
   title: string;
   description?: string;
-  category: "WILLCOM" | "E4" | "MECAD";
+  category: ContentCategory;
   duration_seconds?: number;
   status: "PUBLISHED" | "PROCESSING" | "DRAFT" | "ERROR";
   has_hls?: boolean;
@@ -37,10 +38,10 @@ const statusVariant = (s: string) => {
 };
 
 const catVariant = (c: string) =>
-  c === "WILLCOM" ? "gold" as const : c === "E4" ? "info" as const : "purple" as const;
+  categoryBadgeVariant(c);
 
 const catLabel = (c: string) =>
-  c === "WILLCOM" ? "Wilcom 2006" : c === "E4" ? "E4" : "meCAD";
+  categoryLabel(c);
 
 function fmtDuration(s?: number) {
   if (!s) return "—";
@@ -160,7 +161,7 @@ export default function VideosPage() {
 
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadDesc, setUploadDesc] = useState("");
-  const [uploadCat, setUploadCat] = useState("WILLCOM");
+  const [uploadCat, setUploadCat] = useState<string>(DEFAULT_CATEGORY);
   const [uploadIsFree, setUploadIsFree] = useState(true);
   const [uploadPlaylistId, setUploadPlaylistId] = useState("");
   const [newPlaylistName, setNewPlaylistName] = useState("");
@@ -182,7 +183,7 @@ export default function VideosPage() {
   const [editVideo, setEditVideo] = useState<Video | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDesc, setEditDesc] = useState("");
-  const [editCategory, setEditCategory] = useState("WILLCOM");
+  const [editCategory, setEditCategory] = useState<string>(DEFAULT_CATEGORY);
   const [editThumb, setEditThumb] = useState<File | null>(null);
   const [editThumbPreview, setEditThumbPreview] = useState<string | null>(null);
   const [editPlaylistId, setEditPlaylistId] = useState("");
@@ -411,7 +412,7 @@ export default function VideosPage() {
 
       uploadPhotosPreviews.forEach(url => URL.revokeObjectURL(url));
       setShowUpload(false);
-      setUploadTitle(""); setUploadDesc(""); setUploadCat("WILLCOM");
+      setUploadTitle(""); setUploadDesc(""); setUploadCat(DEFAULT_CATEGORY);
       setUploadIsFree(true); setUploadFile(null);
       setUploadThumb(null); setUploadThumbPreview(null);
       setUploadPhotos([]); setUploadPhotosPreviews([]);
@@ -467,7 +468,7 @@ export default function VideosPage() {
   const closeUpload = () => {
     if (isUploading) return;
     setShowUpload(false);
-    setUploadTitle(""); setUploadDesc(""); setUploadCat("WILLCOM");
+    setUploadTitle(""); setUploadDesc(""); setUploadCat(DEFAULT_CATEGORY);
     setUploadIsFree(true); setUploadPlaylistId(""); setNewPlaylistName(""); setUploadFile(null);
     setUploadThumb(null); setUploadThumbPreview(null);
     uploadPhotosPreviews.forEach(url => URL.revokeObjectURL(url));
@@ -588,9 +589,9 @@ export default function VideosPage() {
           onChange={e => { setCatFilter(e.target.value); setPage(1); }}
         >
           <option value="">All Categories</option>
-          <option value="WILLCOM">Wilcom 2006</option>
-          <option value="E4">E4</option>
-          <option value="MECAD">meCAD</option>
+          {CONTENT_CATEGORIES.map((c) => (
+            <option key={c} value={c}>{categoryLabel(c)}</option>
+          ))}
         </select>
         <select
           className="h-10 rounded-lg border border-border bg-card px-3 text-sm"
@@ -1051,9 +1052,9 @@ export default function VideosPage() {
                     setEditPlaylistId("");
                   }}
                 >
-                  <option value="WILLCOM">Wilcom 2006</option>
-                  <option value="E4">E4</option>
-                  <option value="MECAD">meCAD</option>
+                  {CONTENT_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{categoryLabel(c)}</option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -1297,14 +1298,14 @@ export default function VideosPage() {
                         onChange={e => {
                           const cat = e.target.value;
                           setUploadCat(cat);
-                          setUploadIsFree(cat === "WILLCOM");
+                          setUploadIsFree(false);
                           // A playlist of another category is no longer valid.
                           setUploadPlaylistId("");
                         }}
                       >
-                        <option value="WILLCOM">Wilcom 2006</option>
-                        <option value="E4">E4</option>
-                        <option value="MECAD">meCAD</option>
+                        {CONTENT_CATEGORIES.map((c) => (
+                          <option key={c} value={c}>{categoryLabel(c)}</option>
+                        ))}
                       </select>
                     </div>
 
@@ -1350,7 +1351,7 @@ export default function VideosPage() {
                     <div>
                       <p className="text-sm font-medium text-foreground">Free Access</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {uploadCat === "WILLCOM" ? "Wilcom 2006 defaults to free." : "E4 / meCAD defaults to paid."}
+                        {"Videos default to paid — tick the box to make this one free."}
                       </p>
                     </div>
                     <button

@@ -9,16 +9,37 @@ import (
 type VideoCategory string
 type VideoStatus string
 
+// Video categories double as plan feature keys: a plan grants access to a
+// category by listing its key in Plan.Features, and a video is unlocked when
+// its Category appears in the viewer's feature set.
+//
+// These three are placeholders. Rename them to your own taxonomy (and update
+// AllVideoCategories plus any seeded plans to match) — nothing else in the
+// codebase hardcodes these particular values.
 const (
-	CategoryWillcom VideoCategory = "WILLCOM"
-	CategoryE4      VideoCategory = "E4"
-	CategoryMecad   VideoCategory = "MECAD"
+	CategoryA VideoCategory = "CATEGORY_A"
+	CategoryB VideoCategory = "CATEGORY_B"
+	CategoryC VideoCategory = "CATEGORY_C"
 
 	VideoStatusDraft      VideoStatus = "DRAFT"
 	VideoStatusProcessing VideoStatus = "PROCESSING"
 	VideoStatusPublished  VideoStatus = "PUBLISHED"
 	VideoStatusError      VideoStatus = "ERROR"
 )
+
+// AllVideoCategories is the accepted set for uploads, updates, and playlist
+// assignment. Keep it in sync with the constants above.
+var AllVideoCategories = []VideoCategory{CategoryA, CategoryB, CategoryC}
+
+// IsValidVideoCategory reports whether cat is one of AllVideoCategories.
+func IsValidVideoCategory(cat VideoCategory) bool {
+	for _, c := range AllVideoCategories {
+		if c == cat {
+			return true
+		}
+	}
+	return false
+}
 
 type Video struct {
 	ID          string        `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`

@@ -155,12 +155,10 @@ func HandleVerifyPayment(c *fiber.Ctx) error {
 			ExpiresAt:     email.FormatDate(expiresAt),
 		})
 		subData := email.SubscriptionEmailData{
-			Name:       p.User.Name,
-			PlanName:   p.Plan.Name,
-			ExpiresAt:  email.FormatDate(expiresAt),
-			HasWillcom: p.Plan.HasWillcom,
-			HasE4:      p.Plan.HasE4,
-			HasMecad:   p.Plan.HasMecad,
+			Name:      p.User.Name,
+			PlanName:  p.Plan.Name,
+			ExpiresAt: email.FormatDate(expiresAt),
+			Features:  p.Plan.FeatureList(),
 		}
 		email.SendNewSubscriptionEmail(p.User.Email, subData)
 		if adminEmail := config.App.AdminEmail; adminEmail != "" {

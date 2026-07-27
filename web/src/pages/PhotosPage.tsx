@@ -8,6 +8,7 @@ import { Plus, MoreHorizontal, CloudUpload, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { photosService, photoUrl, photoCategoriesService, PhotoCategoryItem } from "@/services/photos";
 import { api } from "@/lib/api";
+import { POST_CATEGORIES, categoryLabel } from "@/lib/featureCatalog";
 
 interface Photo {
   id: string;
@@ -22,7 +23,7 @@ interface Photo {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  GENERAL: "General", WILLCOM: "Wilcom 2006", E4: "E4", MECAD: "meCAD",
+  ...Object.fromEntries(POST_CATEGORIES.map((k) => [k, categoryLabel(k)])),
 };
 
 export default function PhotosPage() {
