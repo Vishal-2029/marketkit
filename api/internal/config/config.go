@@ -31,6 +31,14 @@ type Config struct {
 	// Admin notifications
 	AdminEmail string
 
+	// Payments
+	// PaymentProvider selects the active gateway ("razorpay", "stripe").
+	// PaymentCurrency is the ISO-4217 code every amount is charged in; the kit
+	// runs one currency per deployment, and all *InPaise fields are that
+	// currency's minor unit.
+	PaymentProvider string
+	PaymentCurrency string
+
 	// Razorpay
 	RazorpayKeyID         string
 	RazorpayKeySecret     string
@@ -111,6 +119,10 @@ func Load() error {
 
 	// Admin notifications
 	cfg.AdminEmail = getEnv("ADMIN_EMAIL", cfg.SMTPFrom)
+
+	// Payments
+	cfg.PaymentProvider = getEnv("PAYMENT_PROVIDER", "razorpay")
+	cfg.PaymentCurrency = getEnv("PAYMENT_CURRENCY", "INR")
 
 	// Razorpay
 	cfg.RazorpayKeyID = getEnv("RAZORPAY_KEY_ID", "")

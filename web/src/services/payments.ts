@@ -5,7 +5,7 @@ export interface PaymentParams {
   limit?: number;
   search?: string;
   status?: string;
-  gateway?: string;
+  provider?: string;
 }
 
 export const paymentsService = {

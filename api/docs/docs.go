@@ -5457,7 +5457,7 @@ const docTemplate = `{
                 "summary": "Verify Razorpay payment and activate Product Market plan",
                 "parameters": [
                     {
-                        "description": "razorpay_order_id, razorpay_payment_id, razorpay_signature",
+                        "description": "provider_order_id, provider_payment_id, razorpay_signature",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -6062,7 +6062,7 @@ const docTemplate = `{
                 "summary": "Verify a Razorpay product purchase signature",
                 "parameters": [
                     {
-                        "description": "razorpay_order_id, razorpay_payment_id, razorpay_signature",
+                        "description": "provider_order_id, provider_payment_id, razorpay_signature",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -6479,7 +6479,7 @@ const docTemplate = `{
                 "summary": "Verify a Razorpay payment signature and activate subscription",
                 "parameters": [
                     {
-                        "description": "razorpay_order_id, razorpay_payment_id, razorpay_signature",
+                        "description": "provider_order_id, provider_payment_id, razorpay_signature",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -7541,7 +7541,7 @@ const docTemplate = `{
                 "summary": "Verify a Razorpay wallet topup signature and credit the wallet",
                 "parameters": [
                     {
-                        "description": "razorpay_order_id, razorpay_payment_id, razorpay_signature",
+                        "description": "provider_order_id, provider_payment_id, razorpay_signature",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -8733,10 +8733,10 @@ const docTemplate = `{
                 "plan_id": {
                     "type": "string"
                 },
-                "razorpay_order_id": {
+                "provider_order_id": {
                     "type": "string"
                 },
-                "razorpay_payment_id": {
+                "provider_payment_id": {
                     "type": "string"
                 },
                 "start_date": {
@@ -8768,9 +8768,6 @@ const docTemplate = `{
                 "currency": {
                     "type": "string"
                 },
-                "gateway": {
-                    "$ref": "#/definitions/models.PaymentGateway"
-                },
                 "gateway_response": {
                     "$ref": "#/definitions/models.JSONMap"
                 },
@@ -8789,10 +8786,13 @@ const docTemplate = `{
                 "plan_id": {
                     "type": "string"
                 },
-                "razorpay_order_id": {
+                "provider": {
+                    "$ref": "#/definitions/models.PaymentProvider"
+                },
+                "provider_order_id": {
                     "type": "string"
                 },
-                "razorpay_payment_id": {
+                "provider_payment_id": {
                     "type": "string"
                 },
                 "status": {
@@ -8806,15 +8806,17 @@ const docTemplate = `{
                 }
             }
         },
-        "models.PaymentGateway": {
+        "models.PaymentProvider": {
             "type": "string",
             "enum": [
-                "RAZORPAY",
+                "razorpay",
+                "stripe",
                 "MANUAL"
             ],
             "x-enum-varnames": [
-                "GatewayRazorpay",
-                "GatewayManual"
+                "ProviderRazorpay",
+                "ProviderStripe",
+                "ProviderManual"
             ]
         },
         "models.PaymentStatus": {
@@ -9153,10 +9155,10 @@ const docTemplate = `{
                 "product_title": {
                     "type": "string"
                 },
-                "razorpay_order_id": {
+                "provider_order_id": {
                     "type": "string"
                 },
-                "razorpay_payment_id": {
+                "provider_payment_id": {
                     "type": "string"
                 },
                 "seller": {

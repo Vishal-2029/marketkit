@@ -330,7 +330,11 @@ func RegisterRoutes(v1 fiber.Router) {
 
 	// ── Admin: Payments (/payments) ───────────────────────────────────────────
 	pay := v1.Group("/payments")
-	pay.Post("/razorpay-webhook", payments.HandleRazorpayWebhook)
+	// Gateway webhook. Point your provider's dashboard at /api/v1/payments/webhook.
+	// The legacy Razorpay-specific path stays registered so existing gateway
+	// configurations keep working after the provider abstraction landed.
+	pay.Post("/webhook", payments.HandleWebhook)
+	pay.Post("/razorpay-webhook", payments.HandleWebhook)
 	payAuth := pay.Use(middleware.Authenticate)
 	payAuth.Get("/", payments.HandleList)
 	payAuth.Get("/:id", payments.HandleGet)

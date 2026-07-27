@@ -571,7 +571,7 @@ export default function ProductsPage() {
                             <td className="px-3 py-2 text-muted-foreground">{p.seller_name}</td>
                             <td className="px-3 py-2 font-medium">{formatPrice(p.amount_in_paise)}</td>
                             <td className="px-3 py-2 text-muted-foreground">{formatPrice(p.fee_in_paise)}</td>
-                            <td className="px-3 py-2 text-muted-foreground">{p.gateway}</td>
+                            <td className="px-3 py-2 text-muted-foreground">{p.provider}</td>
                             <td className="px-3 py-2 text-muted-foreground text-xs">
                               {p.paid_at ? new Date(p.paid_at).toLocaleString() : "—"}
                             </td>

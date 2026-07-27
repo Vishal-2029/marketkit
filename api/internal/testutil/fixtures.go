@@ -63,7 +63,7 @@ func MustCreatePayment(t *testing.T, tx *gorm.DB, userID, planID string, amountI
 		UserID:        userID,
 		PlanID:        planID,
 		AmountInPaise: amountInPaise,
-		Gateway:       models.GatewayRazorpay,
+		Provider:      models.ProviderRazorpay,
 		Status:        status,
 	}
 	if status == models.PaymentSuccess {

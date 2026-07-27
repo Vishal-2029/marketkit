@@ -1,14 +1,7 @@
 package user_payments
 
 import (
-	"bytes"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
+	"context"
 	"time"
 
 	"log/slog"
@@ -20,6 +13,8 @@ import (
 	"github.com/marketkit/api/internal/fcm"
 	"github.com/marketkit/api/internal/models"
 	"github.com/marketkit/api/internal/modules/platform_wallet"
+	"github.com/marketkit/api/internal/payments"
+	"github.com/marketkit/api/internal/payments/provider"
 	"github.com/marketkit/api/internal/subscriptions"
 	"github.com/marketkit/api/pkg/response"
 	"gorm.io/gorm"
@@ -69,9 +64,9 @@ func HandleCreateOrder(c *fiber.Ctx) error {
 		UserID:          userID,
 		PlanID:          plan.ID,
 		AmountInPaise:   plan.PriceInPaise,
-		Gateway:         models.GatewayRazorpay,
+		Provider:        models.ProviderRazorpay,
 		Status:          models.PaymentPending,
-		RazorpayOrderID: &rzpOrderID,
+		ProviderOrderID: &rzpOrderID,
 	}
 	database.DB.Create(&payment)
 
@@ -89,7 +84,7 @@ func HandleCreateOrder(c *fiber.Ctx) error {
 // @Accept      json
 // @Produce     json
 // @Security    UserAuth
-// @Param       body  body  map[string]string  true  "razorpay_order_id, razorpay_payment_id, razorpay_signature"
+// @Param       body  body  map[string]string  true  "provider_order_id, provider_payment_id, provider_signature"
 // @Success     200  {object}  map[string]string
 // @Failure     400  {object}  map[string]string
 // @Failure     401  {object}  map[string]string
@@ -97,32 +92,33 @@ func HandleCreateOrder(c *fiber.Ctx) error {
 // @Router      /user/payments/verify [post]
 func HandleVerifyPayment(c *fiber.Ctx) error {
 	var body struct {
-		RazorpayOrderID   string `json:"razorpay_order_id"`
-		RazorpayPaymentID string `json:"razorpay_payment_id"`
-		RazorpaySignature string `json:"razorpay_signature"`
+		ProviderOrderID   string `json:"provider_order_id"`
+		ProviderPaymentID string `json:"provider_payment_id"`
+		ProviderSignature string `json:"provider_signature"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return response.BadRequest(c, "invalid request body")
 	}
-	if body.RazorpayOrderID == "" || body.RazorpayPaymentID == "" || body.RazorpaySignature == "" {
-		return response.BadRequest(c, "razorpay_order_id, razorpay_payment_id, and razorpay_signature are required")
+	if body.ProviderOrderID == "" || body.ProviderPaymentID == "" || body.ProviderSignature == "" {
+		return response.BadRequest(c, "provider_order_id, provider_payment_id, and provider_signature are required")
 	}
 
 	userID, _ := c.Locals("userID").(string)
 
-	// Verify signature: HMAC_SHA256(order_id|payment_id, key_secret)
-	msg := body.RazorpayOrderID + "|" + body.RazorpayPaymentID
-	mac := hmac.New(sha256.New, []byte(config.App.RazorpayKeySecret))
-	mac.Write([]byte(msg))
-	expected := hex.EncodeToString(mac.Sum(nil))
-	if !hmac.Equal([]byte(body.RazorpaySignature), []byte(expected)) {
-		return response.BadRequest(c, "invalid razorpay signature")
+	// Signature scheme is gateway-specific; the provider owns the check.
+	if err := payments.VerifyCheckout(provider.CheckoutResult{
+		OrderID:   body.ProviderOrderID,
+		PaymentID: body.ProviderPaymentID,
+		Signature: body.ProviderSignature,
+	}); err != nil {
+		slog.Warn("checkout verification failed", "user_id", c.Locals("userID"), "error", err)
+		return response.BadRequest(c, "invalid payment signature")
 	}
 
 	// Load pending payment tied to this user + order.
 	var p models.Payment
 	if err := database.DB.Preload("User").Preload("Plan").
-		Where("user_id = ? AND razorpay_order_id = ?", userID, body.RazorpayOrderID).
+		Where("user_id = ? AND provider_order_id = ?", userID, body.ProviderOrderID).
 		First(&p).Error; err != nil {
 		return response.NotFound(c, "payment not found")
 	}
@@ -135,7 +131,7 @@ func HandleVerifyPayment(c *fiber.Ctx) error {
 	now := time.Now()
 	expiresAt := now.AddDate(0, 0, p.Plan.DurationDays)
 
-	captured, err := captureVerifiedPayment(&p, body.RazorpayPaymentID, now, expiresAt)
+	captured, err := captureVerifiedPayment(&p, body.ProviderPaymentID, now, expiresAt)
 	if err != nil {
 		return response.InternalErrorWithLog(c, "user_payments: verify capture", err)
 	}
@@ -149,8 +145,8 @@ func HandleVerifyPayment(c *fiber.Ctx) error {
 			Name:          p.User.Name,
 			PlanName:      p.Plan.Name,
 			Amount:        email.FormatAmount(p.Plan.PriceInPaise),
-			TransactionID: body.RazorpayPaymentID,
-			Gateway:       string(p.Gateway),
+			TransactionID: body.ProviderPaymentID,
+			Provider:      string(p.Provider),
 			PaidAt:        email.FormatDate(now),
 			ExpiresAt:     email.FormatDate(expiresAt),
 		})
@@ -167,7 +163,7 @@ func HandleVerifyPayment(c *fiber.Ctx) error {
 				UserEmail: p.User.Email,
 				PlanName:  p.Plan.Name,
 				Amount:    email.FormatAmount(p.Plan.PriceInPaise),
-				Gateway:   string(p.Gateway),
+				Provider:  string(p.Provider),
 				PaidAt:    email.FormatDate(now),
 				IsUpgrade: false,
 			})
@@ -193,7 +189,7 @@ func captureVerifiedPayment(p *models.Payment, razorpayPaymentID string, paidAt,
 			Where("id = ? AND status != ?", p.ID, models.PaymentSuccess).
 			Updates(map[string]interface{}{
 				"status":              models.PaymentSuccess,
-				"razorpay_payment_id": razorpayPaymentID,
+				"provider_payment_id": razorpayPaymentID,
 				"paid_at":             paidAt,
 			})
 		if result.Error != nil {
@@ -219,39 +215,11 @@ func captureVerifiedPayment(p *models.Payment, razorpayPaymentID string, paidAt,
 }
 
 func createRazorpayOrder(amountInPaise int64, userID, planID string) (string, error) {
-	payload := map[string]interface{}{
-		"amount":   amountInPaise,
-		"currency": "INR",
-		"receipt":  fmt.Sprintf("u%s_p%s", userID[:8], planID[:8]),
-	}
-	body, _ := json.Marshal(payload)
-
-	req, err := http.NewRequest(http.MethodPost, "https://api.razorpay.com/v1/orders", bytes.NewReader(body))
+	order, err := payments.CreateOrder(context.Background(), amountInPaise,
+		payments.Receipt("u", userID, planID),
+		map[string]string{"user_id": userID, "plan_id": planID})
 	if err != nil {
 		return "", err
 	}
-	req.SetBasicAuth(config.App.RazorpayKeyID, config.App.RazorpayKeySecret)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	respBody, _ := io.ReadAll(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("razorpay error: %s", string(respBody))
-	}
-
-	var result map[string]interface{}
-	if err := json.Unmarshal(respBody, &result); err != nil {
-		return "", err
-	}
-
-	id, _ := result["id"].(string)
-	if id == "" {
-		return "", fmt.Errorf("razorpay returned empty order id")
-	}
-	return id, nil
+	return order.ID, nil
 }

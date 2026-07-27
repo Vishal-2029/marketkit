@@ -11,8 +11,8 @@ type ProductPurchase struct {
 	AmountInPaise     int64         `gorm:"not null"                  json:"amount_in_paise"`
 	Currency          string        `gorm:"default:'INR'"             json:"currency"`
 	Status            PaymentStatus `gorm:"type:varchar(20);not null;index" json:"status"`
-	RazorpayOrderID   *string       `gorm:"uniqueIndex"               json:"razorpay_order_id,omitempty"`
-	RazorpayPaymentID *string       `gorm:"uniqueIndex"               json:"razorpay_payment_id,omitempty"`
+	ProviderOrderID   *string       `gorm:"uniqueIndex"               json:"provider_order_id,omitempty"`
+	ProviderPaymentID *string       `gorm:"uniqueIndex"               json:"provider_payment_id,omitempty"`
 	GatewayResponse   JSONMap       `gorm:"type:jsonb"                json:"-"`
 	// Fee snapshot taken at capture time so historic sales keep the fee
 	// percent they were sold under. Zero on rows from before the wallet era.

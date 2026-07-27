@@ -16,9 +16,9 @@ interface Payment {
   user?: { name: string; email: string };
   plan?: { name: string };
   amount_in_paise: number;
-  gateway: string;
+  provider: string;
   status: "SUCCESS" | "FAILED" | "REFUNDED" | "PENDING";
-  razorpay_payment_id?: string;
+  provider_payment_id?: string;
   paid_at?: string;
   created_at: string;
   notes?: string;
@@ -106,10 +106,10 @@ export default function PaymentsPage() {
           p.user?.email ?? "",
           p.plan?.name ?? "",
           fmt(p.amount_in_paise),
-          p.gateway,
+          p.provider,
           p.status,
           new Date(p.created_at).toLocaleString(),
-          p.razorpay_payment_id ?? p.id,
+          p.provider_payment_id ?? p.id,
           p.status === "REFUNDED" ? (gr["refund_id"] as string ?? "") : "",
           p.status === "REFUNDED" && gr["refunded_at"] ? new Date(gr["refunded_at"] as string).toLocaleString() : "",
           p.status === "REFUNDED" ? (gr["refund_reason"] as string ?? "") : "",
@@ -125,7 +125,7 @@ export default function PaymentsPage() {
   };
 
   const canRefund = (p: Payment) =>
-    p.status === "SUCCESS" && p.gateway === "RAZORPAY";
+    p.status === "SUCCESS" && p.provider === "razorpay";
 
   return (
     <div>
@@ -208,7 +208,7 @@ export default function PaymentsPage() {
                   </td>
                   <td className="px-4 py-3 text-sm font-semibold text-foreground">{fmt(p.amount_in_paise)}</td>
                   <td className="px-4 py-3 hidden md:table-cell">
-                    <StatusBadge variant={p.gateway === "MANUAL" ? "neutral" : "brand"}>{p.gateway}</StatusBadge>
+                    <StatusBadge variant={p.provider === "MANUAL" ? "neutral" : "brand"}>{p.provider}</StatusBadge>
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge variant={statusVariant(p.status)}>{statusLabel(p.status)}</StatusBadge>
@@ -304,7 +304,7 @@ export default function PaymentsPage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Gateway</span>
-                  <span className="font-medium text-foreground">{detail.gateway}</span>
+                  <span className="font-medium text-foreground">{detail.provider}</span>
                 </div>
                 {detail.paid_at && (
                   <div className="flex justify-between text-sm">
@@ -314,10 +314,10 @@ export default function PaymentsPage() {
                 )}
               </div>
 
-              {detail.razorpay_payment_id && (
+              {detail.provider_payment_id && (
                 <div className="rounded-xl border border-border p-3">
                   <p className="text-caption mb-1">Razorpay Payment ID</p>
-                  <p className="text-sm font-mono text-foreground">{detail.razorpay_payment_id}</p>
+                  <p className="text-sm font-mono text-foreground">{detail.provider_payment_id}</p>
                 </div>
               )}
 
@@ -345,7 +345,7 @@ export default function PaymentsPage() {
                   </Button>
                 )}
 
-                {detail.status === "SUCCESS" && detail.gateway !== "RAZORPAY" && (
+                {detail.status === "SUCCESS" && detail.provider !== "razorpay" && (
                   <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-muted border border-border">
                     <RotateCcw className="h-4 w-4 text-muted-foreground shrink-0" />
                     <p className="text-xs text-muted-foreground">Refunds are only available for Razorpay payments.</p>

@@ -215,9 +215,9 @@ definitions:
         $ref: '#/definitions/models.MarketPlan'
       plan_id:
         type: string
-      razorpay_order_id:
+      provider_order_id:
         type: string
-      razorpay_payment_id:
+      provider_payment_id:
         type: string
       start_date:
         type: string
@@ -238,8 +238,6 @@ definitions:
         type: string
       currency:
         type: string
-      gateway:
-        $ref: '#/definitions/models.PaymentGateway'
       gateway_response:
         $ref: '#/definitions/models.JSONMap'
       id:
@@ -252,9 +250,11 @@ definitions:
         $ref: '#/definitions/models.Plan'
       plan_id:
         type: string
-      razorpay_order_id:
+      provider:
+        $ref: '#/definitions/models.PaymentProvider'
+      provider_order_id:
         type: string
-      razorpay_payment_id:
+      provider_payment_id:
         type: string
       status:
         $ref: '#/definitions/models.PaymentStatus'
@@ -263,14 +263,16 @@ definitions:
       user_id:
         type: string
     type: object
-  models.PaymentGateway:
+  models.PaymentProvider:
     enum:
-    - RAZORPAY
+    - razorpay
+    - stripe
     - MANUAL
     type: string
     x-enum-varnames:
-    - GatewayRazorpay
-    - GatewayManual
+    - ProviderRazorpay
+    - ProviderStripe
+    - ProviderManual
   models.PaymentStatus:
     enum:
     - SUCCESS
@@ -516,9 +518,9 @@ definitions:
         type: string
       product_title:
         type: string
-      razorpay_order_id:
+      provider_order_id:
         type: string
-      razorpay_payment_id:
+      provider_payment_id:
         type: string
       seller:
         $ref: '#/definitions/models.User'
@@ -4472,7 +4474,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: razorpay_order_id, razorpay_payment_id, razorpay_signature
+      - description: provider_order_id, provider_payment_id, razorpay_signature
         in: body
         name: body
         required: true
@@ -4839,7 +4841,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: razorpay_order_id, razorpay_payment_id, razorpay_signature
+      - description: provider_order_id, provider_payment_id, razorpay_signature
         in: body
         name: body
         required: true
@@ -5069,7 +5071,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: razorpay_order_id, razorpay_payment_id, razorpay_signature
+      - description: provider_order_id, provider_payment_id, razorpay_signature
         in: body
         name: body
         required: true
@@ -5741,7 +5743,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: razorpay_order_id, razorpay_payment_id, razorpay_signature
+      - description: provider_order_id, provider_payment_id, razorpay_signature
         in: body
         name: body
         required: true

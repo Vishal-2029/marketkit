@@ -1,21 +1,18 @@
 package refunds
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
-	"io"
 	"log/slog"
 	"math"
-	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/marketkit/api/internal/config"
 	"github.com/marketkit/api/internal/database"
 	"github.com/marketkit/api/internal/email"
 	"github.com/marketkit/api/internal/models"
+	"github.com/marketkit/api/internal/payments"
 	"github.com/marketkit/api/pkg/response"
 	"gorm.io/gorm"
 )
@@ -56,11 +53,13 @@ func HandleRequest(c *fiber.Ctx) error {
 	if p.Status != models.PaymentSuccess {
 		return response.BadRequest(c, "only successful payments are eligible for refund")
 	}
-	if p.Gateway != models.GatewayRazorpay {
-		return response.BadRequest(c, "only Razorpay payments can be refunded")
+	// Manual (offline) payments have no gateway to refund through; anything
+	// taken by a gateway can be refunded by that gateway.
+	if p.Provider == models.ProviderManual {
+		return response.BadRequest(c, "manual payments cannot be refunded through the gateway")
 	}
-	if p.RazorpayPaymentID == nil || *p.RazorpayPaymentID == "" {
-		return response.BadRequest(c, "payment has no Razorpay payment ID on record")
+	if p.ProviderPaymentID == nil || *p.ProviderPaymentID == "" {
+		return response.BadRequest(c, "payment has no gateway payment ID on record")
 	}
 
 	// Subscription must still be ACTIVE
@@ -172,7 +171,7 @@ func HandleList(c *fiber.Ctx) error {
 	})
 }
 
-// HandleApprove — super admin only. Calls Razorpay API, marks APPROVED, cancels subscription.
+// HandleApprove — super admin only. Calls the gateway, marks APPROVED, cancels subscription.
 func HandleApprove(c *fiber.Ctx) error {
 	actorID, _ := c.Locals("adminID").(string)
 	var actor models.Admin
@@ -193,8 +192,8 @@ func HandleApprove(c *fiber.Ctx) error {
 	}
 
 	p := req.Payment
-	if p.RazorpayPaymentID == nil {
-		return response.BadRequest(c, "no Razorpay payment ID on record")
+	if p.ProviderPaymentID == nil {
+		return response.BadRequest(c, "no gateway payment ID on record")
 	}
 
 	var body struct {
@@ -202,9 +201,9 @@ func HandleApprove(c *fiber.Ctx) error {
 	}
 	_ = c.BodyParser(&body)
 
-	refundID, err := callRazorpayRefund(*p.RazorpayPaymentID, p.AmountInPaise, req.Reason)
+	refundID, err := callGatewayRefund(*p.ProviderPaymentID, p.AmountInPaise, req.Reason)
 	if err != nil {
-		return response.InternalErrorWithLog(c, "Razorpay refund failed", err)
+		return response.InternalErrorWithLog(c, "gateway refund failed", err)
 	}
 
 	now := time.Now()
@@ -240,14 +239,14 @@ func HandleApprove(c *fiber.Ctx) error {
 				p.UserID, p.PlanID, models.SubscriptionActive).
 			Update("status", models.SubscriptionCancelled).Error
 	}); err != nil {
-		// Razorpay already issued the refund — make sure the id is not lost so the
+		// The gateway already issued the refund — make sure the id is not lost so the
 		// out-of-sync state can be reconciled manually.
-		slog.Error("refund: Razorpay refund SUCCEEDED but DB update failed — manual reconciliation needed",
+		slog.Error("refund: gateway refund SUCCEEDED but DB update failed — manual reconciliation needed",
 			"refund_id", refundID, "request_id", req.ID, "payment_id", p.ID,
 			"user_id", p.UserID, "amount", p.AmountInPaise, "error", err)
 		database.DB.Model(&req).Update("refund_id", refundID)
 		return response.InternalError(c,
-			"refund issued by Razorpay (id: "+refundID+") but recording it failed — reconcile manually")
+			"refund issued by the gateway (id: "+refundID+") but recording it failed — reconcile manually")
 	}
 
 	database.DB.Create(&models.AuditLog{
@@ -268,7 +267,7 @@ func HandleApprove(c *fiber.Ctx) error {
 		Name:          p.User.Name,
 		PlanName:      p.Plan.Name,
 		Amount:        email.FormatAmount(p.AmountInPaise),
-		TransactionID: *p.RazorpayPaymentID,
+		TransactionID: *p.ProviderPaymentID,
 		RefundID:      refundID,
 		Reason:        req.Reason,
 		RefundedAt:    email.FormatDate(now),
@@ -343,46 +342,11 @@ func HandleReject(c *fiber.Ctx) error {
 	return response.OK(c, fiber.Map{"message": "refund request rejected"})
 }
 
-func callRazorpayRefund(razorpayPaymentID string, amountPaise int64, reason string) (string, error) {
-	url := fmt.Sprintf("https://api.razorpay.com/v1/payments/%s/refund", razorpayPaymentID)
-	payload := map[string]interface{}{
-		"amount": amountPaise,
-		"speed":  "normal",
-		"notes":  map[string]string{"reason": reason},
-	}
-	bodyBytes, _ := json.Marshal(payload)
-
-	httpReq, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(bodyBytes))
+// callGatewayRefund refunds a captured payment through the active gateway.
+func callGatewayRefund(providerPaymentID string, amountPaise int64, reason string) (string, error) {
+	refund, err := payments.Refund(context.Background(), providerPaymentID, amountPaise, reason)
 	if err != nil {
 		return "", err
 	}
-	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.SetBasicAuth(config.App.RazorpayKeyID, config.App.RazorpayKeySecret)
-
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(httpReq)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	respBody, _ := io.ReadAll(resp.Body)
-	var result map[string]interface{}
-	if err := json.Unmarshal(respBody, &result); err != nil {
-		return "", fmt.Errorf("invalid response from Razorpay")
-	}
-	if resp.StatusCode != http.StatusOK {
-		if errObj, ok := result["error"].(map[string]interface{}); ok {
-			if desc, _ := errObj["description"].(string); desc != "" {
-				return "", fmt.Errorf("%s", desc)
-			}
-		}
-		return "", fmt.Errorf("razorpay returned status %d", resp.StatusCode)
-	}
-
-	refundID, _ := result["id"].(string)
-	if refundID == "" {
-		return "", fmt.Errorf("refund ID missing in Razorpay response")
-	}
-	return refundID, nil
+	return refund.ID, nil
 }

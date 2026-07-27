@@ -1,16 +1,12 @@
 package market
 
 import (
-	"bytes"
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
-	"fmt"
-	"io"
 	"log/slog"
 	"math"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -21,6 +17,7 @@ import (
 	"github.com/marketkit/api/internal/models"
 	"github.com/marketkit/api/internal/modules/platform_wallet"
 	"github.com/marketkit/api/internal/modules/wallet"
+	"github.com/marketkit/api/internal/payments"
 	"github.com/marketkit/api/pkg/response"
 	"gorm.io/gorm"
 )
@@ -215,7 +212,7 @@ func HandleCreateMarketPlanOrder(c *fiber.Ctx) error {
 		StartDate:       time.Now(),
 		ExpiryDate:      time.Now(), // set on verify
 		AmountInPaise:   plan.PriceInPaise,
-		RazorpayOrderID: &rzpOrderID,
+		ProviderOrderID: &rzpOrderID,
 	}
 	if err := database.DB.Create(&sub).Error; err != nil {
 		return response.InternalError(c, "failed to create pending subscription")
@@ -235,35 +232,35 @@ func HandleCreateMarketPlanOrder(c *fiber.Ctx) error {
 // @Accept      json
 // @Produce     json
 // @Security    UserAuth
-// @Param       body  body  map[string]string  true  "razorpay_order_id, razorpay_payment_id, razorpay_signature"
+// @Param       body  body  map[string]string  true  "provider_order_id, provider_payment_id, provider_signature"
 // @Success     200  {object}  map[string]string
 // @Router      /user/market/plans/verify [post]
 func HandleVerifyMarketPlan(c *fiber.Ctx) error {
 	var body struct {
-		RazorpayOrderID   string `json:"razorpay_order_id"`
-		RazorpayPaymentID string `json:"razorpay_payment_id"`
-		RazorpaySignature string `json:"razorpay_signature"`
+		ProviderOrderID   string `json:"provider_order_id"`
+		ProviderPaymentID string `json:"provider_payment_id"`
+		ProviderSignature string `json:"provider_signature"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return response.BadRequest(c, "invalid request body")
 	}
-	if body.RazorpayOrderID == "" || body.RazorpayPaymentID == "" || body.RazorpaySignature == "" {
-		return response.BadRequest(c, "razorpay_order_id, razorpay_payment_id, and razorpay_signature are required")
+	if body.ProviderOrderID == "" || body.ProviderPaymentID == "" || body.ProviderSignature == "" {
+		return response.BadRequest(c, "provider_order_id, provider_payment_id, and provider_signature are required")
 	}
 
 	userID, _ := c.Locals("userID").(string)
 
-	msg := body.RazorpayOrderID + "|" + body.RazorpayPaymentID
+	msg := body.ProviderOrderID + "|" + body.ProviderPaymentID
 	mac := hmac.New(sha256.New, []byte(config.App.RazorpayKeySecret))
 	mac.Write([]byte(msg))
 	expected := hex.EncodeToString(mac.Sum(nil))
-	if !hmac.Equal([]byte(body.RazorpaySignature), []byte(expected)) {
+	if !hmac.Equal([]byte(body.ProviderSignature), []byte(expected)) {
 		return response.BadRequest(c, "invalid razorpay signature")
 	}
 
 	var sub models.MarketPlanSubscription
 	if err := database.DB.Preload("Plan").
-		Where("user_id = ? AND razorpay_order_id = ?", userID, body.RazorpayOrderID).
+		Where("user_id = ? AND provider_order_id = ?", userID, body.ProviderOrderID).
 		First(&sub).Error; err != nil {
 		return response.NotFound(c, "pending subscription not found")
 	}
@@ -280,7 +277,7 @@ func HandleVerifyMarketPlan(c *fiber.Ctx) error {
 		return response.BadRequest(c, "you already have an active market plan")
 	}
 
-	if !activateMarketPlanSub(&sub, body.RazorpayPaymentID) {
+	if !activateMarketPlanSub(&sub, body.ProviderPaymentID) {
 		return response.OK(c, fiber.Map{"message": "plan already activated", "subscription_id": sub.ID})
 	}
 
@@ -367,7 +364,7 @@ func activateMarketPlanSub(sub *models.MarketPlanSubscription, razorpayPaymentID
 			Where("id = ? AND status = ?", sub.ID, models.SubscriptionPending).
 			Updates(map[string]interface{}{
 				"status":              models.SubscriptionActive,
-				"razorpay_payment_id": razorpayPaymentID,
+				"provider_payment_id": razorpayPaymentID,
 				"paid_at":             now,
 				"start_date":          now,
 				"expiry_date":         expiresAt,
@@ -397,7 +394,7 @@ func activateMarketPlanSub(sub *models.MarketPlanSubscription, razorpayPaymentID
 func CaptureMarketPlanOrder(orderID, razorpayPaymentID string) bool {
 	var sub models.MarketPlanSubscription
 	if err := database.DB.Preload("Plan").
-		Where("razorpay_order_id = ?", orderID).First(&sub).Error; err != nil {
+		Where("provider_order_id = ?", orderID).First(&sub).Error; err != nil {
 		return false
 	}
 	if sub.Status == models.SubscriptionActive {
@@ -594,11 +591,11 @@ type marketPlanPaymentRow struct {
 	StartDate         time.Time  `json:"start_date"`
 	ExpiryDate        time.Time  `json:"expiry_date"`
 	AmountInPaise     int64      `json:"amount_in_paise"`
-	RazorpayOrderID   *string    `json:"razorpay_order_id,omitempty"`
-	RazorpayPaymentID *string    `json:"razorpay_payment_id,omitempty"`
+	ProviderOrderID   *string    `json:"provider_order_id,omitempty"`
+	ProviderPaymentID *string    `json:"provider_payment_id,omitempty"`
 	PaidAt            *time.Time `json:"paid_at,omitempty"`
 	CreatedAt         time.Time  `json:"created_at"`
-	Gateway           string     `json:"gateway"`
+	Provider          string     `json:"provider"`
 	User              *struct {
 		ID    string `json:"id"`
 		Name  string `json:"name"`
@@ -666,7 +663,7 @@ func HandleAdminListMarketPlanPayments(c *fiber.Ctx) error {
 	rows := make([]marketPlanPaymentRow, 0, len(subs))
 	for _, sub := range subs {
 		gateway := "WALLET"
-		if sub.RazorpayPaymentID != nil && *sub.RazorpayPaymentID != "" {
+		if sub.ProviderPaymentID != nil && *sub.ProviderPaymentID != "" {
 			gateway = "RAZORPAY"
 		}
 		row := marketPlanPaymentRow{
@@ -677,11 +674,11 @@ func HandleAdminListMarketPlanPayments(c *fiber.Ctx) error {
 			StartDate:         sub.StartDate,
 			ExpiryDate:        sub.ExpiryDate,
 			AmountInPaise:     sub.AmountInPaise,
-			RazorpayOrderID:   sub.RazorpayOrderID,
-			RazorpayPaymentID: sub.RazorpayPaymentID,
+			ProviderOrderID:   sub.ProviderOrderID,
+			ProviderPaymentID: sub.ProviderPaymentID,
 			PaidAt:            sub.PaidAt,
 			CreatedAt:         sub.CreatedAt,
-			Gateway:           gateway,
+			Provider:          gateway,
 		}
 		if sub.User.ID != "" {
 			row.User = &struct {
@@ -706,39 +703,11 @@ func HandleAdminListMarketPlanPayments(c *fiber.Ctx) error {
 }
 
 func createMarketPlanRazorpayOrder(amountInPaise int64, userID, planID string) (string, error) {
-	payload := map[string]interface{}{
-		"amount":   amountInPaise,
-		"currency": "INR",
-		"receipt":  fmt.Sprintf("mp_%s_%s", userID[:8], planID[:8]),
-	}
-	body, _ := json.Marshal(payload)
-
-	req, err := http.NewRequest(http.MethodPost, "https://api.razorpay.com/v1/orders", bytes.NewReader(body))
+	order, err := payments.CreateOrder(context.Background(), amountInPaise,
+		payments.Receipt("mp", userID, planID),
+		map[string]string{"user_id": userID, "market_plan_id": planID})
 	if err != nil {
 		return "", err
 	}
-	req.SetBasicAuth(config.App.RazorpayKeyID, config.App.RazorpayKeySecret)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	respBody, _ := io.ReadAll(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("razorpay error: %s", string(respBody))
-	}
-
-	var result map[string]interface{}
-	if err := json.Unmarshal(respBody, &result); err != nil {
-		return "", err
-	}
-
-	id, _ := result["id"].(string)
-	if id == "" {
-		return "", fmt.Errorf("razorpay returned empty order id")
-	}
-	return id, nil
+	return order.ID, nil
 }

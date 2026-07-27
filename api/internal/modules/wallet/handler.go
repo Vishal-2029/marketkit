@@ -1,16 +1,13 @@
 package wallet
 
 import (
-	"bytes"
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
-	"io"
 	"log/slog"
 	"math"
-	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -20,6 +17,7 @@ import (
 	"github.com/marketkit/api/internal/config"
 	"github.com/marketkit/api/internal/database"
 	"github.com/marketkit/api/internal/models"
+	"github.com/marketkit/api/internal/payments"
 	"github.com/marketkit/api/pkg/response"
 	"gorm.io/gorm"
 )
@@ -149,7 +147,7 @@ func HandleTopupOrder(c *fiber.Ctx) error {
 		UserID:          userID,
 		AmountInPaise:   body.AmountInPaise,
 		Status:          models.PaymentPending,
-		RazorpayOrderID: &rzpOrderID,
+		ProviderOrderID: &rzpOrderID,
 	}
 	database.DB.Create(&topup)
 
@@ -169,7 +167,7 @@ func HandleTopupOrder(c *fiber.Ctx) error {
 // @Accept      json
 // @Produce     json
 // @Security    UserAuth
-// @Param       body  body  map[string]string  true  "razorpay_order_id, razorpay_payment_id, razorpay_signature"
+// @Param       body  body  map[string]string  true  "provider_order_id, provider_payment_id, provider_signature"
 // @Success     200  {object}  map[string]string
 // @Failure     400  {object}  map[string]string
 // @Failure     401  {object}  map[string]string
@@ -177,31 +175,31 @@ func HandleTopupOrder(c *fiber.Ctx) error {
 // @Router      /user/wallet/topup/verify [post]
 func HandleTopupVerify(c *fiber.Ctx) error {
 	var body struct {
-		RazorpayOrderID   string `json:"razorpay_order_id"`
-		RazorpayPaymentID string `json:"razorpay_payment_id"`
-		RazorpaySignature string `json:"razorpay_signature"`
+		ProviderOrderID   string `json:"provider_order_id"`
+		ProviderPaymentID string `json:"provider_payment_id"`
+		ProviderSignature string `json:"provider_signature"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return response.BadRequest(c, "invalid request body")
 	}
-	if body.RazorpayOrderID == "" || body.RazorpayPaymentID == "" || body.RazorpaySignature == "" {
-		return response.BadRequest(c, "razorpay_order_id, razorpay_payment_id, and razorpay_signature are required")
+	if body.ProviderOrderID == "" || body.ProviderPaymentID == "" || body.ProviderSignature == "" {
+		return response.BadRequest(c, "provider_order_id, provider_payment_id, and provider_signature are required")
 	}
 
 	userID, _ := c.Locals("userID").(string)
 
 	// Verify signature: HMAC_SHA256(order_id|payment_id, key_secret)
-	msg := body.RazorpayOrderID + "|" + body.RazorpayPaymentID
+	msg := body.ProviderOrderID + "|" + body.ProviderPaymentID
 	mac := hmac.New(sha256.New, []byte(config.App.RazorpayKeySecret))
 	mac.Write([]byte(msg))
 	expected := hex.EncodeToString(mac.Sum(nil))
-	if !hmac.Equal([]byte(body.RazorpaySignature), []byte(expected)) {
+	if !hmac.Equal([]byte(body.ProviderSignature), []byte(expected)) {
 		return response.BadRequest(c, "invalid razorpay signature")
 	}
 
 	var t models.WalletTopup
 	if err := database.DB.
-		Where("user_id = ? AND razorpay_order_id = ?", userID, body.RazorpayOrderID).
+		Where("user_id = ? AND provider_order_id = ?", userID, body.ProviderOrderID).
 		First(&t).Error; err != nil {
 		return response.NotFound(c, "topup not found")
 	}
@@ -209,7 +207,7 @@ func HandleTopupVerify(c *fiber.Ctx) error {
 		return response.OK(c, fiber.Map{"message": "topup already verified"})
 	}
 
-	captureTopup(t.ID, body.RazorpayPaymentID, nil)
+	captureTopup(t.ID, body.ProviderPaymentID, nil)
 
 	return response.OK(c, fiber.Map{"message": "topup verified"})
 }
@@ -222,7 +220,7 @@ func captureTopup(topupID, razorpayPaymentID string, gatewayResponse models.JSON
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
 		updates := map[string]interface{}{
 			"status":              models.PaymentSuccess,
-			"razorpay_payment_id": razorpayPaymentID,
+			"provider_payment_id": razorpayPaymentID,
 			"paid_at":             time.Now(),
 		}
 		if gatewayResponse != nil {
@@ -259,9 +257,9 @@ func captureTopup(topupID, razorpayPaymentID string, gatewayResponse models.JSON
 // wallet_topups table. Called by the payments webhook handler when neither a
 // subscription payment nor a market purchase matches the order ID. Returns
 // true if the order belongs to a wallet topup.
-func CaptureRazorpayOrder(orderID, razorpayPaymentID string, entity models.JSONMap) bool {
+func CaptureOrder(orderID, razorpayPaymentID string, entity models.JSONMap) bool {
 	var t models.WalletTopup
-	if err := database.DB.Where("razorpay_order_id = ?", orderID).First(&t).Error; err != nil {
+	if err := database.DB.Where("provider_order_id = ?", orderID).First(&t).Error; err != nil {
 		return false
 	}
 	if t.Status == models.PaymentSuccess {
@@ -458,39 +456,11 @@ func HandleGetFee(c *fiber.Ctx) error {
 // createRazorpayOrder creates a topup order via the Razorpay REST API (no
 // SDK), mirroring the market module's helper.
 func createRazorpayOrder(amountInPaise int64, userID string) (string, error) {
-	payload := map[string]interface{}{
-		"amount":   amountInPaise,
-		"currency": "INR",
-		"receipt":  fmt.Sprintf("wal_%s_%d", userID[:8], time.Now().Unix()),
-	}
-	body, _ := json.Marshal(payload)
-
-	req, err := http.NewRequest(http.MethodPost, "https://api.razorpay.com/v1/orders", bytes.NewReader(body))
+	order, err := payments.CreateOrder(context.Background(), amountInPaise,
+		payments.Receipt("wal", userID),
+		map[string]string{"user_id": userID, "kind": "wallet_topup"})
 	if err != nil {
 		return "", err
 	}
-	req.SetBasicAuth(config.App.RazorpayKeyID, config.App.RazorpayKeySecret)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	respBody, _ := io.ReadAll(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("razorpay error: %s", string(respBody))
-	}
-
-	var result map[string]interface{}
-	if err := json.Unmarshal(respBody, &result); err != nil {
-		return "", err
-	}
-
-	id, _ := result["id"].(string)
-	if id == "" {
-		return "", fmt.Errorf("razorpay returned empty order id")
-	}
-	return id, nil
+	return order.ID, nil
 }

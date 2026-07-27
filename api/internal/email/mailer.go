@@ -133,7 +133,7 @@ type PaymentReceiptData struct {
 	PlanName      string
 	Amount        string
 	TransactionID string
-	Gateway       string
+	Provider      string
 	PaidAt        string
 	ExpiresAt     string
 	Year          int
@@ -164,7 +164,7 @@ type AdminSubAlertData struct {
 	UserEmail string
 	PlanName  string
 	Amount    string
-	Gateway   string
+	Provider  string
 	PaidAt    string
 	IsUpgrade bool
 	Year      int

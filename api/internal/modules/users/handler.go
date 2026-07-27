@@ -639,7 +639,7 @@ func HandleChangePlan(c *fiber.Ctx) error {
 				UserEmail: user.Email,
 				PlanName:  plan.Name,
 				Amount:    email.FormatAmount(plan.PriceInPaise),
-				Gateway:   "MANUAL",
+				Provider:  "MANUAL",
 				PaidAt:    email.FormatDate(time.Now()),
 				IsUpgrade: isUpgrade,
 			})

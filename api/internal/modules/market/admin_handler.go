@@ -263,7 +263,7 @@ type MarketUserPurchaseRow struct {
 	AmountInPaise int64      `json:"amount_in_paise"`
 	FeeInPaise    int64      `json:"fee_in_paise"`
 	SellerName    string     `json:"seller_name"`
-	Gateway       string     `json:"gateway"`
+	Provider      string     `json:"provider"`
 	PaidAt        *time.Time `json:"paid_at,omitempty"`
 }
 
@@ -345,7 +345,7 @@ func HandleAdminMarketUserProducts(c *fiber.Ctx) error {
 			AmountInPaise: p.AmountInPaise,
 			FeeInPaise:    p.FeeInPaise,
 			SellerName:    p.Seller.Name,
-			Gateway:       p.PaidVia,
+			Provider:      p.PaidVia,
 			PaidAt:        p.PaidAt,
 		}
 		if len(p.Product.PreviewKeys) > 0 {

@@ -1,10 +1,7 @@
 package payments
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
-	"fmt"
+	"errors"
 	"log/slog"
 	"math"
 	"strconv"
@@ -19,6 +16,9 @@ import (
 	"github.com/marketkit/api/internal/modules/market"
 	"github.com/marketkit/api/internal/modules/platform_wallet"
 	"github.com/marketkit/api/internal/modules/wallet"
+	corepay "github.com/marketkit/api/internal/payments"
+	"github.com/marketkit/api/internal/payments/capture"
+	"github.com/marketkit/api/internal/payments/provider"
 	"github.com/marketkit/api/internal/subscriptions"
 	"github.com/marketkit/api/pkg/response"
 	"gorm.io/gorm"
@@ -128,7 +128,7 @@ func createManualPayment(plan *models.Plan, userID, notes string, expiresAt time
 	payment := models.Payment{
 		UserID: userID, PlanID: plan.ID,
 		AmountInPaise: plan.PriceInPaise,
-		Gateway:       models.GatewayManual, Status: models.PaymentSuccess,
+		Provider:      models.ProviderManual, Status: models.PaymentSuccess,
 		Notes: notes, PaidAt: &now,
 	}
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
@@ -144,111 +144,129 @@ func createManualPayment(plan *models.Plan, userID, notes string, expiresAt time
 	return payment, err
 }
 
-func HandleRazorpayWebhook(c *fiber.Ctx) error {
-	body := c.Body()
-	signature := c.Get("X-Razorpay-Signature")
-	secret := config.App.RazorpayWebhookSecret
+// HandleWebhook is the gateway webhook endpoint. It is the only unauthenticated
+// write path into the money layer, so it verifies the signature before touching
+// anything and returns 200 for everything it cannot act on — any other status
+// makes the gateway retry forever.
+//
+// Which module owns an order is resolved through the capture registry rather
+// than a hardcoded chain; see internal/payments/capture.
+func HandleWebhook(c *fiber.Ctx) error {
+	p, err := corepay.Active()
+	if err != nil {
+		slog.Error("webhook: no active payment provider", "error", err)
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "payments not configured"})
+	}
 
-	// Fail closed: an empty secret makes the HMAC trivially forgeable (anyone
-	// can compute HMAC-SHA256 with a known/empty key), so an unconfigured
-	// secret must reject every request rather than "verify" against one.
-	if secret == "" {
-		slog.Error("razorpay webhook: RAZORPAY_WEBHOOK_SECRET is not configured — rejecting request")
+	headers := map[string]string{}
+	c.Request().Header.VisitAll(func(k, v []byte) { headers[string(k)] = string(v) })
+
+	ev, err := p.ParseWebhook(c.Body(), headers)
+	switch {
+	case errors.Is(err, provider.ErrNotConfigured):
+		slog.Error("webhook: signing secret is not configured — rejecting", "provider", p.Name())
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "webhook not configured"})
-	}
-
-	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write(body)
-	expected := hex.EncodeToString(mac.Sum(nil))
-
-	if !hmac.Equal([]byte(signature), []byte(expected)) {
+	case errors.Is(err, provider.ErrInvalidSignature):
+		slog.Warn("webhook: signature verification failed", "provider", p.Name())
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid signature"})
+	case err != nil:
+		slog.Error("webhook: could not parse payload", "provider", p.Name(), "error", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid payload"})
 	}
 
-	var event map[string]interface{}
-	if err := c.BodyParser(&event); err != nil {
-		return response.BadRequest(c, "invalid payload")
+	if ev.Kind != provider.EventPaymentCaptured {
+		return c.SendStatus(fiber.StatusOK)
 	}
 
-	eventType, _ := event["event"].(string)
-	if eventType == "payment.captured" {
-		payload, _ := event["payload"].(map[string]interface{})
-		paymentEntity, _ := payload["payment"].(map[string]interface{})
-		entity, _ := paymentEntity["entity"].(map[string]interface{})
-
-		razorpayPaymentID := fmt.Sprintf("%v", entity["id"])
-		orderID := fmt.Sprintf("%v", entity["order_id"])
-
-		// The flip and the platform-wallet credit run in one transaction so a
-		// rollback (e.g. the credit failing) undoes the status flip too —
-		// otherwise a payment could end up SUCCESS with no matching credit.
-		var flipped bool
-		txErr := database.DB.Transaction(func(tx *gorm.DB) error {
-			result := tx.Model(&models.Payment{}).
-				Where("razorpay_order_id = ? AND status != ?", orderID, models.PaymentSuccess).
-				Updates(map[string]interface{}{
-					"status":              models.PaymentSuccess,
-					"razorpay_payment_id": razorpayPaymentID,
-					"paid_at":             time.Now(),
-					"gateway_response":    models.JSONMap(entity),
-				})
-			if result.Error != nil {
-				return result.Error
-			}
-			if result.RowsAffected == 0 {
-				return nil
-			}
-			var flippedP models.Payment
-			if err := tx.Where("razorpay_order_id = ?", orderID).First(&flippedP).Error; err != nil {
-				return err
-			}
-			if _, err := platform_wallet.Apply(tx, models.PlatformSourceLearningPlan, flippedP.AmountInPaise,
-				&flippedP.ID, models.JSONMap{"plan_id": flippedP.PlanID, "paid_via": "RAZORPAY"}); err != nil {
-				return err
-			}
-			flipped = true
-			return nil
-		})
-		if txErr != nil {
-			slog.Error("webhook: failed to capture payment", "order_id", orderID, "error", txErr)
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "payment capture failed"})
-		}
-		if !flipped {
-			// Not a subscription payment (or already captured). Razorpay order
-			// IDs are account-unique, so try the product marketplace, then
-			// wallet topups. Either way return 200 — Razorpay retries on
-			// anything else.
-			if !market.CaptureRazorpayOrder(orderID, razorpayPaymentID, models.JSONMap(entity)) {
-				if !market.CaptureMarketPlanOrder(orderID, razorpayPaymentID) {
-					wallet.CaptureRazorpayOrder(orderID, razorpayPaymentID, models.JSONMap(entity))
-				}
-			}
-			return c.SendStatus(fiber.StatusOK)
-		}
-
-		var p models.Payment
-		if err := database.DB.Preload("User").Preload("Plan").
-			Where("razorpay_order_id = ?", orderID).First(&p).Error; err == nil {
-
-			expiresAt := time.Now().AddDate(0, 0, p.Plan.DurationDays)
-			if err := database.DB.Transaction(func(tx *gorm.DB) error {
-				return subscriptions.ActivateOrExtend(tx, p.UserID, p.PlanID, expiresAt, "razorpay")
-			}); err != nil {
-				slog.Error("webhook: failed to activate subscription", "user_id", p.UserID, "error", err)
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "subscription activation failed"})
-			}
-
-			go func() {
-				sendSubscriptionEmails(&p.User, &p.Plan, &p, expiresAt, false)
-				if err := fcm.SendToUser(p.UserID, "Subscription Activated",
-					"Your "+p.Plan.Name+" plan is now active. Enjoy learning!"); err != nil {
-					slog.Error("webhook: FCM notification failed", "user_id", p.UserID, "error", err)
-				}
-			}()
-		}
-	}
-
+	// A duplicate webhook for an already-captured order lands here as
+	// handled == false. That is expected, not an error — 200 either way.
+	capture.Dispatch(ev)
 	return c.SendStatus(fiber.StatusOK)
+}
+
+// CaptureLearningPlan captures a learning-plan subscription payment. Registered
+// with the capture registry at startup; returns false when the order is not a
+// learning-plan payment (or was already captured) so dispatch moves on.
+func CaptureLearningPlan(ev provider.Event) bool {
+	// The status flip and the platform-wallet credit run in one transaction so
+	// a rollback undoes both — otherwise a payment could end up SUCCESS with no
+	// matching credit.
+	var flipped bool
+	txErr := database.DB.Transaction(func(tx *gorm.DB) error {
+		result := tx.Model(&models.Payment{}).
+			Where("provider_order_id = ? AND status != ?", ev.OrderID, models.PaymentSuccess).
+			Updates(map[string]interface{}{
+				"status":              models.PaymentSuccess,
+				"provider_payment_id": ev.PaymentID,
+				"paid_at":             time.Now(),
+				"gateway_response":    models.JSONMap(ev.Raw),
+			})
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return nil
+		}
+		var flippedP models.Payment
+		if err := tx.Where("provider_order_id = ?", ev.OrderID).First(&flippedP).Error; err != nil {
+			return err
+		}
+		if _, err := platform_wallet.Apply(tx, models.PlatformSourceLearningPlan, flippedP.AmountInPaise,
+			&flippedP.ID, models.JSONMap{"plan_id": flippedP.PlanID, "paid_via": flippedP.Provider}); err != nil {
+			return err
+		}
+		flipped = true
+		return nil
+	})
+	if txErr != nil {
+		slog.Error("webhook: failed to capture learning-plan payment", "order_id", ev.OrderID, "error", txErr)
+		return false
+	}
+	if !flipped {
+		return false
+	}
+
+	var p models.Payment
+	if err := database.DB.Preload("User").Preload("Plan").
+		Where("provider_order_id = ?", ev.OrderID).First(&p).Error; err != nil {
+		slog.Error("webhook: captured payment vanished", "order_id", ev.OrderID, "error", err)
+		return true
+	}
+
+	expiresAt := time.Now().AddDate(0, 0, p.Plan.DurationDays)
+	if err := database.DB.Transaction(func(tx *gorm.DB) error {
+		return subscriptions.ActivateOrExtend(tx, p.UserID, p.PlanID, expiresAt, string(p.Provider))
+	}); err != nil {
+		slog.Error("webhook: failed to activate subscription", "user_id", p.UserID, "error", err)
+		return true
+	}
+
+	go func() {
+		sendSubscriptionEmails(&p.User, &p.Plan, &p, expiresAt, false)
+		if err := fcm.SendToUser(p.UserID, "Subscription Activated",
+			"Your "+p.Plan.Name+" plan is now active. Enjoy learning!"); err != nil {
+			slog.Error("webhook: FCM notification failed", "user_id", p.UserID, "error", err)
+		}
+	}()
+	return true
+}
+
+// RegisterCaptureHandlers wires every module that can own a gateway order into
+// the capture registry. Dispatch order matters only for speed, not
+// correctness — order ids are unique, so at most one handler can claim an
+// event. Called once at startup.
+func RegisterCaptureHandlers() {
+	capture.Reset()
+	capture.Register("learning_plan", CaptureLearningPlan)
+	capture.Register("market_purchase", func(ev provider.Event) bool {
+		return market.CaptureOrder(ev.OrderID, ev.PaymentID, models.JSONMap(ev.Raw))
+	})
+	capture.Register("market_plan", func(ev provider.Event) bool {
+		return market.CaptureMarketPlanOrder(ev.OrderID, ev.PaymentID)
+	})
+	capture.Register("wallet_topup", func(ev provider.Event) bool {
+		return wallet.CaptureOrder(ev.OrderID, ev.PaymentID, models.JSONMap(ev.Raw))
+	})
 }
 
 func HandleActivate(c *fiber.Ctx) error {
@@ -316,18 +334,18 @@ func sendSubscriptionEmails(user *models.User, plan *models.Plan, payment *model
 	}
 
 	txnID := payment.ID
-	if payment.RazorpayPaymentID != nil {
-		txnID = *payment.RazorpayPaymentID
+	if payment.ProviderPaymentID != nil {
+		txnID = *payment.ProviderPaymentID
 	}
 
-	gateway := string(payment.Gateway)
+	gateway := string(payment.Provider)
 
 	email.SendPaymentReceiptEmail(user.Email, email.PaymentReceiptData{
 		Name:          user.Name,
 		PlanName:      plan.Name,
 		Amount:        email.FormatAmount(plan.PriceInPaise),
 		TransactionID: txnID,
-		Gateway:       gateway,
+		Provider:      gateway,
 		PaidAt:        email.FormatDate(paidAt),
 		ExpiresAt:     email.FormatDate(expiresAt),
 	})
@@ -350,7 +368,7 @@ func sendSubscriptionEmails(user *models.User, plan *models.Plan, payment *model
 			UserEmail: user.Email,
 			PlanName:  plan.Name,
 			Amount:    email.FormatAmount(plan.PriceInPaise),
-			Gateway:   gateway,
+			Provider:  gateway,
 			PaidAt:    email.FormatDate(paidAt),
 			IsUpgrade: isUpgrade,
 		})

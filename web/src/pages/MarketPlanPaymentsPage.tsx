@@ -67,11 +67,11 @@ export default function MarketPlanPaymentsPage() {
           p.user?.email ?? "",
           p.plan?.name ?? "",
           fmt(p.amount_in_paise),
-          p.gateway,
+          p.provider,
           p.status,
           p.paid_at ? new Date(p.paid_at).toLocaleString() : "",
           p.expiry_date ? new Date(p.expiry_date).toLocaleString() : "",
-          p.razorpay_payment_id ?? "",
+          p.provider_payment_id ?? "",
         ]
           .map((v) => `"${String(v).replace(/"/g, '""')}"`)
           .join(",")
@@ -200,10 +200,10 @@ export default function MarketPlanPaymentsPage() {
                       <td className="px-4 py-3 hidden md:table-cell">
                         <StatusBadge
                           variant={
-                            p.gateway === "WALLET" ? "neutral" : "brand"
+                            p.provider === "WALLET" ? "neutral" : "brand"
                           }
                         >
-                          {p.gateway}
+                          {p.provider}
                         </StatusBadge>
                       </td>
                       <td className="px-4 py-3">
@@ -292,9 +292,9 @@ export default function MarketPlanPaymentsPage() {
                 <div>
                   <p className="text-muted-foreground mb-1">Gateway</p>
                   <StatusBadge
-                    variant={detail.gateway === "WALLET" ? "neutral" : "brand"}
+                    variant={detail.provider === "WALLET" ? "neutral" : "brand"}
                   >
-                    {detail.gateway}
+                    {detail.provider}
                   </StatusBadge>
                 </div>
                 <div>
@@ -320,23 +320,23 @@ export default function MarketPlanPaymentsPage() {
                   <p>{new Date(detail.expiry_date).toLocaleString()}</p>
                 </div>
               </div>
-              {detail.razorpay_payment_id && (
+              {detail.provider_payment_id && (
                 <div>
                   <p className="text-muted-foreground mb-1">
                     Razorpay payment ID
                   </p>
                   <p className="font-mono text-xs break-all">
-                    {detail.razorpay_payment_id}
+                    {detail.provider_payment_id}
                   </p>
                 </div>
               )}
-              {detail.razorpay_order_id && (
+              {detail.provider_order_id && (
                 <div>
                   <p className="text-muted-foreground mb-1">
                     Razorpay order ID
                   </p>
                   <p className="font-mono text-xs break-all">
-                    {detail.razorpay_order_id}
+                    {detail.provider_order_id}
                   </p>
                 </div>
               )}

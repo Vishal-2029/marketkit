@@ -11,8 +11,8 @@ export interface RefundRequest {
   reviewed_at?: string;
   payment?: {
     amount_in_paise: number;
-    gateway: string;
-    razorpay_payment_id?: string;
+    provider: string;
+    provider_payment_id?: string;
     user?: { name: string; email: string };
     plan?: { name: string };
   };

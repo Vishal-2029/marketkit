@@ -23,7 +23,9 @@ import (
 	"github.com/marketkit/api/internal/config"
 	"github.com/marketkit/api/internal/cron"
 	"github.com/marketkit/api/internal/database"
+	paymentsmod "github.com/marketkit/api/internal/modules/payments"
 	"github.com/marketkit/api/internal/modules/platform_wallet"
+	"github.com/marketkit/api/internal/payments"
 	"github.com/marketkit/api/internal/storage"
 	"github.com/marketkit/api/internal/workers"
 	_ "github.com/marketkit/api/pkg/logger"
@@ -77,6 +79,13 @@ func main() {
 	platform_wallet.Backfill()
 
 	// Init file storage backend (local disk or hybrid with Cloudflare R2)
+	// Payment gateways: register providers, then wire the modules that can own
+	// a gateway order into the capture registry.
+	if err := payments.Init(); err != nil {
+		log.Fatalf("payments init failed: %v", err)
+	}
+	paymentsmod.RegisterCaptureHandlers()
+
 	if err := storage.Init(); err != nil {
 		log.Fatalf("storage init error: %v", err)
 	}

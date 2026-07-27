@@ -5451,7 +5451,7 @@
                 "summary": "Verify Razorpay payment and activate Product Market plan",
                 "parameters": [
                     {
-                        "description": "razorpay_order_id, razorpay_payment_id, razorpay_signature",
+                        "description": "provider_order_id, provider_payment_id, razorpay_signature",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -6056,7 +6056,7 @@
                 "summary": "Verify a Razorpay product purchase signature",
                 "parameters": [
                     {
-                        "description": "razorpay_order_id, razorpay_payment_id, razorpay_signature",
+                        "description": "provider_order_id, provider_payment_id, razorpay_signature",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -6473,7 +6473,7 @@
                 "summary": "Verify a Razorpay payment signature and activate subscription",
                 "parameters": [
                     {
-                        "description": "razorpay_order_id, razorpay_payment_id, razorpay_signature",
+                        "description": "provider_order_id, provider_payment_id, razorpay_signature",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -7535,7 +7535,7 @@
                 "summary": "Verify a Razorpay wallet topup signature and credit the wallet",
                 "parameters": [
                     {
-                        "description": "razorpay_order_id, razorpay_payment_id, razorpay_signature",
+                        "description": "provider_order_id, provider_payment_id, razorpay_signature",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -8727,10 +8727,10 @@
                 "plan_id": {
                     "type": "string"
                 },
-                "razorpay_order_id": {
+                "provider_order_id": {
                     "type": "string"
                 },
-                "razorpay_payment_id": {
+                "provider_payment_id": {
                     "type": "string"
                 },
                 "start_date": {
@@ -8762,9 +8762,6 @@
                 "currency": {
                     "type": "string"
                 },
-                "gateway": {
-                    "$ref": "#/definitions/models.PaymentGateway"
-                },
                 "gateway_response": {
                     "$ref": "#/definitions/models.JSONMap"
                 },
@@ -8783,10 +8780,13 @@
                 "plan_id": {
                     "type": "string"
                 },
-                "razorpay_order_id": {
+                "provider": {
+                    "$ref": "#/definitions/models.PaymentProvider"
+                },
+                "provider_order_id": {
                     "type": "string"
                 },
-                "razorpay_payment_id": {
+                "provider_payment_id": {
                     "type": "string"
                 },
                 "status": {
@@ -8800,15 +8800,17 @@
                 }
             }
         },
-        "models.PaymentGateway": {
+        "models.PaymentProvider": {
             "type": "string",
             "enum": [
-                "RAZORPAY",
+                "razorpay",
+                "stripe",
                 "MANUAL"
             ],
             "x-enum-varnames": [
-                "GatewayRazorpay",
-                "GatewayManual"
+                "ProviderRazorpay",
+                "ProviderStripe",
+                "ProviderManual"
             ]
         },
         "models.PaymentStatus": {
@@ -9147,10 +9149,10 @@
                 "product_title": {
                     "type": "string"
                 },
-                "razorpay_order_id": {
+                "provider_order_id": {
                     "type": "string"
                 },
-                "razorpay_payment_id": {
+                "provider_payment_id": {
                     "type": "string"
                 },
                 "seller": {

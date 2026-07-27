@@ -34,9 +34,9 @@ class WalletService {
     required String razorpaySignature,
   }) async {
     await _dio.post(ApiEndpoints.walletTopupVerify, data: {
-      'razorpay_order_id': razorpayOrderId,
-      'razorpay_payment_id': razorpayPaymentId,
-      'razorpay_signature': razorpaySignature,
+      'provider_order_id': razorpayOrderId,
+      'provider_payment_id': razorpayPaymentId,
+      'provider_signature': razorpaySignature,
     });
   }
 

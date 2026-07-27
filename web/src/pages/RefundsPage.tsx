@@ -243,10 +243,10 @@ export default function RefundsPage() {
                     {detail.payment ? fmt(detail.payment.amount_in_paise) : "—"}
                   </span>
                 </div>
-                {detail.payment?.razorpay_payment_id && (
+                {detail.payment?.provider_payment_id && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Razorpay ID</span>
-                    <span className="font-mono text-xs text-foreground">{detail.payment.razorpay_payment_id}</span>
+                    <span className="font-mono text-xs text-foreground">{detail.payment.provider_payment_id}</span>
                   </div>
                 )}
               </div>

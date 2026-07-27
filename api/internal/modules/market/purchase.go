@@ -1,15 +1,12 @@
 package market
 
 import (
-	"bytes"
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
-	"io"
 	"log/slog"
-	"net/http"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -19,6 +16,7 @@ import (
 	"github.com/marketkit/api/internal/models"
 	"github.com/marketkit/api/internal/modules/platform_wallet"
 	"github.com/marketkit/api/internal/modules/wallet"
+	"github.com/marketkit/api/internal/payments"
 	"github.com/marketkit/api/internal/storage"
 	"github.com/marketkit/api/pkg/response"
 	"gorm.io/gorm"
@@ -79,7 +77,7 @@ func HandleCreatePurchaseOrder(c *fiber.Ctx) error {
 		SellerID:        product.SellerID,
 		AmountInPaise:   product.PriceInPaise,
 		Status:          models.PaymentPending,
-		RazorpayOrderID: &rzpOrderID,
+		ProviderOrderID: &rzpOrderID,
 	}
 	database.DB.Create(&purchase)
 
@@ -98,7 +96,7 @@ func HandleCreatePurchaseOrder(c *fiber.Ctx) error {
 // @Accept      json
 // @Produce     json
 // @Security    UserAuth
-// @Param       body  body  map[string]string  true  "razorpay_order_id, razorpay_payment_id, razorpay_signature"
+// @Param       body  body  map[string]string  true  "provider_order_id, provider_payment_id, provider_signature"
 // @Success     200  {object}  map[string]string
 // @Failure     400  {object}  map[string]string
 // @Failure     401  {object}  map[string]string
@@ -106,31 +104,31 @@ func HandleCreatePurchaseOrder(c *fiber.Ctx) error {
 // @Router      /user/market/purchases/verify [post]
 func HandleVerifyPurchase(c *fiber.Ctx) error {
 	var body struct {
-		RazorpayOrderID   string `json:"razorpay_order_id"`
-		RazorpayPaymentID string `json:"razorpay_payment_id"`
-		RazorpaySignature string `json:"razorpay_signature"`
+		ProviderOrderID   string `json:"provider_order_id"`
+		ProviderPaymentID string `json:"provider_payment_id"`
+		ProviderSignature string `json:"provider_signature"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return response.BadRequest(c, "invalid request body")
 	}
-	if body.RazorpayOrderID == "" || body.RazorpayPaymentID == "" || body.RazorpaySignature == "" {
-		return response.BadRequest(c, "razorpay_order_id, razorpay_payment_id, and razorpay_signature are required")
+	if body.ProviderOrderID == "" || body.ProviderPaymentID == "" || body.ProviderSignature == "" {
+		return response.BadRequest(c, "provider_order_id, provider_payment_id, and provider_signature are required")
 	}
 
 	userID, _ := c.Locals("userID").(string)
 
 	// Verify signature: HMAC_SHA256(order_id|payment_id, key_secret)
-	msg := body.RazorpayOrderID + "|" + body.RazorpayPaymentID
+	msg := body.ProviderOrderID + "|" + body.ProviderPaymentID
 	mac := hmac.New(sha256.New, []byte(config.App.RazorpayKeySecret))
 	mac.Write([]byte(msg))
 	expected := hex.EncodeToString(mac.Sum(nil))
-	if !hmac.Equal([]byte(body.RazorpaySignature), []byte(expected)) {
+	if !hmac.Equal([]byte(body.ProviderSignature), []byte(expected)) {
 		return response.BadRequest(c, "invalid razorpay signature")
 	}
 
 	var p models.ProductPurchase
 	if err := database.DB.
-		Where("buyer_id = ? AND razorpay_order_id = ?", userID, body.RazorpayOrderID).
+		Where("buyer_id = ? AND provider_order_id = ?", userID, body.ProviderOrderID).
 		First(&p).Error; err != nil {
 		return response.NotFound(c, "purchase not found")
 	}
@@ -138,7 +136,7 @@ func HandleVerifyPurchase(c *fiber.Ctx) error {
 		return response.OK(c, fiber.Map{"message": "purchase already verified", "purchase_id": p.ID})
 	}
 
-	if !capturePurchase(&p, body.RazorpayPaymentID, nil) {
+	if !capturePurchase(&p, body.ProviderPaymentID, nil) {
 		return response.OK(c, fiber.Map{"message": "purchase already verified", "purchase_id": p.ID})
 	}
 
@@ -165,7 +163,7 @@ func capturePurchase(p *models.ProductPurchase, razorpayPaymentID string, gatewa
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
 		updates := map[string]interface{}{
 			"status":              models.PaymentSuccess,
-			"razorpay_payment_id": razorpayPaymentID,
+			"provider_payment_id": razorpayPaymentID,
 			"paid_at":             time.Now(),
 			"fee_in_paise":        fee,
 			"seller_net_in_paise": net,
@@ -212,9 +210,9 @@ func capturePurchase(p *models.ProductPurchase, razorpayPaymentID string, gatewa
 // product_purchases table. Called by the payments webhook handler when no
 // subscription payment matches the order ID. Returns true if a marketplace
 // purchase was captured.
-func CaptureRazorpayOrder(orderID, razorpayPaymentID string, entity models.JSONMap) bool {
+func CaptureOrder(orderID, razorpayPaymentID string, entity models.JSONMap) bool {
 	var p models.ProductPurchase
-	if err := database.DB.Where("razorpay_order_id = ?", orderID).First(&p).Error; err != nil {
+	if err := database.DB.Where("provider_order_id = ?", orderID).First(&p).Error; err != nil {
 		return false
 	}
 	if p.Status == models.PaymentSuccess {
@@ -361,39 +359,11 @@ func HandleEarnings(c *fiber.Ctx) error {
 // createRazorpayOrder creates an order via the Razorpay REST API (no SDK),
 // mirroring the user_payments module's helper.
 func createRazorpayOrder(amountInPaise int64, buyerID, productID string) (string, error) {
-	payload := map[string]interface{}{
-		"amount":   amountInPaise,
-		"currency": "INR",
-		"receipt":  fmt.Sprintf("mkt_%s_%s", buyerID[:8], productID[:8]),
-	}
-	body, _ := json.Marshal(payload)
-
-	req, err := http.NewRequest(http.MethodPost, "https://api.razorpay.com/v1/orders", bytes.NewReader(body))
+	order, err := payments.CreateOrder(context.Background(), amountInPaise,
+		payments.Receipt("mkt", buyerID, productID),
+		map[string]string{"buyer_id": buyerID, "product_id": productID})
 	if err != nil {
 		return "", err
 	}
-	req.SetBasicAuth(config.App.RazorpayKeyID, config.App.RazorpayKeySecret)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	respBody, _ := io.ReadAll(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("razorpay error: %s", string(respBody))
-	}
-
-	var result map[string]interface{}
-	if err := json.Unmarshal(respBody, &result); err != nil {
-		return "", err
-	}
-
-	id, _ := result["id"].(string)
-	if id == "" {
-		return "", fmt.Errorf("razorpay returned empty order id")
-	}
-	return id, nil
+	return order.ID, nil
 }

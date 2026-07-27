@@ -12,8 +12,8 @@ type MarketPlanSubscription struct {
 	StartDate         time.Time          `gorm:"default:now()"                                  json:"start_date"`
 	ExpiryDate        time.Time          `gorm:"index"                                          json:"expiry_date"`
 	AmountInPaise     int64              `gorm:"default:0"                                      json:"amount_in_paise"`
-	RazorpayOrderID   *string            `gorm:"uniqueIndex"                                    json:"razorpay_order_id,omitempty"`
-	RazorpayPaymentID *string            `gorm:"uniqueIndex"                                    json:"razorpay_payment_id,omitempty"`
+	ProviderOrderID   *string            `gorm:"uniqueIndex"                                    json:"provider_order_id,omitempty"`
+	ProviderPaymentID *string            `gorm:"uniqueIndex"                                    json:"provider_payment_id,omitempty"`
 	PaidAt            *time.Time         `                                                      json:"paid_at,omitempty"`
 	CreatedAt         time.Time          `                                                      json:"created_at"`
 	UpdatedAt         time.Time          `                                                      json:"updated_at"`

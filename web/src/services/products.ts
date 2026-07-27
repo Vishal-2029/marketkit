@@ -70,7 +70,7 @@ export interface MarketUserPurchase {
   amount_in_paise: number;
   fee_in_paise: number;
   seller_name: string;
-  gateway: string;
+  provider: string;
   paid_at?: string;
 }
 
