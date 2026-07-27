@@ -16,6 +16,7 @@ import '../providers/my_market_provider.dart';
 import '../providers/wallet_provider.dart';
 import '../widgets/product_card.dart';
 import '../widgets/product_favorite_button.dart';
+import 'package:marketkit/core/config/brand.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   final String productId;
@@ -154,7 +155,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       final orderId = order['order_id'] as String?;
       final amount = order['amount'];
       if (keyId == null || orderId == null || amount == null) {
-        _snack('Payment setup failed. Please try again.', color: kTerracotta);
+        _snack('Payment setup failed. Please try again.', color: kDanger);
         return;
       }
       _razorpay.open({
@@ -162,7 +163,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         'amount': amount,
         'order_id': orderId,
         'currency': order['currency'] ?? 'INR',
-        'name': 'Stitch Craft Learn',
+        'name': Brand.checkoutName,
         'description': product.title,
         'prefill': {
           'contact': auth.user?.phone ?? '',
@@ -170,7 +171,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         },
       });
     } catch (e) {
-      _snack('Could not initiate payment: $e', color: kTerracotta);
+      _snack('Could not initiate payment: $e', color: kDanger);
     } finally {
       if (mounted) setState(() => _isPaying = false);
     }
@@ -196,7 +197,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: kGold,
+              backgroundColor: kPrimary,
               foregroundColor: Colors.white,
             ),
             child: const Text('Pay from Wallet'),
@@ -222,7 +223,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       // Covers the balance-changed-underneath race (server returns 400) and
       // anything else — the user can retry, which re-offers Razorpay.
       if (mounted) {
-        _snack('Wallet payment failed. Please try again.', color: kTerracotta);
+        _snack('Wallet payment failed. Please try again.', color: kDanger);
       }
     } finally {
       if (mounted) setState(() => _isPaying = false);
@@ -234,7 +235,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     final paymentId = response.paymentId;
     final signature = response.signature;
 
-    _snack('Payment successful! Unlocking your product...', color: kSage);
+    _snack('Payment successful! Unlocking your product...', color: kSuccess);
 
     String purchaseId = '';
     try {
@@ -250,7 +251,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     } catch (e) {
       // Webhook fallback: the server webhook can still capture the purchase.
       if (mounted) {
-        _snack('Unlock is taking longer than usual: $e', color: kTerracotta);
+        _snack('Unlock is taking longer than usual: $e', color: kDanger);
       }
     }
 
@@ -267,7 +268,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   void _handleFailure(PaymentFailureResponse response) {
     _snack(
       'Payment failed: ${response.message ?? 'Unknown error'}',
-      color: kTerracotta,
+      color: kDanger,
     );
   }
 
@@ -286,7 +287,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       if (url == null) throw Exception('no url');
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } catch (_) {
-      _snack('Download failed. Please try again.', color: kTerracotta);
+      _snack('Download failed. Please try again.', color: kDanger);
     }
   }
 
@@ -306,7 +307,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       body: SafeArea(
         child: _isLoading
             ? const Center(
-                child: CircularProgressIndicator(color: kGold, strokeWidth: 2),
+                child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2),
               )
             : _error != null
             ? _errorState()
@@ -385,7 +386,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               effect: const WormEffect(
                 dotWidth: 8,
                 dotHeight: 8,
-                activeDotColor: kGold,
+                activeDotColor: kPrimary,
                 dotColor: kBorder,
               ),
             ),
@@ -408,7 +409,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: kGold.withValues(alpha: 0.08),
+            color: kPrimary.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -419,7 +420,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
-                  color: kGold,
+                  color: kPrimary,
                 ),
               ),
               const SizedBox(height: 2),
@@ -457,7 +458,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 product.sellerName.isNotEmpty ? product.sellerName : 'Seller',
                 trailing: product.featuredSeller
                     ? const Icon(Icons.workspace_premium,
-                        size: 14, color: kGold)
+                        size: 14, color: kPrimary)
                     : null,
                 isLast: true,
               ),
@@ -596,7 +597,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color: kGold,
+                  color: kPrimary,
                 ),
               ),
             ],
@@ -623,7 +624,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: owned ? kSage : kGold,
+                backgroundColor: owned ? kSuccess : kPrimary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(

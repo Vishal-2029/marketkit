@@ -91,9 +91,9 @@ class _NetflixVideoPlayerState extends State<NetflixVideoPlayer> {
       controlBarColor: Colors.black.withValues(alpha: 0.55),
       iconsColor: Colors.white,
       textColor: Colors.white,
-      loadingColor: kGold,
-      progressBarPlayedColor: kGold,
-      progressBarHandleColor: kGold,
+      loadingColor: kPrimary,
+      progressBarPlayedColor: kPrimary,
+      progressBarHandleColor: kPrimary,
       progressBarBufferedColor: Colors.white54,
       progressBarBackgroundColor: Colors.white24,
       enableProgressBar: true,
@@ -345,7 +345,7 @@ class _ResumeBanner extends StatelessWidget {
                 child: const Text(
                   'Start over',
                   style: TextStyle(
-                    color: kGold,
+                    color: kPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
@@ -382,10 +382,10 @@ class _ErrorOverlay extends StatelessWidget {
           const SizedBox(height: 14),
           OutlinedButton.icon(
             onPressed: onRetry,
-            icon: const Icon(Icons.refresh_rounded, color: kGold, size: 18),
-            label: const Text('Retry', style: TextStyle(color: kGold)),
+            icon: const Icon(Icons.refresh_rounded, color: kPrimary, size: 18),
+            label: const Text('Retry', style: TextStyle(color: kPrimary)),
             style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: kGold),
+              side: const BorderSide(color: kPrimary),
             ),
           ),
         ],

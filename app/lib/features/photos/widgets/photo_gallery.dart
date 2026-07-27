@@ -138,7 +138,7 @@ class _PhotoViewerScreenState extends State<_PhotoViewerScreen> {
             imageUrl: widget.url,
             fit: BoxFit.contain,
             placeholder: (_, __) =>
-                const CircularProgressIndicator(color: kGold),
+                const CircularProgressIndicator(color: kPrimary),
             errorWidget: (_, __, ___) => const Icon(Icons.broken_image_outlined,
                 color: Colors.white54, size: 56),
           ),

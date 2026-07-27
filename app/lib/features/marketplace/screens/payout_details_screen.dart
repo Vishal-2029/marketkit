@@ -46,21 +46,21 @@ class _PayoutDetailsScreenState extends ConsumerState<PayoutDetailsScreen> {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Payout details saved.'),
-        backgroundColor: kSage,
+        backgroundColor: kSuccess,
       ));
     } on DioException catch (e) {
       final msg = e.response?.data?['error'] as String?;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(msg ?? 'Could not save payout details.'),
-          backgroundColor: kTerracotta,
+          backgroundColor: kDanger,
         ));
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Could not save payout details.'),
-          backgroundColor: kTerracotta,
+          backgroundColor: kDanger,
         ));
       }
     } finally {
@@ -106,7 +106,7 @@ class _PayoutDetailsScreenState extends ConsumerState<PayoutDetailsScreen> {
       ),
       body: details.isLoading && !_prefilled
           ? const Center(
-              child: CircularProgressIndicator(color: kGold, strokeWidth: 2))
+              child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -157,7 +157,7 @@ class _PayoutDetailsScreenState extends ConsumerState<PayoutDetailsScreen> {
                 ElevatedButton(
                   onPressed: _isSaving ? null : _save,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: kGold,
+                    backgroundColor: kPrimary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(

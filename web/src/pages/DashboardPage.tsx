@@ -110,7 +110,7 @@ export default function DashboardPage() {
                   : (recentPayments.data ?? []).map((p: { id: string; user?: { name: string }; plan?: { name: string }; amount_in_paise: number; status: string }) => (
                     <tr key={p.id} className="border-b border-border last:border-0 hover:bg-table-hover transition-colors">
                       <td className="px-4 py-3 text-sm font-medium">{p.user?.name ?? "—"}</td>
-                      <td className="px-4 py-3"><StatusBadge variant="gold">{p.plan?.name ?? "—"}</StatusBadge></td>
+                      <td className="px-4 py-3"><StatusBadge variant="brand">{p.plan?.name ?? "—"}</StatusBadge></td>
                       <td className="px-4 py-3 text-sm font-semibold">{fmt(p.amount_in_paise)}</td>
                       <td className="px-4 py-3">
                         <StatusBadge variant={p.status === "SUCCESS" ? "success" : "danger"}>{p.status}</StatusBadge>

@@ -83,7 +83,7 @@ class _DownloadTile extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [kMuted, kCream],
+            colors: [kMuted, kAccentSoft],
           ),
         ),
       );
@@ -176,7 +176,7 @@ class _DownloadTile extends StatelessWidget {
                     Row(
                       children: [
                         const Icon(Icons.offline_pin_outlined,
-                            size: 13, color: kGold),
+                            size: 13, color: kPrimary),
                         const SizedBox(width: 4),
                         Text(
                           entry.formattedSize.isEmpty

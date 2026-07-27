@@ -61,7 +61,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 16),
-              const Icon(Icons.lock_reset_rounded, size: 56, color: kGold),
+              const Icon(Icons.lock_reset_rounded, size: 56, color: kPrimary),
               const SizedBox(height: 20),
               const Text(
                 'Forgot Password?',
@@ -93,7 +93,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 const SizedBox(height: 12),
                 Text(
                   _error!,
-                  style: const TextStyle(color: kTerracotta, fontSize: 13),
+                  style: const TextStyle(color: kDanger, fontSize: 13),
                 ),
               ],
               const SizedBox(height: 24),
@@ -102,7 +102,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 child: Container(
                   height: 52,
                   decoration: BoxDecoration(
-                    gradient: _loading ? null : kGoldGradient,
+                    gradient: _loading ? null : kPrimaryGradient,
                     color: _loading ? kMuted : null,
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -129,7 +129,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 onPressed: () => context.pop(),
                 child: const Text(
                   'Back to Sign In',
-                  style: TextStyle(color: kGold, fontSize: 13),
+                  style: TextStyle(color: kPrimary, fontSize: 13),
                 ),
               ),
             ],

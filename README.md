@@ -1,6 +1,6 @@
-# Studio Manager Hub
+# MarketKit
 
-A full-stack embroidery video learning platform for **Design Express**. Students subscribe to plans and watch video tutorials for Willcom, E4, and meCAD embroidery machines through the mobile app. Admins manage content, users, and payments through a web panel.
+A production-ready starter kit for marketplace apps: a Go backend, a Flutter mobile app, and a React admin panel that ship together. It includes the parts that normally take months — a wallet ledger, seller payouts, platform fees, refunds, and subscriptions.
 
 ---
 
@@ -9,7 +9,7 @@ A full-stack embroidery video learning platform for **Design Express**. Students
 ```
 marketkit/
 ├── api/          # Go backend — REST API, auth, payments, email
-├── app/          # Flutter mobile app — "Stitch Craft Learn"
+├── app/          # Flutter mobile app
 ├── web /         # React admin panel — content & user management
 ├── docker-compose.yml
 ├── docker-compose.dev.yml
@@ -36,8 +36,8 @@ marketkit/
 ```
 ┌─────────────────┐     ┌─────────────────┐
 │  Flutter App    │     │  React Admin    │
-│ (Stitch Craft   │     │  Panel          │
-│  Learn)         │     │  (web /)        │
+│  (Flutter)      │     │  Panel          │
+│                 │     │  (web/)         │
 └────────┬────────┘     └────────┬────────┘
          │                       │
          │    REST API (JSON)     │
@@ -212,7 +212,7 @@ committed even once stays in git history forever.
 
 ### Mobile App (Flutter)
 - OTP-based authentication
-- Browse and stream embroidery videos by category (Willcom / E4 / meCAD)
+- Browse and stream videos by category
 - Subscription plans with Razorpay payment
 - Video player with Chewie controls
 - Library of accessible videos

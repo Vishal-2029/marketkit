@@ -1,11 +1,11 @@
 {
-    "name": "app",
-    "short_name": "app",
+    "name": "MarketKit",
+    "short_name": "MarketKit",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FAFAFA",
+    "theme_color": "#4F46E5",
+    "description": "MarketKit — marketplace starter kit.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -1,4 +1,4 @@
-import 'package:design_express/core/config/feature_catalog.dart';
+import 'package:marketkit/core/config/feature_catalog.dart';
 import '../../../core/network/api_endpoints.dart';
 
 class VideoModel {

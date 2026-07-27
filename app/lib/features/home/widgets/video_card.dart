@@ -15,7 +15,7 @@ class VideoCard extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [kGold.withOpacity(0.3), kCream.withOpacity(0.5)],
+            colors: [kPrimary.withOpacity(0.3), kAccentSoft.withOpacity(0.5)],
           ),
         ),
         child: const Icon(Icons.play_circle_outline_rounded, color: Colors.white70, size: 36),
@@ -77,7 +77,7 @@ class VideoCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: kGold.withOpacity(0.9),
+                        color: kPrimary.withOpacity(0.9),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(

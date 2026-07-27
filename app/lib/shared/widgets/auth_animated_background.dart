@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:marketkit/core/theme/app_colors.dart';
 
 /// Shared cream animated background used across splash, onboarding,
 /// mode chooser, login, and register so the pre-auth funnel shares one look.
@@ -108,60 +109,60 @@ class _AuthAnimatedBackgroundState extends State<AuthAnimatedBackground>
     final h = MediaQuery.of(context).size.height;
     return Stack(
       children: [
-        Container(color: const Color(0xFFF5F5F0)),
+        Container(color: kBackground),
         _square(
             left: 24,
             top: 120,
             size: 80,
-            color: const Color(0xFFD29B3F),
+            color: kPrimary,
             offset: 0.0),
         _square(
             left: 260,
             top: 180,
             size: 100,
-            color: const Color(0xFFA12D52),
+            color: kAccentStrong,
             offset: 0.2),
         _square(
             left: 48,
             top: h * 0.65,
             size: 70,
-            color: const Color(0xFFC98C52),
+            color: kPrimaryLight,
             offset: 0.4),
         _square(
             left: 280,
             top: h * 0.65,
             size: 90,
-            color: const Color(0xFFB14F65),
+            color: kPrimaryLight,
             offset: 0.6),
         _dot(
             left: 120,
             startTop: h - 40,
             size: 5,
-            color: const Color(0xFFA12D52),
+            color: kAccentStrong,
             offset: 0.0),
         _dot(
             left: 260,
             startTop: h - 60,
             size: 4,
-            color: const Color(0xFFD29B3F),
+            color: kPrimary,
             offset: 0.25),
         _dot(
             left: 340,
             startTop: h - 40,
             size: 5,
-            color: const Color(0xFFC98C52),
+            color: kPrimaryLight,
             offset: 0.45),
         _dot(
             left: 80,
             startTop: h - 100,
             size: 4,
-            color: const Color(0xFFD29B3F),
+            color: kPrimary,
             offset: 0.7),
         _dot(
             left: 320,
             startTop: h - 100,
             size: 4,
-            color: const Color(0xFFA12D52),
+            color: kAccentStrong,
             offset: 0.55),
         Positioned.fill(child: widget.child),
       ],

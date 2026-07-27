@@ -112,11 +112,11 @@ class _AllProductsTabState extends ConsumerState<AllProductsTab> {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: selected ? kGold : kForeground,
+                color: selected ? kPrimary : kForeground,
               ),
             ),
             trailing: selected
-                ? const Icon(Icons.check_rounded, color: kGold, size: 20)
+                ? const Icon(Icons.check_rounded, color: kPrimary, size: 20)
                 : null,
             onTap: () {
               Navigator.pop(ctx);
@@ -290,7 +290,7 @@ class _FilterButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: kGold,
+      color: kPrimary,
       shape: const CircleBorder(),
       elevation: 3,
       child: InkWell(
@@ -321,7 +321,7 @@ class _CategorySuggestions extends StatelessWidget {
       itemBuilder: (_, i) {
         final c = suggestions[i];
         return ListTile(
-          leading: const Icon(Icons.sell_outlined, color: kGold, size: 20),
+          leading: const Icon(Icons.sell_outlined, color: kPrimary, size: 20),
           title: Text(c.name, style: const TextStyle(fontSize: 14)),
           onTap: () => onSelect(c),
         );
@@ -549,7 +549,7 @@ class _ProductsGrid extends ConsumerWidget {
       );
     }
     return RefreshIndicator(
-      color: kGold,
+      color: kPrimary,
       onRefresh: () => ref.read(productsProvider.notifier).load(),
       child: GridView.builder(
         controller: scrollCtrl,
@@ -564,7 +564,7 @@ class _ProductsGrid extends ConsumerWidget {
         itemBuilder: (_, i) {
           if (i >= state.products.length) {
             return const Center(
-              child: CircularProgressIndicator(color: kGold, strokeWidth: 2),
+              child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2),
             );
           }
           final product = state.products[i];
@@ -619,7 +619,7 @@ class _Breadcrumb extends StatelessWidget {
                 fontWeight: i == crumbs.length - 1
                     ? FontWeight.w700
                     : FontWeight.w600,
-                color: i == crumbs.length - 1 ? kGold : kMutedForeground,
+                color: i == crumbs.length - 1 ? kPrimary : kMutedForeground,
               ),
             ),
           ),

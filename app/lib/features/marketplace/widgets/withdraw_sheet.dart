@@ -84,21 +84,21 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content:
             Text('Withdrawal approved — the payout will be transferred soon.'),
-        backgroundColor: kSage,
+        backgroundColor: kSuccess,
       ));
     } on DioException catch (e) {
       final msg = e.response?.data?['error'] as String?;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(msg ?? 'Withdrawal failed. Please try again.'),
-          backgroundColor: kTerracotta,
+          backgroundColor: kDanger,
         ));
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Withdrawal failed. Please try again.'),
-          backgroundColor: kTerracotta,
+          backgroundColor: kDanger,
         ));
       }
     } finally {
@@ -125,26 +125,26 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            color: selected ? kGold.withValues(alpha: 0.1) : kMuted,
+            color: selected ? kPrimary.withValues(alpha: 0.1) : kMuted,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: selected ? kGold : kBorder),
+            border: Border.all(color: selected ? kPrimary : kBorder),
           ),
           child: Column(
             children: [
               Icon(icon,
-                  size: 22, color: selected ? kGold : kMutedForeground),
+                  size: 22, color: selected ? kPrimary : kMutedForeground),
               const SizedBox(height: 6),
               Text(
                 title,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: selected ? kGold : kForeground,
+                  color: selected ? kPrimary : kForeground,
                 ),
               ),
               if (!available)
                 const Text('Add details',
-                    style: TextStyle(fontSize: 10, color: kTerracotta)),
+                    style: TextStyle(fontSize: 10, color: kDanger)),
             ],
           ),
         ),
@@ -213,7 +213,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
             child: ElevatedButton(
               onPressed: _canSubmit ? _submit : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: kGold,
+                backgroundColor: kPrimary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(

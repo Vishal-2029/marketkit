@@ -79,7 +79,7 @@ class ProductCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: product.isMine ? kGold : kSage,
+                          color: product.isMine ? kPrimary : kSuccess,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -124,7 +124,7 @@ class ProductCard extends StatelessWidget {
                         if (product.featuredSeller) ...[
                           const SizedBox(width: 4),
                           const Icon(Icons.workspace_premium,
-                              size: 12, color: kGold),
+                              size: 12, color: kPrimary),
                         ],
                       ],
                     ),
@@ -137,7 +137,7 @@ class ProductCard extends StatelessWidget {
                         style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: kGold),
+                            color: kPrimary),
                       ),
                       const Spacer(),
                       Text(

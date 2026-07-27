@@ -66,7 +66,7 @@ class _HeroCarouselState extends State<HeroCarousel> {
             controller: _controller,
             count: widget.videos.length,
             effect: ExpandingDotsEffect(
-              activeDotColor: kGold,
+              activeDotColor: kPrimary,
               dotColor: kBorder,
               dotHeight: 6,
               dotWidth: 6,
@@ -96,7 +96,7 @@ class _HeroSlide extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [kGold.withOpacity(0.6), kCream.withOpacity(0.8)],
+            colors: [kPrimary.withOpacity(0.6), kAccentSoft.withOpacity(0.8)],
           ),
         ),
         clipBehavior: Clip.antiAlias,
@@ -141,7 +141,7 @@ class _HeroSlide extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: kGold,
+                  color: kPrimary,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -195,7 +195,7 @@ class _Badge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: kSage,
+        color: kSuccess,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(

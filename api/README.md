@@ -1,6 +1,6 @@
-# Studio Manager API
+# MarketKit API
 
-Go REST API for the Stitch Craft Learn platform. Handles authentication, video management, subscription plans, Razorpay payments, and transactional email for both the Flutter mobile app and React admin panel.
+Go REST API for the MarketKit platform. Handles authentication, video management, subscription plans, Razorpay payments, and transactional email for both the Flutter mobile app and React admin panel.
 
 ---
 
@@ -177,12 +177,10 @@ All endpoints are under `/api/v1`. Protected routes require `Authorization: Bear
   "subscription": {
     "id": "...",
     "plan_id": "...",
-    "plan_name": "Willcom Pro",
+    "plan_name": "All Access",
     "status": "ACTIVE",
     "expires_at": "2026-06-01T00:00:00Z",
-    "has_willcom": true,
-    "has_e4": false,
-    "has_mecad": false
+    "features": ["CATEGORY_A", "CATEGORY_B"]
   }
 }
 ```

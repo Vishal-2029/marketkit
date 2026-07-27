@@ -163,7 +163,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       backgroundColor: kBackground,
       body: SafeArea(
         child: RefreshIndicator(
-          color: kGold,
+          color: kPrimary,
           onRefresh: () async {
             await Future.wait([
               ref.read(photosProvider.notifier).load(),
@@ -349,7 +349,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
-                                    color: kGold,
+                                    color: kPrimary,
                                   ),
                                 ),
                               ),
@@ -433,7 +433,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             width: 3,
             height: 16,
             decoration: BoxDecoration(
-              color: kGold,
+              color: kPrimary,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -593,7 +593,7 @@ class _IntroVideoCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: kGold,
+                    color: kPrimary,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Text(
@@ -788,7 +788,7 @@ class _ContinueWatchingCard extends StatelessWidget {
                     ),
                     child: const Center(
                       child: Icon(Icons.play_circle_outline_rounded,
-                          color: kGold, size: 32),
+                          color: kPrimary, size: 32),
                     ),
                   ),
                   Positioned(
@@ -798,7 +798,7 @@ class _ContinueWatchingCard extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: progress,
                       backgroundColor: kBorder,
-                      color: kGold,
+                      color: kPrimary,
                       minHeight: 3,
                     ),
                   ),

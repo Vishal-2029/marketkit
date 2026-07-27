@@ -5649,7 +5649,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "file",
-                        "description": "Embroidery machine file (.dst/.pes/...)",
+                        "description": "Product file (.pdf/.zip/.png/...)",
                         "name": "file",
                         "in": "formData",
                         "required": true

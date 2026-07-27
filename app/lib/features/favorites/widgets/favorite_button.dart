@@ -30,7 +30,7 @@ class FavoriteButton extends ConsumerWidget {
       icon: Icon(
         isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
         color: isFavorite
-            ? kGold
+            ? kPrimary
             : (darkBackground ? Colors.white : kMutedForeground),
       ),
       onPressed: () => ref.read(favoritesProvider.notifier).toggle(video),

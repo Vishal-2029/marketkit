@@ -1,6 +1,6 @@
-# Stitch Craft Learn — Flutter App
+# MarketKit — Flutter App
 
-Mobile app for the Design Express embroidery learning platform. Students browse and stream video tutorials for Willcom, E4, and meCAD machines after subscribing to a plan.
+Mobile app for MarketKit. Users browse and buy products in the marketplace, manage a wallet, and stream subscription video content.
 
 ---
 

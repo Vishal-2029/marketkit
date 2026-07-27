@@ -1,4 +1,4 @@
-# Design Express - Video Quality & Resolution Report
+# MarketKit - Video Quality & Resolution Report
 
 **Date:** July 7, 2026  
 **Status:** ✅ FULLY CONFIGURED & READY FOR TESTING

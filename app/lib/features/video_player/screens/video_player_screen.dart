@@ -251,7 +251,7 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
             else
               const ColoredBox(color: Colors.black),
             const ColoredBox(color: Color(0x55000000)),
-            const Center(child: CircularProgressIndicator(color: kGold)),
+            const Center(child: CircularProgressIndicator(color: kPrimary)),
           ],
         ),
       );
@@ -309,7 +309,7 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: kGold.withValues(alpha: 0.15),
+                        color: kPrimary.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -317,7 +317,7 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: kGold,
+                          color: kPrimary,
                         ),
                       ),
                     ),
@@ -510,10 +510,10 @@ class _ReactionButton extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? kGold.withValues(alpha: 0.12) : kMuted,
+          color: isActive ? kPrimary.withValues(alpha: 0.12) : kMuted,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isActive ? kGold : kBorder,
+            color: isActive ? kPrimary : kBorder,
             width: isActive ? 1.5 : 1,
           ),
         ),
@@ -523,7 +523,7 @@ class _ReactionButton extends StatelessWidget {
             Icon(
               isActive ? activeIcon : icon,
               size: 18,
-              color: isActive ? kGold : kMutedForeground,
+              color: isActive ? kPrimary : kMutedForeground,
             ),
             const SizedBox(width: 6),
             Text(
@@ -531,7 +531,7 @@ class _ReactionButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isActive ? kGold : kMutedForeground,
+                color: isActive ? kPrimary : kMutedForeground,
               ),
             ),
           ],
@@ -574,7 +574,7 @@ class _CommentsSection extends StatelessWidget {
           const Center(
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
-              child: CircularProgressIndicator(color: kGold, strokeWidth: 2),
+              child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2),
             ),
           )
         else if (comments.isEmpty)
@@ -629,7 +629,7 @@ class _CommentTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: comment.isAdmin
           ? BoxDecoration(
-              color: kGold.withValues(alpha: 0.06),
+              color: kPrimary.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(8),
             )
           : null,
@@ -639,18 +639,18 @@ class _CommentTile extends StatelessWidget {
           comment.isAdmin
               ? CircleAvatar(
                   radius: 16,
-                  backgroundColor: kGold,
+                  backgroundColor: kPrimary,
                   child: const Icon(Icons.support_agent, size: 16, color: Colors.white),
                 )
               : CircleAvatar(
                   radius: 16,
-                  backgroundColor: kGold.withValues(alpha: 0.2),
+                  backgroundColor: kPrimary.withValues(alpha: 0.2),
                   child: Text(
                     initial,
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: kGold,
+                      color: kPrimary,
                     ),
                   ),
                 ),
@@ -762,7 +762,7 @@ class _CommentInputBar extends StatelessWidget {
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
-                        color: kGold,
+                        color: kPrimary,
                         strokeWidth: 2,
                       ),
                     ),
@@ -770,7 +770,7 @@ class _CommentInputBar extends StatelessWidget {
                 )
               : IconButton(
                   icon: const Icon(Icons.send_rounded),
-                  color: kGold,
+                  color: kPrimary,
                   onPressed: onPost,
                   tooltip: 'Post comment',
                 ),
@@ -806,7 +806,7 @@ class _PlaylistSection extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.playlist_play_rounded, size: 20, color: kGold),
+            const Icon(Icons.playlist_play_rounded, size: 20, color: kPrimary),
             const SizedBox(width: 8),
             Text(
               'More $categoryLabel Videos',
@@ -821,7 +821,7 @@ class _PlaylistSection extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                 decoration: BoxDecoration(
-                  color: kGold.withValues(alpha: 0.15),
+                  color: kPrimary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -829,7 +829,7 @@ class _PlaylistSection extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: kGold,
+                    color: kPrimary,
                   ),
                 ),
               ),
@@ -840,7 +840,7 @@ class _PlaylistSection extends StatelessWidget {
         if (isLoading)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
-            child: LinearProgressIndicator(color: kGold, backgroundColor: kMuted),
+            child: LinearProgressIndicator(color: kPrimary, backgroundColor: kMuted),
           )
         else
           ListView.separated(
@@ -886,7 +886,7 @@ class _ErrorWidget extends StatelessWidget {
           const SizedBox(height: 16),
           TextButton(
             onPressed: onRetry,
-            child: const Text('Retry', style: TextStyle(color: kGold)),
+            child: const Text('Retry', style: TextStyle(color: kPrimary)),
           ),
         ],
       ),

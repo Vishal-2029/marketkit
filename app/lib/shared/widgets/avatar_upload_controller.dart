@@ -31,9 +31,9 @@ mixin AvatarUploadController<T extends ConsumerStatefulWidget> on ConsumerState<
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Edit Photo',
-          toolbarColor: kGold,
+          toolbarColor: kPrimary,
           toolbarWidgetColor: Colors.white,
-          activeControlsWidgetColor: kGold,
+          activeControlsWidgetColor: kPrimary,
           backgroundColor: Colors.black,
           cropStyle: CropStyle.circle,
           lockAspectRatio: true,

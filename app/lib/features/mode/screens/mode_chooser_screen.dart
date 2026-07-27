@@ -71,7 +71,7 @@ class ModeChooserScreen extends ConsumerWidget {
                   title: 'Learning',
                   subtitle: AppModeService.learningLocked
                       ? 'Coming soon…'
-                      : 'Watch embroidery courses and tutorials',
+                      : 'Watch courses and tutorials',
                   locked: AppModeService.learningLocked,
                   onTap: AppModeService.learningLocked
                       ? () => ScaffoldMessenger.of(context).showSnackBar(
@@ -86,7 +86,7 @@ class ModeChooserScreen extends ConsumerWidget {
                 _ModeCard(
                   icon: Icons.storefront_outlined,
                   title: 'Product Market',
-                  subtitle: 'Buy and sell embroidery products',
+                  subtitle: 'Buy and sell digital products',
                   onTap: () => _choose(context, ref, AppModeService.market),
                 ),
                 const Spacer(flex: 2),
@@ -137,13 +137,13 @@ class _ModeCard extends StatelessWidget {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: kGold.withValues(alpha: locked ? 0.08 : 0.12),
+                      color: kPrimary.withValues(alpha: locked ? 0.08 : 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       icon,
                       size: 34,
-                      color: locked ? kMutedForeground : kGold,
+                      color: locked ? kMutedForeground : kPrimary,
                     ),
                   ),
                   if (locked)
@@ -153,7 +153,7 @@ class _ModeCard extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(5),
                         decoration: const BoxDecoration(
-                          color: kGold,
+                          color: kPrimary,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -180,7 +180,7 @@ class _ModeCard extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
-                  color: locked ? kGold : kMutedForeground,
+                  color: locked ? kPrimary : kMutedForeground,
                   fontWeight: locked ? FontWeight.w600 : FontWeight.w400,
                 ),
               ),

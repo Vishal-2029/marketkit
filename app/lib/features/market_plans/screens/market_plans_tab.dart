@@ -9,6 +9,7 @@ import '../../marketplace/providers/wallet_provider.dart';
 import '../models/market_plan_model.dart';
 import '../providers/market_plans_provider.dart';
 import '../widgets/market_plan_card.dart';
+import 'package:marketkit/core/config/brand.dart';
 
 class MarketPlansTab extends ConsumerStatefulWidget {
   const MarketPlansTab({super.key});
@@ -58,7 +59,7 @@ class _MarketPlansTabState extends ConsumerState<MarketPlansTab> {
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
-                backgroundColor: kGold, foregroundColor: Colors.white),
+                backgroundColor: kPrimary, foregroundColor: Colors.white),
             child: const Text('Wallet'),
           ),
         ],
@@ -104,7 +105,7 @@ class _MarketPlansTabState extends ConsumerState<MarketPlansTab> {
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
-                backgroundColor: kGold, foregroundColor: Colors.white),
+                backgroundColor: kPrimary, foregroundColor: Colors.white),
             child: const Text('Confirm'),
           ),
         ],
@@ -141,9 +142,9 @@ class _MarketPlansTabState extends ConsumerState<MarketPlansTab> {
       ref.invalidate(walletSummaryProvider);
       ref.invalidate(walletTransactionsProvider);
       await ref.read(marketPlansProvider.notifier).refreshAfterPayment();
-      _snack('Market plan activated!', color: kSage);
+      _snack('Market plan activated!', color: kSuccess);
     } catch (e) {
-      _snack('Wallet payment failed: $e', color: kTerracotta);
+      _snack('Wallet payment failed: $e', color: kDanger);
     }
   }
 
@@ -156,7 +157,7 @@ class _MarketPlansTabState extends ConsumerState<MarketPlansTab> {
       final orderId = order['order_id'] as String?;
       final amount = order['amount'];
       if (keyId == null || orderId == null || amount == null) {
-        _snack('Payment setup failed. Please try again.', color: kTerracotta);
+        _snack('Payment setup failed. Please try again.', color: kDanger);
         return;
       }
       _razorpay.open({
@@ -164,7 +165,7 @@ class _MarketPlansTabState extends ConsumerState<MarketPlansTab> {
         'amount': amount,
         'order_id': orderId,
         'currency': order['currency'] ?? 'INR',
-        'name': 'Stitch Craft Learn',
+        'name': Brand.checkoutName,
         'description': plan.name,
         'prefill': {
           'contact': auth.user?.phone ?? '',
@@ -172,7 +173,7 @@ class _MarketPlansTabState extends ConsumerState<MarketPlansTab> {
         },
       });
     } catch (e) {
-      _snack('Could not initiate payment: $e', color: kTerracotta);
+      _snack('Could not initiate payment: $e', color: kDanger);
     }
   }
 
@@ -181,7 +182,7 @@ class _MarketPlansTabState extends ConsumerState<MarketPlansTab> {
     final paymentId = response.paymentId;
     final signature = response.signature;
 
-    _snack('Payment successful! Activating your plan...', color: kSage);
+    _snack('Payment successful! Activating your plan...', color: kSuccess);
 
     try {
       if (orderId != null && paymentId != null && signature != null) {
@@ -192,16 +193,16 @@ class _MarketPlansTabState extends ConsumerState<MarketPlansTab> {
             );
       }
     } catch (e) {
-      _snack('Activation is taking longer than usual: $e', color: kTerracotta);
+      _snack('Activation is taking longer than usual: $e', color: kDanger);
     }
 
     await ref.read(marketPlansProvider.notifier).refreshAfterPayment();
-    _snack('Market plan activated!', color: kSage);
+    _snack('Market plan activated!', color: kSuccess);
   }
 
   void _handleFailure(PaymentFailureResponse response) {
     _snack('Payment failed: ${response.message ?? 'Unknown error'}',
-        color: kTerracotta);
+        color: kDanger);
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
@@ -220,7 +221,7 @@ class _MarketPlansTabState extends ConsumerState<MarketPlansTab> {
             : plans.plans.isEmpty
                 ? _emptyState()
                 : RefreshIndicator(
-                    color: kGold,
+                    color: kPrimary,
                     onRefresh: () =>
                         ref.read(marketPlansProvider.notifier).load(),
                     child: ListView.separated(

@@ -189,7 +189,7 @@ func SendOTPEmail(to, name, otp string) error {
 	if name == "" {
 		name = "there"
 	}
-	return sendTemplate(to, "Your OTP Code — Design Express", "otp.html",
+	return sendTemplate(to, "Your OTP Code — MarketKit", "otp.html",
 		otpTemplateData{Name: name, OTP: otp, Year: time.Now().Year()})
 }
 
@@ -201,9 +201,9 @@ func SendWelcomeEmail(to, name string, isAdmin bool) error {
 	if name == "" {
 		name = "there"
 	}
-	subject := "Welcome to Stitch Craft Learn — Design Express"
+	subject := "Welcome to MarketKit"
 	if isAdmin {
-		subject = "Welcome to Design Express Admin Panel"
+		subject = "Welcome to MarketKit Admin Panel"
 	}
 	return sendTemplate(to, subject, "welcome.html",
 		welcomeTemplateData{Name: name, IsAdmin: isAdmin, Year: time.Now().Year()})
@@ -215,7 +215,7 @@ func SendWelcomeLearningEmail(to, name string) error {
 	if name == "" {
 		name = "there"
 	}
-	return sendTemplate(to, "Welcome to Learning — Design Express", "welcome_learning.html",
+	return sendTemplate(to, "Welcome to Learning — MarketKit", "welcome_learning.html",
 		welcomeModeTemplateData{Name: name, Year: time.Now().Year()})
 }
 
@@ -225,14 +225,14 @@ func SendWelcomeMarketEmail(to, name string) error {
 	if name == "" {
 		name = "there"
 	}
-	return sendTemplate(to, "Welcome to the Product Market — Design Express", "welcome_market.html",
+	return sendTemplate(to, "Welcome to the Product Market — MarketKit", "welcome_market.html",
 		welcomeModeTemplateData{Name: name, Year: time.Now().Year()})
 }
 
 // SendPaymentReceiptEmail sends a formal payment receipt to the user.
 func SendPaymentReceiptEmail(to string, data PaymentReceiptData) error {
 	data.Year = time.Now().Year()
-	return sendTemplate(to, "Payment Receipt — Design Express", "payment_receipt.html", data)
+	return sendTemplate(to, "Payment Receipt — MarketKit", "payment_receipt.html", data)
 }
 
 // MarketPurchaseEmailData is the payload for Product Market purchase thank-you emails.
@@ -263,7 +263,7 @@ func SendMarketPurchaseEmail(to string, data MarketPurchaseEmailData, invoicePDF
 	if len(productFile) > 0 && productFileName != "" {
 		atts = append(atts, EmailAttachment{Filename: productFileName, Data: productFile})
 	}
-	return sendTemplateWithAttachments(to, "Thank you for your purchase — Design Express",
+	return sendTemplateWithAttachments(to, "Thank you for your purchase — MarketKit",
 		"market_purchase_receipt.html", data, atts...)
 }
 
@@ -271,27 +271,27 @@ func SendMarketPurchaseEmail(to string, data MarketPurchaseEmailData, invoicePDF
 func SendNewSubscriptionEmail(to string, data SubscriptionEmailData) error {
 	data.IsUpgrade = false
 	data.Year = time.Now().Year()
-	return sendTemplate(to, "Your Subscription is Active — Design Express", "subscription_confirm.html", data)
+	return sendTemplate(to, "Your Subscription is Active — MarketKit", "subscription_confirm.html", data)
 }
 
 // SendPlanUpgradeEmail sends a plan-upgraded confirmation to the user.
 func SendPlanUpgradeEmail(to string, data SubscriptionEmailData) error {
 	data.IsUpgrade = true
 	data.Year = time.Now().Year()
-	return sendTemplate(to, "Your Plan Has Been Upgraded — Design Express", "subscription_confirm.html", data)
+	return sendTemplate(to, "Your Plan Has Been Upgraded — MarketKit", "subscription_confirm.html", data)
 }
 
 // SendExpiryWarningEmail notifies the user that their plan expires in a few days.
 func SendExpiryWarningEmail(to string, data ExpiryEmailData) error {
 	data.Year = time.Now().Year()
-	subject := fmt.Sprintf("Your Plan Expires in %d Days — Design Express", data.DaysLeft)
+	subject := fmt.Sprintf("Your Plan Expires in %d Days — MarketKit", data.DaysLeft)
 	return sendTemplate(to, subject, "expiry_warning.html", data)
 }
 
 // SendPlanExpiredEmail notifies the user that their plan has expired.
 func SendPlanExpiredEmail(to string, data ExpiryEmailData) error {
 	data.Year = time.Now().Year()
-	return sendTemplate(to, "Your Plan Has Expired — Design Express", "subscription_expired.html", data)
+	return sendTemplate(to, "Your Plan Has Expired — MarketKit", "subscription_expired.html", data)
 }
 
 // SendAccountSuspendedEmail notifies a user that their account has been suspended.
@@ -299,7 +299,7 @@ func SendAccountSuspendedEmail(to, name string) error {
 	if name == "" {
 		name = "there"
 	}
-	return sendTemplate(to, "Your Account Has Been Suspended — Design Express", "account_suspended.html",
+	return sendTemplate(to, "Your Account Has Been Suspended — MarketKit", "account_suspended.html",
 		struct {
 			Name string
 			Year int
@@ -309,7 +309,7 @@ func SendAccountSuspendedEmail(to, name string) error {
 // SendRefundEmail notifies a user that their payment has been refunded.
 func SendRefundEmail(to string, data RefundEmailData) error {
 	data.Year = time.Now().Year()
-	return sendTemplate(to, "Your Refund Has Been Processed — Design Express", "refund.html", data)
+	return sendTemplate(to, "Your Refund Has Been Processed — MarketKit", "refund.html", data)
 }
 
 // RefundRejectionData holds data for the refund-rejection email sent to users.
@@ -324,7 +324,7 @@ type RefundRejectionData struct {
 // SendRefundRejectionEmail notifies a user that their refund request was declined.
 func SendRefundRejectionEmail(to string, data RefundRejectionData) error {
 	data.Year = time.Now().Year()
-	return sendTemplate(to, "Update on Your Refund Request — Design Express", "refund_rejected.html", data)
+	return sendTemplate(to, "Update on Your Refund Request — MarketKit", "refund_rejected.html", data)
 }
 
 // SendAdminSubAlert sends a new-subscription or plan-upgrade alert to the admin.

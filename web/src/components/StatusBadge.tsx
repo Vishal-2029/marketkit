@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-type BadgeVariant = "success" | "warning" | "danger" | "neutral" | "gold" | "info" | "purple";
+type BadgeVariant = "success" | "warning" | "danger" | "neutral" | "brand" | "info" | "purple";
 
 interface StatusBadgeProps {
   variant: BadgeVariant;
@@ -13,7 +13,7 @@ const variantStyles: Record<BadgeVariant, string> = {
   warning: "bg-warning-bg text-warning-foreground",
   danger: "bg-danger-bg text-danger-foreground",
   neutral: "bg-muted text-muted-foreground",
-  gold: "bg-accent text-accent-foreground",
+  brand: "bg-accent text-accent-foreground",
   info: "bg-blue-50 text-blue-700",
   purple: "bg-purple-50 text-purple-700",
 };

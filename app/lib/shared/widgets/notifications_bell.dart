@@ -32,7 +32,7 @@ class NotificationsBellButton extends ConsumerWidget {
                 constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: const BoxDecoration(
-                  color: kGold,
+                  color: kPrimary,
                   shape: BoxShape.circle,
                 ),
                 child: Text(
@@ -206,7 +206,7 @@ class _NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: notification.read ? null : kGold.withValues(alpha: 0.06),
+      color: notification.read ? null : kPrimary.withValues(alpha: 0.06),
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,7 +217,7 @@ class _NotificationTile extends StatelessWidget {
             margin: const EdgeInsets.only(top: 5, right: 10),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: notification.read ? Colors.transparent : kGold,
+              color: notification.read ? Colors.transparent : kPrimary,
             ),
           ),
           Expanded(

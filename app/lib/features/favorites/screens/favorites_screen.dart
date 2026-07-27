@@ -177,7 +177,7 @@ class _FavoriteTile extends StatelessWidget {
                     Row(
                       children: [
                         const Icon(Icons.star_rounded,
-                            size: 13, color: kGold),
+                            size: 13, color: kPrimary),
                         const SizedBox(width: 4),
                         Text(
                           video.categoryLabel,
@@ -191,7 +191,7 @@ class _FavoriteTile extends StatelessWidget {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.star_rounded, size: 20, color: kGold),
+              icon: const Icon(Icons.star_rounded, size: 20, color: kPrimary),
               tooltip: 'Remove from favorites',
               onPressed: onRemove,
             ),

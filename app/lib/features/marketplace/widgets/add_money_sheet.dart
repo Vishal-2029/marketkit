@@ -5,6 +5,7 @@ import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/wallet_provider.dart';
+import 'package:marketkit/core/config/brand.dart';
 
 /// Bottom sheet: enter an amount, pay via Razorpay, wallet gets credited on
 /// verify (or by the server webhook if the app-side verify fails).
@@ -64,11 +65,11 @@ class _AddMoneySheetState extends ConsumerState<AddMoneySheet> {
   Future<void> _pay() async {
     final amount = _amountInPaise;
     if (amount == null) {
-      _snack('Enter a valid amount.', color: kTerracotta);
+      _snack('Enter a valid amount.', color: kDanger);
       return;
     }
     if (amount < 1000) {
-      _snack('Minimum top-up is ₹10.', color: kTerracotta);
+      _snack('Minimum top-up is ₹10.', color: kDanger);
       return;
     }
     final auth = ref.read(authProvider);
@@ -79,7 +80,7 @@ class _AddMoneySheetState extends ConsumerState<AddMoneySheet> {
       final keyId = order['key_id'] as String?;
       final orderId = order['order_id'] as String?;
       if (keyId == null || orderId == null) {
-        _snack('Payment setup failed. Please try again.', color: kTerracotta);
+        _snack('Payment setup failed. Please try again.', color: kDanger);
         return;
       }
       _razorpay.open({
@@ -87,7 +88,7 @@ class _AddMoneySheetState extends ConsumerState<AddMoneySheet> {
         'amount': order['amount'],
         'order_id': orderId,
         'currency': order['currency'] ?? 'INR',
-        'name': 'Stitch Craft Learn',
+        'name': Brand.checkoutName,
         'description': 'Wallet top-up',
         'prefill': {
           'contact': auth.user?.phone ?? '',
@@ -95,7 +96,7 @@ class _AddMoneySheetState extends ConsumerState<AddMoneySheet> {
         },
       });
     } catch (e) {
-      _snack('Could not initiate payment: $e', color: kTerracotta);
+      _snack('Could not initiate payment: $e', color: kDanger);
     } finally {
       if (mounted) setState(() => _isPaying = false);
     }
@@ -113,7 +114,7 @@ class _AddMoneySheetState extends ConsumerState<AddMoneySheet> {
               razorpaySignature: signature,
             );
       }
-      _snack('Money added to your wallet!', color: kSage);
+      _snack('Money added to your wallet!', color: kSuccess);
     } catch (_) {
       // Server webhook still credits the topup even if verify fails here.
       _snack('Payment received — your wallet will be credited shortly.');
@@ -126,7 +127,7 @@ class _AddMoneySheetState extends ConsumerState<AddMoneySheet> {
 
   void _handleFailure(PaymentFailureResponse response) {
     _snack('Payment failed: ${response.message ?? 'Unknown error'}',
-        color: kTerracotta);
+        color: kDanger);
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
@@ -185,7 +186,7 @@ class _AddMoneySheetState extends ConsumerState<AddMoneySheet> {
             child: ElevatedButton(
               onPressed: _isPaying || _amountInPaise == null ? null : _pay,
               style: ElevatedButton.styleFrom(
-                backgroundColor: kGold,
+                backgroundColor: kPrimary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(

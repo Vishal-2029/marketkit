@@ -206,7 +206,7 @@ class _PostHeader extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: kGold.withOpacity(0.12),
+                  color: kPrimary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(50),
                 ),
                 child: Text(
@@ -214,15 +214,15 @@ class _PostHeader extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: kGold,
+                    color: kPrimary,
                   ),
                 ),
               ),
               const Spacer(),
-              const Icon(Icons.person_outline, size: 13, color: kGold),
+              const Icon(Icons.person_outline, size: 13, color: kPrimary),
               const SizedBox(width: 4),
               Text(post.anonName,
-                  style: const TextStyle(fontSize: 12, color: kGold, fontWeight: FontWeight.w500)),
+                  style: const TextStyle(fontSize: 12, color: kPrimary, fontWeight: FontWeight.w500)),
             ],
           ),
           const SizedBox(height: 10),
@@ -434,10 +434,10 @@ class _ReplyBar extends StatelessWidget {
                   ? const SizedBox(
                       width: 40,
                       height: 40,
-                      child: CircularProgressIndicator(color: kGold, strokeWidth: 2.5),
+                      child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2.5),
                     )
                   : IconButton(
-                      icon: const Icon(Icons.send_rounded, color: kGold),
+                      icon: const Icon(Icons.send_rounded, color: kPrimary),
                       onPressed: onSend,
                     ),
             ],

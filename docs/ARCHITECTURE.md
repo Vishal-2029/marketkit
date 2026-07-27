@@ -1,4 +1,4 @@
-# Design Express — Full Architecture & Services Guide
+# MarketKit — Full Architecture & Services Guide
 
 This document covers every service, module, screen, and external integration in the platform.
 It explains **what** each part does and **why** it exists.
@@ -33,7 +33,7 @@ It explains **what** each part does and **why** it exists.
 
 ## 1. System Overview
 
-**Design Express** is a video-based embroidery learning platform with three layers:
+**MarketKit** is a marketplace starter kit with three layers:
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -245,7 +245,7 @@ All routes are split into two groups:
 - `PUBLISHED` — visible to students with appropriate subscription
 - `ERROR` — upload/processing failed, can retry
 
-**Video categories:** `WILLCOM`, `E4`, `MECAD` — each maps to a subscription plan feature flag.
+**Video categories:** `CATEGORY_A`, `CATEGORY_B`, `CATEGORY_C` — each doubles as a plan feature key. Rename them in `api/internal/models/video.go`.
 
 **Streaming:** Videos are never served directly by the API. The API generates a **signed URL** with a 2-hour expiry. The client (mobile app or browser) uses that URL to stream directly from storage (R2/S3). This means the API handles no video bandwidth.
 
@@ -266,9 +266,7 @@ All routes are split into two groups:
 - `is_free = true` → all logged-in users can watch
 - `is_preview = true` → all logged-in users can watch (marketing)
 - Otherwise → user needs an active subscription whose plan covers that video's category
-  - Category `WILLCOM` → plan needs `has_willcom = true`
-  - Category `E4` → plan needs `has_e4 = true`
-  - Category `MECAD` → plan needs `has_mecad = true`
+  - A video is accessible when its category key appears in `Plan.features`
 
 ---
 
@@ -301,9 +299,9 @@ Returns all active subscription plans — no authentication. Used by the mobile 
 | DELETE | `/plans/:id` | Delete a plan |
 
 **Plan feature flags:** Each plan can have one or more categories enabled:
-- `has_willcom` — Access to Willcom embroidery videos
-- `has_e4` — Access to E4 embroidery videos
-- `has_mecad` — Access to meCAD embroidery videos
+- `features` — string array of feature keys the plan grants
+
+
 
 **Pricing:** Stored in paise (1 rupee = 100 paise) to avoid floating-point issues.
 `duration_days` controls how long the subscription lasts after activation.
@@ -507,7 +505,7 @@ Events logged: `admin_login`, `admin_logout`, `user_login`, `user_logout`, `user
 
 **Target platforms:** Android and iOS from a single codebase
 
-**App name:** Design Express
+**App name:** MarketKit
 
 ### Screens & Features
 
@@ -525,12 +523,12 @@ Events logged: `admin_login`, `admin_logout`, `user_login`, `user_logout`, `user
 The home screen shows:
 - Featured videos (previews/free videos)
 - Subscription status banner
-- Quick category navigation (Willcom, E4, meCAD)
+- Quick category navigation
 - Recent community activity
 
 #### Library
 - Browse all published videos
-- Filter by category (Willcom, E4, meCAD)
+- Filter by category
 - Locked icon on videos the user doesn't have access to
 - Tap a locked video → redirected to Plans screen
 
@@ -729,7 +727,7 @@ All tables use UUID primary keys (except `notification_logs` and `user_notificat
 | `refresh_tokens` | Admin long-lived tokens | `admin_id`, `token_hash`, `expires_at`, `revoked` |
 | `user_refresh_tokens` | User long-lived tokens | `user_id`, `token_hash`, `expires_at`, `revoked` |
 | `user_sessions` | Active user login sessions | `user_id`, `device_info`, `ip_address`, `jwt_jti`, `last_active_at`, `revoked_at` |
-| `plans` | Subscription plans | `name`, `price_in_paise`, `duration_days`, `has_willcom`, `has_e4`, `has_mecad`, `is_active` |
+| `plans` | Subscription plans | `name`, `price_in_paise`, `duration_days`, `features`, `is_active` |
 | `subscriptions` | User subscription records | `user_id`, `plan_id`, `status` (ACTIVE/EXPIRED/SUSPENDED/CANCELLED), `expiry_date` |
 | `payments` | Payment transactions | `user_id`, `amount_paise`, `gateway` (RAZORPAY/MANUAL), `status`, `razorpay_payment_id` |
 | `videos` | Video content | `title`, `category`, `status`, `file_key`, `thumbnail_url`, `is_free`, `is_preview` |

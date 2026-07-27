@@ -190,7 +190,7 @@ export default function MarketPlanPaymentsPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
-                        <StatusBadge variant="gold">
+                        <StatusBadge variant="brand">
                           {p.plan?.name ?? "—"}
                         </StatusBadge>
                       </td>
@@ -200,7 +200,7 @@ export default function MarketPlanPaymentsPage() {
                       <td className="px-4 py-3 hidden md:table-cell">
                         <StatusBadge
                           variant={
-                            p.gateway === "WALLET" ? "neutral" : "gold"
+                            p.gateway === "WALLET" ? "neutral" : "brand"
                           }
                         >
                           {p.gateway}
@@ -292,7 +292,7 @@ export default function MarketPlanPaymentsPage() {
                 <div>
                   <p className="text-muted-foreground mb-1">Gateway</p>
                   <StatusBadge
-                    variant={detail.gateway === "WALLET" ? "neutral" : "gold"}
+                    variant={detail.gateway === "WALLET" ? "neutral" : "brand"}
                   >
                     {detail.gateway}
                   </StatusBadge>

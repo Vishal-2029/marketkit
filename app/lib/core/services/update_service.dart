@@ -79,7 +79,7 @@ class UpdateService {
     CancelToken? cancelToken,
   }) async {
     final dir = await getTemporaryDirectory();
-    final savePath = '${dir.path}/design_express_update.apk';
+    final savePath = '${dir.path}/marketkit_update.apk';
 
     await _dio.download(
       url,

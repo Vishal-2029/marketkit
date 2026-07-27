@@ -1,4 +1,4 @@
-# Design Express - Troubleshooting Guide
+# MarketKit - Troubleshooting Guide
 
 ## If App Crashes on Startup
 
@@ -8,11 +8,11 @@
 
 **Fix:**
 1. Uninstall app completely
-2. Clear app cache: Settings → Apps → Design Express → Storage → Clear Cache
+2. Clear app cache: Settings → Apps → MarketKit → Storage → Clear Cache
 3. Reinstall APK
 4. If still crashes, check:
    ```bash
-   adb logcat --pid=$(adb shell pidof com.designexpress.stitch_craft_learn) 2>/dev/null | grep -E "FATAL|Exception|Error"
+   adb logcat --pid=$(adb shell pidof com.example.marketkit) 2>/dev/null | grep -E "FATAL|Exception|Error"
    ```
 
 ---

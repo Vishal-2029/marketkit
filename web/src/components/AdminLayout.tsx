@@ -377,14 +377,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <img src="/icon.jpg" alt="Logo" className="w-7 h-7 rounded-lg shadow-sm object-contain" />
-          <span className="font-semibold text-foreground text-sm">Embroidery Admin</span>
+          <img src="/icon.svg" alt="MarketKit" className="w-7 h-7 rounded-lg shadow-sm object-contain" />
+          <span className="font-semibold text-foreground text-sm">MarketKit</span>
         </div>
         <div className="flex items-center gap-2">
           <BellDropdown />
           <Link to="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <span className="text-sm text-foreground hidden sm:block">{admin ? `${admin.first_name} ${admin.last_name}` : ""}</span>
-            <div className="w-8 h-8 rounded-full shadow-gold ring-2 ring-background overflow-hidden shrink-0">
+            <div className="w-8 h-8 rounded-full shadow-brand ring-2 ring-background overflow-hidden shrink-0">
               {admin?.avatar_url ? (
                 <img src={admin.avatar_url} alt="Profile" className="w-full h-full object-cover" />
               ) : (

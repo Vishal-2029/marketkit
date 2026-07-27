@@ -37,8 +37,8 @@ const LABELS: Record<string, string> = {
 export const categoryLabel = (key: string): string => LABELS[key] ?? key;
 
 /** Badge variant per category, for list and detail views. */
-const BADGE_VARIANTS: Record<string, "gold" | "info" | "purple"> = {
-  CATEGORY_A: "gold",
+const BADGE_VARIANTS: Record<string, "brand" | "info" | "purple"> = {
+  CATEGORY_A: "brand",
   CATEGORY_B: "info",
   CATEGORY_C: "purple",
 };

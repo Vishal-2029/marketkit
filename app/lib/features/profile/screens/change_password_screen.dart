@@ -118,7 +118,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: kGold,
+                      backgroundColor: kPrimary,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -150,7 +150,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
       InputDecoration(
         labelText: label,
         prefixIcon:
-            const Icon(Icons.lock_outline_rounded, color: kGold, size: 20),
+            const Icon(Icons.lock_outline_rounded, color: kPrimary, size: 20),
         suffixIcon: IconButton(
           icon: Icon(
             visible
@@ -174,7 +174,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: kGold),
+          borderSide: const BorderSide(color: kPrimary),
         ),
       );
 }

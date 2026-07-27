@@ -13,7 +13,7 @@ class DownloadButton extends ConsumerWidget {
   final VideoModel video;
 
   /// When true the icon renders white (for use on dark surfaces like the video
-  /// player). When false it renders kGold / kMutedForeground (for light cards).
+  /// player). When false it renders kPrimary / kMutedForeground (for light cards).
   final bool darkBackground;
 
   const DownloadButton({
@@ -42,7 +42,7 @@ class DownloadButton extends ConsumerWidget {
               CircularProgressIndicator(
                 value: p > 0 ? p : null,
                 strokeWidth: 2,
-                color: kGold,
+                color: kPrimary,
                 backgroundColor: darkBackground ? Colors.white24 : Colors.black12,
               ),
               if (p > 0)
@@ -66,7 +66,7 @@ class DownloadButton extends ConsumerWidget {
     if (state.isDownloaded(video.id)) {
       return IconButton(
         tooltip: 'Downloaded — tap to remove',
-        icon: const Icon(Icons.download_done_rounded, color: kGold),
+        icon: const Icon(Icons.download_done_rounded, color: kPrimary),
         onPressed: () => _confirmRemove(context, notifier),
       );
     }
@@ -111,7 +111,7 @@ class DownloadButton extends ConsumerWidget {
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 24),
                     child: Center(
-                      child: CircularProgressIndicator(color: kGold, strokeWidth: 2),
+                      child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2),
                     ),
                   ),
                 ];
@@ -121,7 +121,7 @@ class DownloadButton extends ConsumerWidget {
                 optionTiles = _fallbackQualities
                     .map((q) => ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.high_quality_outlined, color: kGold),
+                          leading: const Icon(Icons.high_quality_outlined, color: kPrimary),
                           title: Text(q,
                               style: const TextStyle(
                                   fontWeight: FontWeight.w600, fontSize: 14)),
@@ -132,7 +132,7 @@ class DownloadButton extends ConsumerWidget {
                 optionTiles = qualities!
                     .map((q) => ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.high_quality_outlined, color: kGold),
+                          leading: const Icon(Icons.high_quality_outlined, color: kPrimary),
                           title: Text(q.quality,
                               style: const TextStyle(
                                   fontWeight: FontWeight.w600, fontSize: 14)),

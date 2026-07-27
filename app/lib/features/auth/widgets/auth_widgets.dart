@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import 'package:marketkit/core/config/brand.dart';
 export '../../../shared/widgets/auth_animated_background.dart';
 
 class AuthLogo extends StatelessWidget {
@@ -25,7 +26,7 @@ class AuthLogo extends StatelessWidget {
           height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: kGold, width: 1.5),
+            border: Border.all(color: kPrimary, width: 1.5),
             color: Colors.white,
           ),
           child: ClipOval(
@@ -35,7 +36,7 @@ class AuthLogo extends StatelessWidget {
         if (showTitle) ...[
           SizedBox(height: size > 100 ? 16 : 10),
           Text(
-            'Design Express',
+            Brand.name,
             style: TextStyle(
               fontSize: titleFontSize,
               fontWeight: FontWeight.w700,
@@ -177,7 +178,7 @@ class AuthField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: kGold, width: 1.5),
+          borderSide: const BorderSide(color: kPrimary, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
@@ -198,7 +199,7 @@ class GoldButton extends StatelessWidget {
       child: Container(
         height: 52,
         decoration: BoxDecoration(
-          color: onTap != null ? kGold : const Color(0xFFD4C4A8),
+          color: onTap != null ? kPrimary : kAccentSoft,
           borderRadius: BorderRadius.circular(12),
         ),
         alignment: Alignment.center,

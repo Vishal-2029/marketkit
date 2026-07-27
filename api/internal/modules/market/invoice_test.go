@@ -28,8 +28,8 @@ func TestBuildInvoicePDF_ProducesValidPDF(t *testing.T) {
 		Buyer:            models.User{Name: "Test Buyer", Email: "buyer@example.com"},
 		Seller:           models.User{Name: "Test Seller", Email: "seller@example.com"},
 		Product: models.Product{
-			Title:    "Rose Embroidery Pattern",
-			FileName: "rose.dst",
+			Title:    "Sample Product Pack",
+			FileName: "sample-pack.zip",
 			// No PreviewKeys, so buildInvoicePDF skips the network image fetch.
 		},
 	}

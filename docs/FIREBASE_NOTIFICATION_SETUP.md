@@ -1,16 +1,16 @@
 # Firebase Push Notification Setup — End to End
 
-> **Project:** StitchCraftLearn (Design Express)
+> **Project:** MarketKit
 > **Stack:** Flutter app + Go backend + Docker on example.com
-> **Android package:** `com.example.stitch_craft_learn`
-> **iOS bundle:** `com.example.stitchcraftlearn`
+> **Android package:** `com.example.marketkit`
+> **iOS bundle:** `com.example.marketkit`
 
 ---
 
 ## Overview
 
 ```
-Firebase project "Design Express"
+Firebase project "MarketKit"
 ├── Android app  →  google-services.json        →  app/android/app/
 ├── iOS app      →  GoogleService-Info.plist    →  app/ios/Runner/
 └── Service account  →  firebase-service-account.json  →  api/  (live server only)
@@ -26,7 +26,7 @@ All three share the same Firebase project so one service account covers all plat
 
 1. Go to [https://console.firebase.google.com](https://console.firebase.google.com)
 2. Click **"Add project"**
-3. Project name: `Design Express`
+3. Project name: `MarketKit`
 4. Click **Continue**
 5. Google Analytics: enable or disable (does not affect notifications)
 6. Click **"Create project"** → wait for it to finish → click **Continue**
@@ -37,8 +37,8 @@ All three share the same Firebase project so one service account covers all plat
 
 1. On the project overview page, click the **Android icon** ( `</>` → Android)
 2. Fill in:
-   - **Android package name:** `com.example.stitch_craft_learn`
-   - App nickname: `StitchCraft Android` (optional)
+   - **Android package name:** `com.example.marketkit`
+   - App nickname: `MarketKit Android` (optional)
    - Debug signing certificate SHA-1: skip for now
 3. Click **"Register app"**
 4. Click **"Download google-services.json"**
@@ -51,8 +51,8 @@ All three share the same Firebase project so one service account covers all plat
 
 1. On the project overview page, click **"Add app"** → select **iOS icon**
 2. Fill in:
-   - **iOS bundle ID:** `com.example.stitchcraftlearn`
-   - App nickname: `StitchCraft iOS` (optional)
+   - **iOS bundle ID:** `com.example.marketkit`
+   - App nickname: `MarketKit iOS` (optional)
 3. Click **"Register app"**
 4. Click **"Download GoogleService-Info.plist"**
 5. Save this file — you will place it in the repo in Part 2
@@ -114,7 +114,7 @@ Open `app/lib/firebase_options.dart` and replace ALL content with the values
 from your new Firebase project. Get the values from:
 
 ```
-Firebase Console → Design Express → ⚙️ Project Settings → General tab → Your apps
+Firebase Console → MarketKit → ⚙️ Project Settings → General tab → Your apps
 ```
 
 ```dart
@@ -162,7 +162,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: 'YOUR_SENDER_ID',        // ← from GoogleService-Info.plist → GCM_SENDER_ID
     projectId: 'YOUR_PROJECT_ID',               // ← from GoogleService-Info.plist → PROJECT_ID
     storageBucket: 'YOUR_STORAGE_BUCKET',
-    iosBundleId: 'com.example.stitchcraftlearn',
+    iosBundleId: 'com.example.marketkit',
   );
 }
 ```
@@ -189,7 +189,7 @@ class DefaultFirebaseOptions {
 
 ```bash
 git add app/lib/firebase_options.dart
-git commit -m "chore: update Firebase config to Design Express project"
+git commit -m "chore: update Firebase config to MarketKit project"
 git push origin main
 ```
 

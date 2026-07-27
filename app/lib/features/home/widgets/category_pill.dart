@@ -21,9 +21,9 @@ class CategoryPill extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         decoration: BoxDecoration(
-          color: active ? kGold : kCard,
+          color: active ? kPrimary : kCard,
           borderRadius: BorderRadius.circular(50),
-          border: Border.all(color: active ? kGold : kBorder),
+          border: Border.all(color: active ? kPrimary : kBorder),
         ),
         child: Text(
           label,

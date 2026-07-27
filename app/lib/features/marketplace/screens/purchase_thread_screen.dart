@@ -106,7 +106,7 @@ class _PurchaseThreadScreenState extends ConsumerState<PurchaseThreadScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: kGold.withValues(alpha: 0.08),
+              color: kPrimary.withValues(alpha: 0.08),
               child: const Text(
                 'Only you and the admin can see this conversation.',
                 style: TextStyle(fontSize: 12, color: kMutedForeground),
@@ -115,7 +115,7 @@ class _PurchaseThreadScreenState extends ConsumerState<PurchaseThreadScreen> {
             Expanded(
               child: _isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(color: kGold, strokeWidth: 2))
+                      child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2))
                   : _messages.isEmpty
                       ? const Center(
                           child: Padding(
@@ -138,7 +138,7 @@ class _PurchaseThreadScreenState extends ConsumerState<PurchaseThreadScreen> {
                                   horizontal: 10, vertical: 8),
                               decoration: BoxDecoration(
                                 color: m.isAdmin
-                                    ? kGold.withValues(alpha: 0.08)
+                                    ? kPrimary.withValues(alpha: 0.08)
                                     : kCard,
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(color: kBorder),
@@ -150,7 +150,7 @@ class _PurchaseThreadScreenState extends ConsumerState<PurchaseThreadScreen> {
                                     children: [
                                       if (m.isAdmin)
                                         const Icon(Icons.support_agent,
-                                            size: 14, color: kGold),
+                                            size: 14, color: kPrimary),
                                       if (m.isAdmin) const SizedBox(width: 4),
                                       Text(
                                         m.isAdmin ? '${m.userName} (Admin)' : m.userName,
@@ -216,13 +216,13 @@ class _PurchaseThreadScreenState extends ConsumerState<PurchaseThreadScreen> {
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
-                                  color: kGold, strokeWidth: 2),
+                                  color: kPrimary, strokeWidth: 2),
                             ),
                           ),
                         )
                       : IconButton(
                           icon: const Icon(Icons.send_rounded),
-                          color: kGold,
+                          color: kPrimary,
                           onPressed: _post,
                           tooltip: 'Send',
                         ),

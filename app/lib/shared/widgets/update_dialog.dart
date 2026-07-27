@@ -73,12 +73,12 @@ class _UpdateDialogState extends State<UpdateDialog> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: kTerracotta.withValues(alpha: 0.1),
+                  color: kDanger.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Text(
                   'This update is required to continue using the app.',
-                  style: TextStyle(fontSize: 12, color: kTerracotta),
+                  style: TextStyle(fontSize: 12, color: kDanger),
                 ),
               ),
             if (widget.info.releaseNotes.isNotEmpty) ...[
@@ -93,7 +93,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
               const SizedBox(height: 16),
               LinearProgressIndicator(
                 value: _progress,
-                color: kGold,
+                color: kPrimary,
                 backgroundColor: kMuted,
               ),
               const SizedBox(height: 6),
@@ -107,7 +107,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
               const SizedBox(height: 12),
               const Text(
                 'Download complete. Opening installer…',
-                style: TextStyle(fontSize: 13, color: kSage),
+                style: TextStyle(fontSize: 13, color: kSuccess),
               ),
             ],
             if (_error != null) ...[
@@ -115,7 +115,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
               Text(
                 _error!,
                 style:
-                    const TextStyle(color: kTerracotta, fontSize: 13),
+                    const TextStyle(color: kDanger, fontSize: 13),
               ),
             ],
           ],
@@ -129,7 +129,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
           if (_progress == null || _error != null)
             FilledButton(
               onPressed: _startDownload,
-              style: FilledButton.styleFrom(backgroundColor: kGold),
+              style: FilledButton.styleFrom(backgroundColor: kPrimary),
               child: Text(_error != null ? 'Retry' : 'Update Now'),
             ),
         ],

@@ -108,7 +108,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 24),
                     child: Center(
-                      child: CircularProgressIndicator(color: kGold, strokeWidth: 2),
+                      child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2),
                     ),
                   ),
                 ];
@@ -119,7 +119,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                 optionTiles = _fallbackQualities
                     .map((q) => ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.high_quality_outlined, color: kGold),
+                          leading: const Icon(Icons.high_quality_outlined, color: kPrimary),
                           title: Text(q,
                               style: const TextStyle(
                                   fontWeight: FontWeight.w600, fontSize: 14)),
@@ -130,7 +130,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
                 optionTiles = qualities!
                     .map((q) => ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.high_quality_outlined, color: kGold),
+                          leading: const Icon(Icons.high_quality_outlined, color: kPrimary),
                           title: Text(q.quality,
                               style: const TextStyle(
                                   fontWeight: FontWeight.w600, fontSize: 14)),
@@ -327,10 +327,10 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
     if (allDownloaded) {
       return Row(
         children: const [
-          Icon(Icons.download_done_rounded, size: 16, color: kGold),
+          Icon(Icons.download_done_rounded, size: 16, color: kPrimary),
           SizedBox(width: 6),
           Text('All videos downloaded',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: kGold)),
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: kPrimary)),
         ],
       );
     }
@@ -345,7 +345,7 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
               value: totalCount > 0 ? downloadedCount / totalCount : 0,
               minHeight: 4,
               backgroundColor: kMuted,
-              color: kGold,
+              color: kPrimary,
             ),
           ),
           const SizedBox(height: 6),
@@ -374,8 +374,8 @@ class _PlaylistDetailScreenState extends ConsumerState<PlaylistDetailScreen> {
       child: OutlinedButton.icon(
         onPressed: _downloadAll,
         style: OutlinedButton.styleFrom(
-          foregroundColor: kGold,
-          side: const BorderSide(color: kGold),
+          foregroundColor: kPrimary,
+          side: const BorderSide(color: kPrimary),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           minimumSize: Size.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -486,7 +486,7 @@ class _VideoTile extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: kGold.withValues(alpha: 0.12),
+                          color: kPrimary.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -494,7 +494,7 @@ class _VideoTile extends StatelessWidget {
                           style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
-                              color: kGold),
+                              color: kPrimary),
                         ),
                       ),
                       if (video.durationSeconds > 0) ...[
@@ -517,7 +517,7 @@ class _VideoTile extends StatelessWidget {
               video.accessible
                   ? Icons.play_circle_outline_rounded
                   : Icons.lock_outline_rounded,
-              color: video.accessible ? kGold : kMutedForeground,
+              color: video.accessible ? kPrimary : kMutedForeground,
               size: 22,
             ),
           ],

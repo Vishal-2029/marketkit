@@ -1,6 +1,6 @@
 # Push Notifications — Reference Guide
 
-> **Project:** StitchCraftLearn  
+> **Project:** MarketKit  
 > **Stack:** Go (Fiber) API + Flutter App  
 > **Service:** Firebase Cloud Messaging (FCM) V1 API  
 > **Last updated:** April 2026
@@ -52,7 +52,7 @@ Flutter app receives it:
 - **FCM package:** `api/internal/fcm/fcm.go`
 - Uses **FCM HTTP V1 API** (not the deprecated legacy API)
 - Authenticates via **OAuth2 service account** (not a server key)
-- Endpoint: `https://fcm.googleapis.com/v1/projects/stitchcraftlearn/messages:send`
+- Endpoint: `https://fcm.googleapis.com/v1/projects/your-firebase-project/messages:send`
 - Credentials loaded lazily on first use from `firebase-service-account.json`
 - FCM calls run in a **goroutine** (`go fcm.SendToAll(...)`) so they never block the API response
 
@@ -187,14 +187,14 @@ docker compose logs api | grep fcm
 ### Step 2: Flutter Android — google-services.json
 
 1. Firebase Console → Project settings → **General** tab
-2. Under "Your apps", select the Android app (`com.example.stitch_craft_learn`)
+2. Under "Your apps", select the Android app (`com.example.marketkit`)
 3. Click **"Download google-services.json"**
 4. Place it at: `app/android/app/google-services.json`
 
 ### Step 3: Flutter iOS — GoogleService-Info.plist
 
 1. Firebase Console → Project settings → **General** tab
-2. Under "Your apps", select the iOS app (`com.example.stitchcraftlearn`)
+2. Under "Your apps", select the iOS app (`com.example.marketkit`)
 3. Click **"Download GoogleService-Info.plist"**
 4. Place it at: `app/ios/Runner/GoogleService-Info.plist`
 

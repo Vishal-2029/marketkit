@@ -9,7 +9,7 @@
 -keep class io.flutter.embedding.** { *; }
 
 # Keep Flutter app components
--keep class com.designexpress.stitch_craft_learn.** { *; }
+-keep class com.example.marketkit.** { *; }
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Firebase

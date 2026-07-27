@@ -4543,7 +4543,7 @@ paths:
         name: price_in_paise
         required: true
         type: integer
-      - description: Embroidery machine file (.dst/.pes/...)
+      - description: Product file (.pdf/.zip/.png/...)
         in: formData
         name: file
         required: true

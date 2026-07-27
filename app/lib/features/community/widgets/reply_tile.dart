@@ -17,13 +17,13 @@ class ReplyTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.person, size: 13, color: kGold),
+              const Icon(Icons.person, size: 13, color: kPrimary),
               const SizedBox(width: 4),
               Text(
                 reply.anonName,
                 style: const TextStyle(
                   fontSize: 12,
-                  color: kGold,
+                  color: kPrimary,
                   fontWeight: FontWeight.w500,
                 ),
               ),

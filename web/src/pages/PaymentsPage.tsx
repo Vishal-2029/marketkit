@@ -204,11 +204,11 @@ export default function PaymentsPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
-                    <StatusBadge variant="gold">{p.plan?.name ?? "—"}</StatusBadge>
+                    <StatusBadge variant="brand">{p.plan?.name ?? "—"}</StatusBadge>
                   </td>
                   <td className="px-4 py-3 text-sm font-semibold text-foreground">{fmt(p.amount_in_paise)}</td>
                   <td className="px-4 py-3 hidden md:table-cell">
-                    <StatusBadge variant={p.gateway === "MANUAL" ? "neutral" : "gold"}>{p.gateway}</StatusBadge>
+                    <StatusBadge variant={p.gateway === "MANUAL" ? "neutral" : "brand"}>{p.gateway}</StatusBadge>
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge variant={statusVariant(p.status)}>{statusLabel(p.status)}</StatusBadge>

@@ -7,6 +7,7 @@ import '../../../shared/widgets/auth_animated_background.dart';
 import '../../../shared/widgets/update_dialog.dart'; // still needed for mandatory updates
 import '../providers/auth_provider.dart';
 import '../widgets/auth_widgets.dart';
+import 'package:marketkit/core/theme/app_colors.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -118,14 +119,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   const AuthLogo(
                     size: 190,
                     titleFontSize: 26,
-                    titleColor: Color(0xFF7A2E2E),
+                    titleColor: kPrimary,
                   ),
                   const SizedBox(height: 32),
                   const SizedBox(
                     width: 28,
                     height: 28,
                     child: CircularProgressIndicator(
-                      color: Color(0xFF7A2E2E),
+                      color: kPrimary,
                       strokeWidth: 2.5,
                     ),
                   ),

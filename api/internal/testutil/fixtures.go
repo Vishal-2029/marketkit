@@ -116,8 +116,8 @@ func MustCreateProduct(t *testing.T, tx *gorm.DB, sellerID string, priceInPaise 
 		SellerID:     sellerID,
 		Title:        "Test Product " + strconv.FormatInt(n, 10),
 		PriceInPaise: priceInPaise,
-		FileKey:      "products/test-" + strconv.FormatInt(n, 10) + ".dst",
-		FileName:     "test-" + strconv.FormatInt(n, 10) + ".dst",
+		FileKey:      "products/test-" + strconv.FormatInt(n, 10) + ".zip",
+		FileName:     "test-" + strconv.FormatInt(n, 10) + ".zip",
 		IsActive:     true,
 	}
 	require.NoError(t, tx.Create(&d).Error)

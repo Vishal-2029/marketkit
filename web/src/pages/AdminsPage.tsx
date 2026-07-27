@@ -125,7 +125,7 @@ export default function AdminsPage() {
                     <div className="flex items-center gap-2">
                       <span>{admin.first_name} {admin.last_name}</span>
                       {admin.is_super && (
-                        <StatusBadge variant="gold">Super</StatusBadge>
+                        <StatusBadge variant="brand">Super</StatusBadge>
                       )}
                     </div>
                   </td>

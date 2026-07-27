@@ -11,13 +11,13 @@ class PlanBanner extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: kCream.withOpacity(0.4),
+        color: kAccentSoft.withOpacity(0.4),
         borderRadius: BorderRadius.circular(14),
-        border: Border(left: BorderSide(color: kGold, width: 3)),
+        border: Border(left: BorderSide(color: kPrimary, width: 3)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.workspace_premium_rounded, color: kGold, size: 28),
+          const Icon(Icons.workspace_premium_rounded, color: kPrimary, size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -45,7 +45,7 @@ class PlanBanner extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                gradient: kGoldGradient,
+                gradient: kPrimaryGradient,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Text(

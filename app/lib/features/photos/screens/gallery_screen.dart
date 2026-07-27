@@ -1,4 +1,4 @@
-import 'package:design_express/core/config/feature_catalog.dart';
+import 'package:marketkit/core/config/feature_catalog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -370,7 +370,7 @@ class _GalleryViewerState extends State<_GalleryViewer> {
               imageUrl: widget.resolveUrl(widget.photos[i]),
               fit: BoxFit.contain,
               placeholder: (context, url) =>
-                  const CircularProgressIndicator(color: kGold),
+                  const CircularProgressIndicator(color: kPrimary),
               errorWidget: (context, url, error) => const Icon(
                   Icons.broken_image_outlined,
                   color: Colors.white54,

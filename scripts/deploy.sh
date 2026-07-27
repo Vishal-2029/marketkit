@@ -34,7 +34,7 @@ docker run --rm \
 echo "==> Starting stack (docker compose up -d --build)..."
 if [[ ! -f "${ROOT_DIR}/api/secrets/firebase-service-account.json" ]]; then
   echo "WARNING: api/secrets/firebase-service-account.json is missing — push notifications will not be sent." >&2
-  echo "         Download from Firebase Console (Design Express project) → Service accounts → Generate new private key." >&2
+  echo "         Download from Firebase Console → Project settings → Service accounts → Generate new private key." >&2
 fi
 docker compose up -d --build
 

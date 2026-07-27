@@ -27,7 +27,7 @@ class ProductFavoriteButton extends ConsumerWidget {
         child: Icon(
           isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
           size: 16,
-          color: isFavorite ? kGold : Colors.white,
+          color: isFavorite ? kPrimary : Colors.white,
         ),
       ),
     );

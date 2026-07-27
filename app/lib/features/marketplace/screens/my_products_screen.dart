@@ -30,7 +30,7 @@ class MyProductsScreen extends ConsumerWidget {
         ),
       ),
       body: RefreshIndicator(
-        color: kGold,
+        color: kPrimary,
         onRefresh: () async {
           ref.invalidate(myProductsProvider);
           ref.invalidate(earningsProvider);
@@ -77,7 +77,7 @@ class MyProductsScreen extends ConsumerWidget {
             );
           },
           loading: () => const Center(
-            child: CircularProgressIndicator(color: kGold, strokeWidth: 2),
+            child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2),
           ),
           error: (_, __) => const Center(
             child: Text(
@@ -102,7 +102,7 @@ class _EarningsSummary extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: kGoldGradient,
+        gradient: kPrimaryGradient,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -240,7 +240,7 @@ class _BarRow extends StatelessWidget {
                 Container(
                   height: 8,
                   width: constraints.maxWidth * fraction,
-                  color: kGold,
+                  color: kPrimary,
                 ),
               ],
             ),
@@ -272,7 +272,7 @@ class _MyProductCard extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Remove', style: TextStyle(color: kTerracotta)),
+            child: const Text('Remove', style: TextStyle(color: kDanger)),
           ),
         ],
       ),
@@ -387,7 +387,7 @@ class _MyProductCard extends ConsumerWidget {
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: kGold,
+                      color: kPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -405,7 +405,7 @@ class _MyProductCard extends ConsumerWidget {
               icon: const Icon(
                 Icons.delete_outline,
                 size: 20,
-                color: kTerracotta,
+                color: kDanger,
               ),
               onPressed: () => _confirmDelete(context, ref),
             ),

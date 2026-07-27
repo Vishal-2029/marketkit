@@ -1,4 +1,4 @@
-import 'package:design_express/core/config/feature_catalog.dart';
+import 'package:marketkit/core/config/feature_catalog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +14,7 @@ import '../../../shared/widgets/profile_header.dart';
 import '../../../shared/widgets/update_dialog.dart';
 import '../../auth/models/subscription_model.dart';
 import '../../auth/providers/auth_provider.dart';
+import 'package:marketkit/core/config/brand.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -217,10 +218,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   secondary: const Icon(
                     Icons.notifications_outlined,
-                    color: kGold,
+                    color: kPrimary,
                     size: 20,
                   ),
-                  activeColor: kGold,
+                  activeColor: kPrimary,
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 ),
@@ -233,25 +234,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 MenuTile(
                   icon: Icons.help_outline_rounded,
                   label: 'Help & Support',
-                  onTap: () => _launchUrl('mailto:support@stitchcraft.app'),
+                  onTap: () => _launchUrl('mailto:${Brand.supportEmail}'),
                 ),
                 const MenuDivider(),
                 MenuTile(
                   icon: Icons.policy_outlined,
                   label: 'Terms & Privacy Policy',
-                  onTap: () => _launchUrl('https://stitchcraft.app/privacy'),
+                  onTap: () => _launchUrl(Brand.privacyPolicyUrl),
                 ),
                 const MenuDivider(),
                 if (_availableUpdate != null)
                   MenuTile(
                     icon: Icons.system_update_rounded,
-                    iconColor: kGold,
+                    iconColor: kPrimary,
                     label: 'Update Available',
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: kGold.withValues(alpha: 0.12),
+                        color: kPrimary.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -259,7 +260,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: kGold,
+                          color: kPrimary,
                         ),
                       ),
                     ),
@@ -287,8 +288,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: kTerracotta,
-                    side: const BorderSide(color: kTerracotta),
+                    foregroundColor: kDanger,
+                    side: const BorderSide(color: kDanger),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -356,7 +357,7 @@ class _SubscriptionCard extends StatelessWidget {
             ),
             TextButton(
               onPressed: () => context.go('/plans'),
-              child: const Text('View Plans', style: TextStyle(color: kGold)),
+              child: const Text('View Plans', style: TextStyle(color: kPrimary)),
             ),
           ],
         ),
@@ -389,7 +390,7 @@ class _SingleSubscriptionCard extends StatelessWidget {
         color: kCard,
         borderRadius: BorderRadius.circular(14),
         border: const Border(
-          left: BorderSide(color: kSage, width: 4),
+          left: BorderSide(color: kSuccess, width: 4),
         ),
         boxShadow: [
           BoxShadow(
@@ -405,7 +406,7 @@ class _SingleSubscriptionCard extends StatelessWidget {
           Row(
             children: [
               const Icon(Icons.workspace_premium_rounded,
-                  color: kSage, size: 20),
+                  color: kSuccess, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -421,7 +422,7 @@ class _SingleSubscriptionCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
-                  color: kSage.withOpacity(0.12),
+                  color: kSuccess.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
@@ -429,7 +430,7 @@ class _SingleSubscriptionCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: kSage,
+                    color: kSuccess,
                   ),
                 ),
               ),
@@ -479,7 +480,7 @@ class _FeatureBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: enabled ? kSage.withOpacity(0.12) : kMuted,
+        color: enabled ? kSuccess.withOpacity(0.12) : kMuted,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
@@ -487,7 +488,7 @@ class _FeatureBadge extends StatelessWidget {
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: enabled ? kSage : kMutedForeground,
+          color: enabled ? kSuccess : kMutedForeground,
         ),
       ),
     );

@@ -8,11 +8,11 @@ ThemeData buildAppTheme() {
   return base.copyWith(
     scaffoldBackgroundColor: kBackground,
     colorScheme: base.colorScheme.copyWith(
-      primary: kGold,
+      primary: kPrimary,
       onPrimary: Colors.white,
-      secondary: kCream,
+      secondary: kAccentSoft,
       onSecondary: kForeground,
-      error: kTerracotta,
+      error: kDanger,
       surface: kCard,
       onSurface: kForeground,
     ),
@@ -53,21 +53,21 @@ ThemeData buildAppTheme() {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: kGold, width: 1.5),
+        borderSide: const BorderSide(color: kPrimary, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: kTerracotta),
+        borderSide: const BorderSide(color: kDanger),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: kTerracotta, width: 1.5),
+        borderSide: const BorderSide(color: kDanger, width: 1.5),
       ),
       hintStyle: GoogleFonts.dmSans(color: kMutedForeground, fontSize: 14),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: kGold,
+        backgroundColor: kPrimary,
         foregroundColor: Colors.white,
         minimumSize: const Size.fromHeight(50),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -77,8 +77,8 @@ ThemeData buildAppTheme() {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: kGold,
-        side: const BorderSide(color: kGold),
+        foregroundColor: kPrimary,
+        side: const BorderSide(color: kPrimary),
         minimumSize: const Size.fromHeight(50),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         textStyle: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w500),
@@ -96,7 +96,7 @@ ThemeData buildAppTheme() {
     dividerTheme: const DividerThemeData(color: kBorder, thickness: 1),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: kCard,
-      selectedItemColor: kGold,
+      selectedItemColor: kPrimary,
       unselectedItemColor: kMutedForeground,
       type: BottomNavigationBarType.fixed,
       elevation: 8,

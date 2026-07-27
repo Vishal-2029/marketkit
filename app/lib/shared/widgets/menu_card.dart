@@ -73,7 +73,7 @@ class MenuTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: onTap,
-      leading: Icon(icon, color: iconColor ?? kGold, size: 20),
+      leading: Icon(icon, color: iconColor ?? kPrimary, size: 20),
       title: Text(label, style: const TextStyle(fontSize: 14, color: kForeground)),
       trailing: trailing ??
           (onTap != null

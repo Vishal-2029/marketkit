@@ -109,7 +109,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             : (_playlists.isEmpty && _standaloneVideos.isEmpty)
                 ? _emptyState()
                 : RefreshIndicator(
-                    color: kGold,
+                    color: kPrimary,
                     onRefresh: _load,
                     child: ListView(
                       padding: const EdgeInsets.only(bottom: 32),

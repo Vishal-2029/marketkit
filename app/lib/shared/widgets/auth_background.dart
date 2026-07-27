@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:marketkit/core/theme/app_colors.dart';
 
 class AuthBackground extends StatefulWidget {
   const AuthBackground({super.key, required this.child});
@@ -114,63 +115,63 @@ class _AuthBackgroundState extends State<AuthBackground>
             left: 24,
             top: 120,
             size: 80,
-            color: const Color(0xFFD29B3F),
+            color: kPrimary,
             offset: 0.0,
           ),
           _animatedSquare(
             left: 260,
             top: 180,
             size: 100,
-            color: const Color(0xFFA12D52),
+            color: kAccentStrong,
             offset: 0.2,
           ),
           _animatedSquare(
             left: 48,
             top: 520,
             size: 70,
-            color: const Color(0xFFC98C52),
+            color: kPrimaryLight,
             offset: 0.4,
           ),
           _animatedSquare(
             left: 280,
             top: 520,
             size: 90,
-            color: const Color(0xFFB14F65),
+            color: kPrimaryLight,
             offset: 0.6,
           ),
           _floatingDot(
             left: 120,
             startTop: 760,
             size: 5,
-            color: const Color(0xFFA12D52),
+            color: kAccentStrong,
             offset: 0.0,
           ),
           _floatingDot(
             left: 260,
             startTop: 740,
             size: 4,
-            color: const Color(0xFFD29B3F),
+            color: kPrimary,
             offset: 0.25,
           ),
           _floatingDot(
             left: 340,
             startTop: 760,
             size: 5,
-            color: const Color(0xFFC98C52),
+            color: kPrimaryLight,
             offset: 0.45,
           ),
           _floatingDot(
             left: 80,
             startTop: 700,
             size: 4,
-            color: const Color(0xFFD29B3F),
+            color: kPrimary,
             offset: 0.7,
           ),
           _floatingDot(
             left: 320,
             startTop: 700,
             size: 4,
-            color: const Color(0xFFA12D52),
+            color: kAccentStrong,
             offset: 0.55,
           ),
           Positioned.fill(

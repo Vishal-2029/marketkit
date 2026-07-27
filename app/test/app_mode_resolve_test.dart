@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:design_express/core/services/app_mode_service.dart';
+import 'package:marketkit/core/services/app_mode_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

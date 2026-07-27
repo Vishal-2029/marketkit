@@ -127,9 +127,9 @@ func parseDeviceInfo(ua string) string {
 	app := ""
 	switch {
 	case strings.Contains(uaLower, "dart"):
-		app = "Stitch Craft App"
+		app = "MarketKit"
 	case strings.Contains(uaLower, "flutter"):
-		app = "Stitch Craft App"
+		app = "MarketKit"
 	case strings.Contains(uaLower, "edg/"):
 		app = "Edge"
 	case strings.Contains(uaLower, "opr/") || strings.Contains(uaLower, "opera"):

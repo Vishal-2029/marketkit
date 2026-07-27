@@ -56,7 +56,7 @@ const appModeLabel = (u: User) =>
   u.current_app_mode === "market" ? "Product Market" : u.current_app_mode === "learning" ? "Learning" : "Not chosen";
 
 const appModeVariant = (u: User) =>
-  u.current_app_mode === "market" ? "gold" as const : u.current_app_mode === "learning" ? "success" as const : "neutral" as const;
+  u.current_app_mode === "market" ? "brand" as const : u.current_app_mode === "learning" ? "success" as const : "neutral" as const;
 
 function formatDate(d?: string) {
   if (!d) return null;
@@ -488,7 +488,7 @@ export default function UsersPage() {
                   </td>
                   <td className="px-4 py-3 text-sm text-muted-foreground hidden md:table-cell">{u.phone || "—"}</td>
                   <td className="px-4 py-3 hidden md:table-cell">
-                    <StatusBadge variant={activePlan(u) === "No Plan" ? "neutral" : "gold"}>{activePlan(u)}</StatusBadge>
+                    <StatusBadge variant={activePlan(u) === "No Plan" ? "neutral" : "brand"}>{activePlan(u)}</StatusBadge>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
                     <StatusBadge variant={appModeVariant(u)}>{appModeLabel(u)}</StatusBadge>

@@ -1,4 +1,4 @@
-import 'package:design_express/core/config/feature_catalog.dart';
+import 'package:marketkit/core/config/feature_catalog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -73,7 +73,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
             ),
             const SizedBox(height: 8),
             ListTile(
-              leading: const Icon(Icons.help_outline_rounded, color: kGold),
+              leading: const Icon(Icons.help_outline_rounded, color: kPrimary),
               title: const Text('Ask a Question',
                   style: TextStyle(fontWeight: FontWeight.w600)),
               subtitle: const Text('Get help from the community',
@@ -84,10 +84,10 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.storefront_outlined, color: kGold),
+              leading: const Icon(Icons.storefront_outlined, color: kPrimary),
               title: const Text('Product Market',
                   style: TextStyle(fontWeight: FontWeight.w600)),
-              subtitle: const Text('Buy and sell embroidery products',
+              subtitle: const Text('Buy and sell digital products',
                   style: TextStyle(fontSize: 12, color: kMutedForeground)),
               onTap: () {
                 Navigator.pop(sheetCtx);
@@ -109,7 +109,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
       backgroundColor: kBackground,
       floatingActionButton: FloatingActionButton(
         onPressed: _openOptionSheet,
-        backgroundColor: kGold,
+        backgroundColor: kPrimary,
         foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
@@ -173,7 +173,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                                 ? Icons.access_time_rounded
                                 : Icons.forum_outlined,
                             size: 14,
-                            color: kGold,
+                            color: kPrimary,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -273,7 +273,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                   : state.posts.isEmpty
                       ? _emptyState(state.searchQuery.isNotEmpty)
                       : RefreshIndicator(
-                          color: kGold,
+                          color: kPrimary,
                           onRefresh: () =>
                               ref.read(postsProvider.notifier).load(),
                           child: ListView.builder(
@@ -288,7 +288,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                                   padding: EdgeInsets.symmetric(vertical: 16),
                                   child: Center(
                                     child: CircularProgressIndicator(
-                                        color: kGold, strokeWidth: 2),
+                                        color: kPrimary, strokeWidth: 2),
                                   ),
                                 );
                               }

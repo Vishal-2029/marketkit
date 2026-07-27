@@ -73,7 +73,7 @@ class _MarketProfileTabState extends ConsumerState<MarketProfileTab> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: kTerracotta),
+            style: TextButton.styleFrom(foregroundColor: kDanger),
             child: const Text('Cancel plan'),
           ),
         ],
@@ -88,7 +88,7 @@ class _MarketProfileTabState extends ConsumerState<MarketProfileTab> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Market plan cancelled'),
-          backgroundColor: kSage,
+          backgroundColor: kSuccess,
         ),
       );
     } catch (e) {
@@ -96,7 +96,7 @@ class _MarketProfileTabState extends ConsumerState<MarketProfileTab> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Could not cancel plan: $e'),
-          backgroundColor: kTerracotta,
+          backgroundColor: kDanger,
         ),
       );
     }
@@ -112,7 +112,7 @@ class _MarketProfileTabState extends ConsumerState<MarketProfileTab> {
     final mySub = marketPlans.mySubscription;
 
     return RefreshIndicator(
-      color: kGold,
+      color: kPrimary,
       onRefresh: () async {
         ref.invalidate(walletSummaryProvider);
         ref.invalidate(earningsProvider);
@@ -131,7 +131,7 @@ class _MarketProfileTabState extends ConsumerState<MarketProfileTab> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: kGoldGradient,
+              gradient: kPrimaryGradient,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
@@ -284,13 +284,13 @@ class _MarketProfileTabState extends ConsumerState<MarketProfileTab> {
             if (UpdateService.instance.latestUpdate != null)
               MenuTile(
                 icon: Icons.system_update_rounded,
-                iconColor: kGold,
+                iconColor: kPrimary,
                 label: 'Update Available',
                 trailing: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: kGold.withValues(alpha: 0.12),
+                    color: kPrimary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -298,7 +298,7 @@ class _MarketProfileTabState extends ConsumerState<MarketProfileTab> {
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: kGold,
+                      color: kPrimary,
                     ),
                   ),
                 ),
@@ -329,8 +329,8 @@ class _MarketProfileTabState extends ConsumerState<MarketProfileTab> {
             width: double.infinity,
             child: OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                foregroundColor: kTerracotta,
-                side: const BorderSide(color: kTerracotta),
+                foregroundColor: kDanger,
+                side: const BorderSide(color: kDanger),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -407,7 +407,7 @@ class _MarketPlanCard extends StatelessWidget {
             ),
             TextButton(
               onPressed: onViewPlans,
-              child: const Text('View Plans', style: TextStyle(color: kGold)),
+              child: const Text('View Plans', style: TextStyle(color: kPrimary)),
             ),
           ],
         ),
@@ -424,7 +424,7 @@ class _MarketPlanCard extends StatelessWidget {
         color: kCard,
         borderRadius: BorderRadius.circular(14),
         border: const Border(
-          left: BorderSide(color: kSage, width: 4),
+          left: BorderSide(color: kSuccess, width: 4),
         ),
         boxShadow: [
           BoxShadow(
@@ -440,7 +440,7 @@ class _MarketPlanCard extends StatelessWidget {
           Row(
             children: [
               const Icon(Icons.workspace_premium_rounded,
-                  color: kSage, size: 20),
+                  color: kSuccess, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -456,7 +456,7 @@ class _MarketPlanCard extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
-                  color: kSage.withValues(alpha: 0.12),
+                  color: kSuccess.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
@@ -464,7 +464,7 @@ class _MarketPlanCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: kSage,
+                    color: kSuccess,
                   ),
                 ),
               ),
@@ -482,7 +482,7 @@ class _MarketPlanCard extends StatelessWidget {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: isProcessing ? null : onCancel,
-              style: TextButton.styleFrom(foregroundColor: kTerracotta),
+              style: TextButton.styleFrom(foregroundColor: kDanger),
               child: isProcessing
                   ? const SizedBox(
                       width: 16,
@@ -598,14 +598,14 @@ class _PurchaseTile extends ConsumerWidget {
           IconButton(
             onPressed: () => _download(context, ref),
             icon: const Icon(Icons.download_rounded, size: 18),
-            color: kGold,
+            color: kPrimary,
             tooltip: 'Download product file',
             visualDensity: VisualDensity.compact,
           ),
           IconButton(
             onPressed: () => _downloadInvoice(context, ref),
             icon: const Icon(Icons.receipt_long_outlined, size: 18),
-            color: kGold,
+            color: kPrimary,
             tooltip: 'Download invoice',
             visualDensity: VisualDensity.compact,
           ),
@@ -684,7 +684,7 @@ class _LoadingRow extends StatelessWidget {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 24),
       child: Center(
-        child: CircularProgressIndicator(color: kGold, strokeWidth: 2),
+        child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2),
       ),
     );
   }

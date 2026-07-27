@@ -17,7 +17,7 @@ class LibraryVideoTile extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [kMuted, kCream],
+            colors: [kMuted, kAccentSoft],
           ),
         ),
       );
@@ -123,7 +123,7 @@ class LibraryVideoTile extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
-                        color: kGold.withOpacity(0.12),
+                        color: kPrimary.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -131,7 +131,7 @@ class LibraryVideoTile extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: kGold,
+                          color: kPrimary,
                         ),
                       ),
                     ),

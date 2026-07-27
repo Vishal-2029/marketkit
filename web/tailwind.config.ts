@@ -75,9 +75,9 @@ export default {
           foreground: "hsl(var(--danger-foreground))",
           bg: "hsl(var(--danger-bg))",
         },
-        gold: {
-          light: "hsl(var(--gold-light))",
-          dark: "hsl(var(--gold-dark))",
+        brand: {
+          soft: "hsl(var(--accent-soft))",
+          strong: "hsl(var(--accent-strong))",
         },
         "table-header": "hsl(var(--table-header))",
         "table-hover": "hsl(var(--table-hover))",

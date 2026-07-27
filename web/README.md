@@ -1,6 +1,6 @@
-# Studio Manager — Admin Panel
+# MarketKit — Admin Panel
 
-React admin panel for the Design Express embroidery learning platform. Admins manage videos, users, subscription plans, payments, and monitor platform analytics.
+React admin panel for MarketKit. Admins manage products, sellers, users, subscription plans, payouts, refunds, and platform analytics.
 
 ---
 

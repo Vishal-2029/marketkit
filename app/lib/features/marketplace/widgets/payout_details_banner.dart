@@ -24,7 +24,7 @@ class PayoutDetailsBanner extends ConsumerWidget {
       children: [
         if (needsPayoutDetails)
           Material(
-            color: kGold.withValues(alpha: 0.15),
+            color: kPrimary.withValues(alpha: 0.15),
             child: InkWell(
               onTap: () => context.push('/market/wallet/payout-details'),
               child: const SafeArea(
@@ -33,7 +33,7 @@ class PayoutDetailsBanner extends ConsumerWidget {
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Row(
                     children: [
-                      Icon(Icons.account_balance_outlined, color: kGold, size: 18),
+                      Icon(Icons.account_balance_outlined, color: kPrimary, size: 18),
                       SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -46,7 +46,7 @@ class PayoutDetailsBanner extends ConsumerWidget {
                         ),
                       ),
                       SizedBox(width: 8),
-                      Icon(Icons.chevron_right_rounded, color: kGold, size: 18),
+                      Icon(Icons.chevron_right_rounded, color: kPrimary, size: 18),
                     ],
                   ),
                 ),

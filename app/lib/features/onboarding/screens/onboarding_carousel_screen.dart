@@ -4,6 +4,7 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../../core/services/app_mode_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/auth_animated_background.dart';
+import 'package:marketkit/core/config/brand.dart';
 
 class _OnboardingSlide {
   final IconData icon;
@@ -16,13 +17,13 @@ class _OnboardingSlide {
 const _slides = [
   _OnboardingSlide(
     icon: Icons.auto_awesome_rounded,
-    title: 'Welcome to Design Express',
-    subtitle: 'Everything embroidery — learning and selling, in one app.',
+    title: 'Welcome to ${Brand.name}',
+    subtitle: 'Learning and selling, together in one app.',
   ),
   _OnboardingSlide(
     icon: Icons.swap_horizontal_circle_rounded,
     title: 'Learn or sell — your choice',
-    subtitle: 'Watch embroidery courses, or buy and sell products in the marketplace.',
+    subtitle: 'Watch courses, or buy and sell products in the marketplace.',
   ),
   _OnboardingSlide(
     icon: Icons.rocket_launch_rounded,
@@ -94,7 +95,7 @@ class _OnboardingCarouselScreenState extends State<OnboardingCarouselScreen> {
                 controller: _controller,
                 count: _slides.length,
                 effect: ExpandingDotsEffect(
-                  activeDotColor: kGold,
+                  activeDotColor: kPrimary,
                   dotColor: kBorder,
                   dotHeight: 8,
                   dotWidth: 8,
@@ -107,7 +108,7 @@ class _OnboardingCarouselScreenState extends State<OnboardingCarouselScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: kGold,
+                    backgroundColor: kPrimary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -143,10 +144,10 @@ class _SlideView extends StatelessWidget {
             width: 160,
             height: 160,
             decoration: BoxDecoration(
-              color: kGold.withValues(alpha: 0.12),
+              color: kPrimary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(slide.icon, size: 84, color: kGold),
+            child: Icon(slide.icon, size: 84, color: kPrimary),
           ),
           const SizedBox(height: 40),
           Text(

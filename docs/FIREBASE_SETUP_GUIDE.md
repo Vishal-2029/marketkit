@@ -1,6 +1,6 @@
 # Complete Firebase Setup Guide (Step-by-Step)
 
-This guide will walk you through setting up Firebase from scratch for your Design Express app.
+This guide will walk you through setting up Firebase from scratch for your MarketKit app.
 
 ---
 
@@ -11,7 +11,7 @@ This guide will walk you through setting up Firebase from scratch for your Desig
 1. Open browser and go to: https://console.firebase.google.com
 2. Click **"Add project"** (or **"Create project"**)
 3. Fill in:
-   - **Project name:** `Design Express` (or your preferred name)
+   - **Project name:** `MarketKit` (or your preferred name)
    - Click **Continue**
 4. **Google Analytics:** Choose Yes or No (doesn't affect notifications)
 5. Click **"Create project"** and wait 1-2 minutes
@@ -24,8 +24,8 @@ After project is created, you should see the project dashboard.
 
 1. Look for Android icon (or click **"Add app"** → select Android)
 2. Fill in:
-   - **Android package name:** `com.example.stitch_craft_learn`
-   - **App nickname (optional):** `StitchCraft Android`
+   - **Android package name:** `com.example.marketkit`
+   - **App nickname (optional):** `MarketKit Android`
 3. Click **"Register app"**
 4. Next screen: **Download google-services.json**
    - Click the download button
@@ -38,8 +38,8 @@ After project is created, you should see the project dashboard.
 
 1. Back on project dashboard, click **"Add app"** → select iOS icon
 2. Fill in:
-   - **iOS bundle ID:** `com.example.stitchcraftlearn`
-   - **App nickname (optional):** `StitchCraft iOS`
+   - **iOS bundle ID:** `com.example.marketkit`
+   - **App nickname (optional):** `MarketKit iOS`
 3. Click **"Register app"**
 4. Next screen: **Download GoogleService-Info.plist**
    - Click the download button
@@ -179,7 +179,7 @@ class DefaultFirebaseOptions {
     projectId: 'YOUR_PROJECT_ID',
     storageBucket: 'YOUR_STORAGE_BUCKET',
     iosClientId: null,
-    iosBundleId: 'com.example.stitchcraftlearn',
+    iosBundleId: 'com.example.marketkit',
   );
 }
 ```

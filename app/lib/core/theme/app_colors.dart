@@ -1,28 +1,35 @@
 import 'package:flutter/material.dart';
 
-// Primary palette — mirrors the React reference project (stitch-craft-learn)
-const kGold = Color(0xFFBF9B6F); // hsl(37, 38%, 60%)
-const kGoldLight = Color(0xFFCFB48A); // lighter gold for gradients
-const kCream = Color(0xFFDDC9AA); // hsl(34, 38%, 83%)
-const kSage = Color(0xFF7FAD8B); // hsl(140, 22%, 58%)
-const kTerracotta = Color(0xFFBB7365); // hsl(11, 38%, 58%)
+/// App palette. Rebrand by changing [kPrimary] and [kPrimaryLight]; the rest is
+/// neutral and will keep working with any hue.
+///
+/// These values mirror the admin panel's CSS tokens in `web/src/index.css`
+/// (`--primary`, `--background`, …) — change both so the app and panel stay
+/// visually consistent.
 
-// Neutral palette
-const kBackground = Color(0xFFF9F7F3); // hsl(50, 20%, 97.6%)
-const kForeground = Color(0xFF1C1C22); // hsl(240, 5%, 11.8%)
+// ── Brand ───────────────────────────────────────────────────────────────────
+const kPrimary = Color(0xFF4F46E5); // indigo 600 — hsl(243, 75%, 59%)
+const kPrimaryLight = Color(0xFF818CF8); // indigo 400 — hsl(234, 89%, 74%)
+const kAccentSoft = Color(0xFFEEF2FF); // indigo 50  — tinted surfaces
+const kAccentStrong = Color(0xFF3730A3); // indigo 800 — text on soft accent
+
+// ── Neutrals ────────────────────────────────────────────────────────────────
+const kBackground = Color(0xFFFAFAFA); // hsl(0, 0%, 98%)
+const kForeground = Color(0xFF18181B); // zinc 900
 const kCard = Color(0xFFFFFFFF);
-const kMuted = Color(0xFFF2F0EC); // hsl(40, 7%, 95%)
-const kMutedForeground = Color(0xFF8C8780);
-const kBorder = Color(0xFFEBEBEB);
-const kInput = Color(0xFFF2F0EC);
+const kMuted = Color(0xFFF4F4F5); // zinc 100
+const kMutedForeground = Color(0xFF71717A); // zinc 500
+const kBorder = Color(0xFFE4E4E7); // zinc 200
+const kInput = Color(0xFFF4F4F5); // zinc 100
 
-// State colours
-const kSuccess = kSage;
-const kDanger = kTerracotta;
+// ── State ───────────────────────────────────────────────────────────────────
+const kSuccess = Color(0xFF16A34A); // green 600
+const kWarning = Color(0xFFD97706); // amber 600
+const kDanger = Color(0xFFDC2626); // red 600
 
-// Gold gradient (top-left → bottom-right)
-const kGoldGradient = LinearGradient(
+// ── Gradient (top-left → bottom-right) ──────────────────────────────────────
+const kPrimaryGradient = LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.bottomRight,
-  colors: [kGoldLight, kGold],
+  colors: [kPrimaryLight, kPrimary],
 );

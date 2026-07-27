@@ -321,7 +321,7 @@ class _VerticalIndicator extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: value,
                   backgroundColor: Colors.white24,
-                  valueColor: const AlwaysStoppedAnimation(kGold),
+                  valueColor: const AlwaysStoppedAnimation(kPrimary),
                 ),
               ),
             ),

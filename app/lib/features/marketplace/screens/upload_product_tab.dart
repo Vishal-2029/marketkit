@@ -83,9 +83,9 @@ class _UploadProductTabState extends ConsumerState<UploadProductTab> {
       margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
-        color: kGold.withValues(alpha: 0.07),
+        color: kPrimary.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: kGold.withValues(alpha: 0.25)),
+        border: Border.all(color: kPrimary.withValues(alpha: 0.25)),
       ),
       child: Column(
         children: [
@@ -99,7 +99,7 @@ class _UploadProductTabState extends ConsumerState<UploadProductTab> {
                   style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: kTerracotta)),
+                      color: kDanger)),
             ],
           ),
           const SizedBox(height: 5),
@@ -115,7 +115,7 @@ class _UploadProductTabState extends ConsumerState<UploadProductTab> {
                   style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: kSage)),
+                      color: kSuccess)),
             ],
           ),
         ],
@@ -167,7 +167,7 @@ class _UploadProductTabState extends ConsumerState<UploadProductTab> {
       return;
     }
     if (_productFile == null) {
-      _snack('Please select your embroidery product file');
+      _snack('Please select your product file');
       return;
     }
     if (_previews.isEmpty) {
@@ -261,7 +261,7 @@ class _UploadProductTabState extends ConsumerState<UploadProductTab> {
         ),
         const SizedBox(height: 4),
         const Text(
-          'Upload your embroidery product and set your price.',
+          'Upload your product and set your price.',
           style: TextStyle(fontSize: 13, color: kMutedForeground),
         ),
         const SizedBox(height: 16),
@@ -312,7 +312,7 @@ class _UploadProductTabState extends ConsumerState<UploadProductTab> {
             decoration: BoxDecoration(
               color: kCard,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: _productFile != null ? kGold : kBorder),
+              border: Border.all(color: _productFile != null ? kPrimary : kBorder),
             ),
             child: Row(
               children: [
@@ -320,7 +320,7 @@ class _UploadProductTabState extends ConsumerState<UploadProductTab> {
                   _productFile != null
                       ? Icons.check_circle_rounded
                       : Icons.attach_file_rounded,
-                  color: _productFile != null ? kSage : kMutedForeground,
+                  color: _productFile != null ? kSuccess : kMutedForeground,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -434,7 +434,7 @@ class _UploadProductTabState extends ConsumerState<UploadProductTab> {
           child: ElevatedButton(
             onPressed: _isSubmitting ? null : _submit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: kGold,
+              backgroundColor: kPrimary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
@@ -470,10 +470,10 @@ class _CategoryPicker extends ConsumerWidget {
     final categoriesAsync = ref.watch(categoriesProvider);
 
     return categoriesAsync.when(
-      loading: () => const LinearProgressIndicator(color: kGold),
+      loading: () => const LinearProgressIndicator(color: kPrimary),
       error: (_, __) => const Text(
         'Could not load categories.',
-        style: TextStyle(fontSize: 12, color: kTerracotta),
+        style: TextStyle(fontSize: 12, color: kDanger),
       ),
       data: (categories) {
         final sections = buildProductCategorySections(categories);

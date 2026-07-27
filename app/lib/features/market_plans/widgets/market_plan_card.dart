@@ -24,7 +24,7 @@ class MarketPlanCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border(
           left: BorderSide(
-            color: isCurrentPlan ? kSage : kGold,
+            color: isCurrentPlan ? kSuccess : kPrimary,
             width: 4,
           ),
         ),
@@ -57,7 +57,7 @@ class MarketPlanCard extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: kSage.withOpacity(0.15),
+                    color: kSuccess.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Text(
@@ -65,7 +65,7 @@ class MarketPlanCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: kSage,
+                      color: kSuccess,
                     ),
                   ),
                 ),
@@ -80,7 +80,7 @@ class MarketPlanCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
-                    color: kGold,
+                    color: kPrimary,
                   ),
                 ),
                 TextSpan(
@@ -126,7 +126,7 @@ class MarketPlanCard extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: isProcessing ? null : onBuyTap,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: kGold,
+                  backgroundColor: kPrimary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -168,7 +168,7 @@ class _FeatureRow extends StatelessWidget {
         Icon(
           enabled ? Icons.check_circle_rounded : Icons.cancel_rounded,
           size: 18,
-          color: enabled ? kSage : kMutedForeground,
+          color: enabled ? kSuccess : kMutedForeground,
         ),
         const SizedBox(width: 8),
         Text(

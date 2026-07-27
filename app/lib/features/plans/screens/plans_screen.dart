@@ -8,6 +8,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../models/plan_model.dart';
 import '../providers/plans_provider.dart';
 import '../widgets/plan_card.dart';
+import 'package:marketkit/core/config/brand.dart';
 
 class PlansScreen extends ConsumerStatefulWidget {
   const PlansScreen({super.key});
@@ -48,7 +49,7 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Payment setup failed. Please try again.'),
-            backgroundColor: kTerracotta,
+            backgroundColor: kDanger,
           ),
         );
         return;
@@ -58,7 +59,7 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
         'amount': amount,
         'order_id': orderId,
         'currency': order['currency'] ?? 'INR',
-        'name': 'Stitch Craft Learn',
+        'name': Brand.checkoutName,
         'description': plan.name,
         'prefill': {
           'contact': auth.user?.phone ?? '',
@@ -70,7 +71,7 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Could not initiate payment: $e'),
-          backgroundColor: kTerracotta,
+          backgroundColor: kDanger,
         ),
       );
     }
@@ -84,7 +85,7 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Payment successful! Activating your plan...'),
-        backgroundColor: kSage,
+        backgroundColor: kSuccess,
       ),
     );
 
@@ -102,7 +103,7 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Activation is taking longer than usual: $e'),
-            backgroundColor: kTerracotta,
+            backgroundColor: kDanger,
           ),
         );
       }
@@ -116,7 +117,7 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Payment failed: ${response.message ?? 'Unknown error'}'),
-        backgroundColor: kTerracotta,
+        backgroundColor: kDanger,
       ),
     );
   }
@@ -155,7 +156,7 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
                 : plans.plans.isEmpty
                     ? _emptyState()
                     : RefreshIndicator(
-                        color: kGold,
+                        color: kPrimary,
                         onRefresh: () => ref.read(plansProvider.notifier).load(),
                         child: ListView.separated(
                           padding: const EdgeInsets.all(16),

@@ -142,7 +142,7 @@ class _PurchaseReceiptScreenState extends ConsumerState<PurchaseReceiptScreen> {
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: kGold))
+          ? const Center(child: CircularProgressIndicator(color: kPrimary))
           : _error != null
               ? Center(child: Text(_error!, style: const TextStyle(color: kMutedForeground)))
               : _buildBody(),
@@ -239,7 +239,7 @@ class _PurchaseReceiptScreenState extends ConsumerState<PurchaseReceiptScreen> {
           child: ElevatedButton(
             onPressed: () => context.go('/market'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: kGold,
+              backgroundColor: kPrimary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
@@ -291,9 +291,9 @@ class _PurchaseReceiptScreenState extends ConsumerState<PurchaseReceiptScreen> {
 
     return Material(
       color: done
-          ? kSage.withValues(alpha: 0.12)
+          ? kSuccess.withValues(alpha: 0.12)
           : failed
-              ? kTerracotta.withValues(alpha: 0.1)
+              ? kDanger.withValues(alpha: 0.1)
               : kCard,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
@@ -307,7 +307,7 @@ class _PurchaseReceiptScreenState extends ConsumerState<PurchaseReceiptScreen> {
                 const SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: kGold),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: kPrimary),
                 )
               else
                 Icon(
@@ -318,9 +318,9 @@ class _PurchaseReceiptScreenState extends ConsumerState<PurchaseReceiptScreen> {
                           : Icons.hourglass_empty_rounded,
                   size: 20,
                   color: done
-                      ? kSage
+                      ? kSuccess
                       : failed
-                          ? kTerracotta
+                          ? kDanger
                           : kMutedForeground,
                 ),
               const SizedBox(width: 12),
@@ -331,9 +331,9 @@ class _PurchaseReceiptScreenState extends ConsumerState<PurchaseReceiptScreen> {
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: done
-                        ? kSage
+                        ? kSuccess
                         : failed
-                            ? kTerracotta
+                            ? kDanger
                             : kForeground,
                   ),
                 ),

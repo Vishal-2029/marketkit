@@ -147,9 +147,9 @@ export default function LoginPage() {
         <div className="bg-card rounded-2xl border border-border shadow-2xl p-8">
           {/* Logo */}
           <div className="flex items-center justify-center gap-3 mb-8">
-            <img src="/icon.jpg" alt="Design Express" className="w-12 h-12 object-contain rounded-lg" />
+            <img src="/icon.svg" alt="MarketKit" className="w-12 h-12 object-contain rounded-lg" />
             <div>
-              <p className="font-semibold text-foreground text-base leading-tight">Design Express</p>
+              <p className="font-semibold text-foreground text-base leading-tight">MarketKit</p>
               <p className="text-caption text-xs">Management Portal</p>
             </div>
           </div>
@@ -270,7 +270,7 @@ export default function LoginPage() {
             </>
           )}
         </div>
-        <p className="text-center text-caption mt-4 text-xs">Design Express · Authorised Access Only</p>
+        <p className="text-center text-caption mt-4 text-xs">MarketKit · Authorised Access Only</p>
       </div>
     </div>
   );

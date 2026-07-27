@@ -51,7 +51,7 @@ void main() {
       });
     };
 
-    runApp(const ProviderScope(child: StitchCraftLearnApp()));
+    runApp(const ProviderScope(child: MarketKitApp()));
   }, (error, stack) {
     debugPrint('[Uncaught] $error');
     if (!kIsWeb) {
@@ -64,13 +64,13 @@ void main() {
   });
 }
 
-class StitchCraftLearnApp extends StatelessWidget {
-  const StitchCraftLearnApp({super.key});
+class MarketKitApp extends StatelessWidget {
+  const MarketKitApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Stitch Craft Learn',
+      title: 'MarketKit',
       theme: buildAppTheme(),
       routerConfig: appRouter,
       debugShowCheckedModeBanner: false,

@@ -1,4 +1,4 @@
-import 'package:design_express/core/config/feature_catalog.dart';
+import 'package:marketkit/core/config/feature_catalog.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -265,7 +265,7 @@ class _CreatePostSheetState extends ConsumerState<CreatePostSheet> {
             child: ElevatedButton(
               onPressed: _isSubmitting ? null : _submit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: kGold,
+                backgroundColor: kPrimary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(

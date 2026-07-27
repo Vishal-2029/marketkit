@@ -23,7 +23,7 @@ class WalletTransactionsScreen extends ConsumerWidget {
         centerTitle: false,
       ),
       body: RefreshIndicator(
-        color: kGold,
+        color: kPrimary,
         onRefresh: () async => ref.invalidate(walletTransactionsProvider),
         child: txs.when(
           data: (list) => list.isEmpty
@@ -42,7 +42,7 @@ class WalletTransactionsScreen extends ConsumerWidget {
                   itemBuilder: (_, i) => _TxTile(tx: list[i]),
                 ),
           loading: () => const Center(
-              child: CircularProgressIndicator(color: kGold, strokeWidth: 2)),
+              child: CircularProgressIndicator(color: kPrimary, strokeWidth: 2)),
           error: (_, __) => ListView(
             children: const [
               SizedBox(height: 120),
@@ -73,7 +73,7 @@ class _TxTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final credit = tx.isCredit;
-    final amountColor = credit ? kSage : kTerracotta;
+    final amountColor = credit ? kSuccess : kDanger;
     final sign = credit ? '+' : '−';
     final d = tx.createdAt;
     final date =

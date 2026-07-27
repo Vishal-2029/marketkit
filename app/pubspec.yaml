@@ -1,5 +1,5 @@
-name: design_express
-description: "Design Express — embroidery video learning app."
+name: marketkit
+description: "MarketKit — Go + Flutter + React marketplace starter kit."
 publish_to: 'none'
 version: 1.0.4+5
 
@@ -81,16 +81,16 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/icon.jpg
+    - assets/icon.png
 
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   web:
     generate: true
-    image_path: "assets/icon.jpg"
+    image_path: "assets/icon.png"
   macos:
     generate: true
-    image_path: "assets/icon.jpg"
-  image_path: "assets/icon.jpg"
+    image_path: "assets/icon.png"
+  image_path: "assets/icon.png"
   remove_alpha_ios: true

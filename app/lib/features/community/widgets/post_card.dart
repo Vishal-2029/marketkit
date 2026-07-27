@@ -69,10 +69,10 @@ class PostCard extends StatelessWidget {
             const SizedBox(height: 10),
             Row(
               children: [
-                const Icon(Icons.person_outline, size: 13, color: kGold),
+                const Icon(Icons.person_outline, size: 13, color: kPrimary),
                 const SizedBox(width: 4),
                 Text(post.anonName,
-                    style: const TextStyle(fontSize: 12, color: kGold, fontWeight: FontWeight.w500)),
+                    style: const TextStyle(fontSize: 12, color: kPrimary, fontWeight: FontWeight.w500)),
                 const Spacer(),
                 if (post.imageUrls.isNotEmpty) ...[
                   const Icon(Icons.photo_camera_outlined, size: 13, color: kMutedForeground),
@@ -112,7 +112,7 @@ class _CategoryBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: kGold.withOpacity(0.12),
+        color: kPrimary.withOpacity(0.12),
         borderRadius: BorderRadius.circular(50),
       ),
       child: Text(
@@ -120,7 +120,7 @@ class _CategoryBadge extends StatelessWidget {
         style: const TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w600,
-          color: kGold,
+          color: kPrimary,
           letterSpacing: 0.3,
         ),
       ),

@@ -26,29 +26,32 @@ var imageMIMETypes = map[string]string{
 	".png": "image/png", ".webp": "image/webp",
 }
 
-// productFileExts whitelists embroidery machine / stitch / related export formats.
+// productFileExts whitelists the file types sellers may upload.
+//
+// This is a digital-goods marketplace, so the default set covers the common
+// deliverables: documents, images, vector/design source files, fonts, audio,
+// video, and archives. Add or remove extensions to match what you sell — this
+// map is the only place upload types are enforced.
 var productFileExts = map[string]bool{
-	// Core stitch formats
-	".dst": true, ".pes": true, ".exp": true, ".jef": true,
-	".vp3": true, ".xxx": true, ".hus": true, ".pec": true,
-	// Tajima / Barudan / ZSK / Pfaff / Wilcom machine variants
-	".dsb": true, ".dsz": true, ".tbf": true, ".t01": true,
-	".t03": true, ".t04": true, ".t05": true, ".t09": true,
-	".t10": true, ".t15": true, ".u01": true,
-	// Melco / Janome / Elna / Husqvarna / Pfaff / Singer / Happy / Inbro
-	".cnd": true, ".jpx": true, ".sew": true, ".jan": true,
-	".emd": true, ".shv": true, ".pcs": true, ".pcd": true,
-	".pcq": true, ".pcm": true, ".csd": true, ".tap": true,
-	".inb": true, ".ksm": true, ".yng": true,
-	// Wilcom / Hiraoka / Laesser / Saurer / Time & Space / native
-	".ess": true, ".esl": true, ".dat": true, ".vep": true,
-	".mst": true, ".sas": true, ".mjd": true, ".emb": true, ".emc": true,
-	// BERNINA / Dahao / template / vector-cutting (listed in digitizer export dialogs)
-	".art": true, ".art50": true, ".art60": true, ".art70": true, ".art80": true,
-	".dhp": true, ".dha": true, ".dhe": true,
-	".tpl": true, ".plt": true, ".dxf": true,
-	// Document formats (e.g. digitized-product reference sheets / instructions)
-	".pdf": true,
+	// Documents
+	".pdf": true, ".epub": true, ".txt": true, ".md": true,
+	".doc": true, ".docx": true, ".xls": true, ".xlsx": true,
+	".ppt": true, ".pptx": true, ".csv": true,
+	// Images
+	".png": true, ".jpg": true, ".jpeg": true, ".gif": true,
+	".webp": true, ".svg": true, ".tif": true, ".tiff": true,
+	// Design / vector source
+	".ai": true, ".eps": true, ".psd": true, ".sketch": true,
+	".fig": true, ".xd": true, ".indd": true, ".dxf": true, ".plt": true,
+	// 3D / CAD
+	".obj": true, ".fbx": true, ".stl": true, ".blend": true, ".step": true,
+	// Fonts
+	".ttf": true, ".otf": true, ".woff": true, ".woff2": true,
+	// Audio / video
+	".mp3": true, ".wav": true, ".aac": true, ".flac": true,
+	".mp4": true, ".mov": true, ".webm": true,
+	// Archives — the catch-all for multi-file bundles
+	".zip": true, ".rar": true, ".7z": true, ".tar": true, ".gz": true,
 }
 
 const (
@@ -149,7 +152,7 @@ func uploadPreviewImage(fileHeader *multipart.FileHeader) (string, error) {
 	return fileKey, nil
 }
 
-// uploadProductFile validates and stores the embroidery machine file privately.
+// uploadProductFile validates and stores the seller's product file privately.
 func uploadProductFile(fileHeader *multipart.FileHeader) (key, format string, err error) {
 	if fileHeader.Size > maxProductFileBytes {
 		return "", "", fmt.Errorf("product file must be under 5 MB")
@@ -285,7 +288,7 @@ func HandleGetProduct(c *fiber.Ctx) error {
 // @Param       title           formData  string  true   "Product title"
 // @Param       description     formData  string  false  "Description"
 // @Param       price_in_paise  formData  int     true   "Price in paise (min 1000 = ₹10)"
-// @Param       file            formData  file    true   "Embroidery machine file (.dst/.pes/...)"
+// @Param       file            formData  file    true   "Product file (.pdf/.zip/.png/...)"
 // @Param       previews        formData  file    true   "1-7 preview images"
 // @Success     201  {object}  models.Product
 // @Failure     400  {object}  map[string]string

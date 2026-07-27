@@ -49,7 +49,7 @@ You should see your phone listed.
 ### Step 4: Install APK on Phone
 ```bash
 # Uninstall old version first
-adb uninstall com.example.stitch_craft_learn
+adb uninstall com.example.marketkit
 
 # Install new optimized APK
 adb install build/app/outputs/apk/release/app-release.apk
@@ -58,7 +58,7 @@ adb install build/app/outputs/apk/release/app-release.apk
 ⏱️ **Installation should take 10-20 seconds** (not 45-60 seconds)
 
 ### Step 5: Launch App
-- On phone, find and tap "Stitch Craft Learn" app
+- On phone, find and tap the "MarketKit" app
 - App should open **in 1-2 seconds** (not 3-5 seconds)
 
 ---
@@ -122,7 +122,7 @@ _initializeFirebaseAsync();  // Initializes in background
 ### "App won't install"
 ```bash
 # Remove old version completely
-adb uninstall com.example.stitch_craft_learn
+adb uninstall com.example.marketkit
 adb install build/app/outputs/apk/release/app-release.apk
 ```
 

@@ -24,7 +24,7 @@ function isRecent(dateStr: string): boolean {
 function formatDevice(device?: string): string {
   if (!device) return "—";
   if (device.toLowerCase().includes("dart") || device.toLowerCase().includes("dart:io")) {
-    return "Stitch Craft App";
+    return "MarketKit";
   }
   if (device.startsWith("Unknown OS · ")) {
     return device.replace("Unknown OS · ", "");

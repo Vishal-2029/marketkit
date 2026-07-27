@@ -107,10 +107,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 
   Color _strengthColor(int s) => s == 1
-      ? kTerracotta
+      ? kDanger
       : s == 2
-          ? const Color(0xFFE8A838)
-          : kSage;
+          ? kPrimary
+          : kSuccess;
 
   String _strengthLabel(int s) =>
       s == 1 ? 'Weak' : s == 2 ? 'Medium' : 'Strong';
@@ -250,7 +250,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.error_outline_rounded, color: kTerracotta, size: 22),
+            Icon(Icons.error_outline_rounded, color: kDanger, size: 22),
             SizedBox(width: 8),
             Text('Error', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
           ],
@@ -259,7 +259,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK', style: TextStyle(color: kGold, fontWeight: FontWeight.w600)),
+            child: const Text('OK', style: TextStyle(color: kPrimary, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -413,7 +413,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             ),
             child: const Text(
               'Forgot Password?',
-              style: TextStyle(color: kGold, fontSize: 13, fontWeight: FontWeight.w500),
+              style: TextStyle(color: kPrimary, fontSize: 13, fontWeight: FontWeight.w500),
             ),
           ),
         ),
@@ -447,7 +447,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 children: [
                   TextSpan(
                     text: 'Sign up',
-                    style: TextStyle(color: kGold, fontWeight: FontWeight.w600),
+                    style: TextStyle(color: kPrimary, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
@@ -533,7 +533,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         ],
         if (_signupError != null) ...[
           const SizedBox(height: 10),
-          Text(_signupError!, style: const TextStyle(color: kTerracotta, fontSize: 12)),
+          Text(_signupError!, style: const TextStyle(color: kDanger, fontSize: 12)),
         ],
         const SizedBox(height: 24),
         GoldButton(
@@ -552,7 +552,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 children: [
                   TextSpan(
                     text: 'Sign in',
-                    style: TextStyle(color: kGold, fontWeight: FontWeight.w600),
+                    style: TextStyle(color: kPrimary, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),

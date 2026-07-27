@@ -1,4 +1,4 @@
-# Studio Manager Hub — Makefile
+# MarketKit — Makefile
 # Usage: make <target>
 
 .PHONY: help dev prod deploy up down build logs seed run fmt lint tidy clean \
@@ -17,7 +17,7 @@ COMPOSE_PRD := docker compose -f docker-compose.yml
 
 help: ## Show this help message
 	@echo ""
-	@echo "  Studio Manager Hub"
+	@echo "  MarketKit"
 	@echo ""
 	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_-]+:.*##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 	@echo ""

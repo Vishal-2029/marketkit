@@ -96,7 +96,7 @@ class _NotificationPermissionDialogState
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              gradient: kGoldGradient,
+              gradient: kPrimaryGradient,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
@@ -141,7 +141,7 @@ class _NotificationPermissionDialogState
         ElevatedButton(
           onPressed: _busy ? null : _enable,
           style: ElevatedButton.styleFrom(
-            backgroundColor: kGold,
+            backgroundColor: kPrimary,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             shape: RoundedRectangleBorder(

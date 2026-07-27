@@ -34,7 +34,7 @@ class ProfileHeader extends ConsumerWidget {
             children: [
               CircleAvatar(
                 radius: 44,
-                backgroundColor: kGold,
+                backgroundColor: kPrimary,
                 child: user?.avatarUrl != null
                     ? ClipOval(
                         child: CachedNetworkImage(
@@ -74,7 +74,7 @@ class ProfileHeader extends ConsumerWidget {
                     width: 26,
                     height: 26,
                     decoration: const BoxDecoration(
-                      color: kGold,
+                      color: kPrimary,
                       shape: BoxShape.circle,
                     ),
                     child: busy

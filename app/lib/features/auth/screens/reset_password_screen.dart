@@ -108,7 +108,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             children: [
               const SizedBox(height: 8),
               const Icon(Icons.mark_email_read_outlined,
-                  size: 52, color: kGold),
+                  size: 52, color: kPrimary),
               const SizedBox(height: 16),
               const Text(
                 'Check Your Email',
@@ -158,14 +158,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide(
                             color: _otpControllers[i].text.isNotEmpty
-                                ? kGold
+                                ? kPrimary
                                 : kBorder,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide:
-                              const BorderSide(color: kGold, width: 2),
+                              const BorderSide(color: kPrimary, width: 2),
                         ),
                       ),
                       onChanged: (v) => _onOtpChanged(i, v),
@@ -211,7 +211,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 const SizedBox(height: 12),
                 Text(_error!,
                     style: const TextStyle(
-                        color: kTerracotta, fontSize: 13)),
+                        color: kDanger, fontSize: 13)),
               ],
 
               const SizedBox(height: 24),
@@ -220,7 +220,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 child: Container(
                   height: 52,
                   decoration: BoxDecoration(
-                    gradient: _loading ? null : kGoldGradient,
+                    gradient: _loading ? null : kPrimaryGradient,
                     color: _loading ? kMuted : null,
                     borderRadius: BorderRadius.circular(12),
                   ),

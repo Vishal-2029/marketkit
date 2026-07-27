@@ -247,7 +247,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               const SizedBox(height: 16),
               Text(
                 _error!,
-                style: const TextStyle(color: kTerracotta, fontSize: 13),
+                style: const TextStyle(color: kDanger, fontSize: 13),
               ),
             ],
 
@@ -284,7 +284,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                         ? 'Resend in ${_resendCooldown}s'
                         : 'Resend OTP',
                     style: TextStyle(
-                      color: _resendCooldown == 0 ? kGold : kMutedForeground,
+                      color: _resendCooldown == 0 ? kPrimary : kMutedForeground,
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                     ),
@@ -351,7 +351,7 @@ class _OtpBox extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: kGold, width: 2),
+              borderSide: const BorderSide(color: kPrimary, width: 2),
             ),
             filled: true,
             fillColor: kCard,
