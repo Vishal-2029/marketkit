@@ -19,7 +19,7 @@ services:
     # base list instead of merging with it — plain `ports:` here would keep
     # both mappings and the container fails to bind the duplicate.
     ports: !override
-      - "3000:3000"
+      - "${PORT:-3000}:3000"
     volumes:
       - ./api:/app
       - /app/tmp

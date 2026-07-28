@@ -1,7 +1,7 @@
 # MarketKit — Makefile
 # Usage: make <target>
 
-.PHONY: help dev prod deploy up down build logs seed run fmt lint tidy clean \
+.PHONY: help quickstart bootstrap seed-demo dev prod deploy up down build logs seed run fmt lint tidy clean \
         web-install web-dev web-build web-preview start stop app swagger-docs apk publish release \
         test test-db-up test-db-down
 
@@ -58,8 +58,34 @@ web-build: ## Build frontend for production
 web-preview: ## Preview the production build locally
 	cd $(WEB_DIR) && npm run preview
 
+# ─── Quick start ──────────────────────────────────────────────────────────────
+# Read the host port from the generated .env so quickstart polls the right one.
+API_PORT = $(shell grep -E '^PORT=' .env 2>/dev/null | cut -d= -f2 || echo 3000)
+
+quickstart: bootstrap ## FIRST RUN: generate .env files, start everything, seed demo data
+	@echo ""
+	@echo "==> Starting containers (first build takes a few minutes)…"
+	$(COMPOSE_DEV) up --build -d
+	@echo ""
+	@echo "==> Waiting for the API to become healthy…"
+	@until curl -sf http://localhost:$(API_PORT)/health >/dev/null 2>&1; do \
+		printf '.'; sleep 2; \
+	done; echo " ready"
+	@$(MAKE) --no-print-directory seed-demo
+	@echo ""
+	@echo "  API          http://localhost:$(API_PORT)"
+	@echo "  Swagger      http://localhost:$(API_PORT)/swagger/index.html"
+	@echo "  Mailhog      http://localhost:8025"
+	@echo ""
+	@echo "  Admin panel:  make web-dev   -> http://localhost:5173"
+	@echo "  Demo logins:  seller1@demo.marketkit.test / demo1234"
+	@echo "  Stop with:    make down"
+
+bootstrap: ## Generate .env and api/.env with random secrets (safe to re-run)
+	@./scripts/bootstrap.sh
+
 # ─── Backend (Docker) ─────────────────────────────────────────────────────────
-dev: ## Start backend services in dev mode (hot reload + Mailhog)
+dev: bootstrap ## Start backend services in dev mode (hot reload + Mailhog)
 	$(COMPOSE_DEV) up --build
 
 dev-test: ## Start backend with api/.env.test (Docker Compose)
@@ -78,7 +104,7 @@ prod: ## Start backend in production mode (detached)
 deploy: ## Build web assets (Docker) and start production stack
 	@./scripts/deploy.sh
 
-up: ## Start backend containers without rebuilding
+up: bootstrap ## Start backend containers without rebuilding
 	$(COMPOSE_DEV) up
 
 down: ## Stop and remove all containers
@@ -105,6 +131,12 @@ run: ## Run the API server locally (uses localhost Postgres)
 
 seed: ## Seed database with admin accounts and plans (runs inside api container)
 	$(COMPOSE_DEV) exec api go run /app/seed.go
+
+seed-demo: ## Fill the database with demo sellers, products, purchases and wallets
+	$(COMPOSE_DEV) exec api go run /app/seed/demo.go
+
+seed-demo-reset: ## Remove seeded demo data, then re-seed it
+	$(COMPOSE_DEV) exec api go run /app/seed/demo.go -reset
 
 tidy: ## Tidy go.mod and go.sum
 	cd $(API_DIR) && go mod tidy

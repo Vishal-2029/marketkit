@@ -25,7 +25,7 @@ marketkit/
 | Backend API | Go 1.22, Fiber v2, GORM, PostgreSQL 16 |
 | Mobile App | Flutter 3.11+, Riverpod, GoRouter, Chewie |
 | Admin Panel | React 18, TypeScript, Vite, shadcn/ui, TanStack Query |
-| Payments | Razorpay |
+| Payments | Razorpay + Stripe (pluggable provider interface) |
 | Email | SMTP (gomail) with HTML templates |
 | Infrastructure | Docker, Docker Compose |
 
@@ -73,45 +73,59 @@ marketkit/
 - Flutter 3.11+ (for mobile app)
 - Go 1.22+ (for local API development)
 
-### 1. Clone and configure
+### One command
 
 ```bash
-git clone <repo-url>
-cd marketkit
-cp api/.env.example api/.env   # fill in your values
+make quickstart
 ```
 
-### 2. Start backend + database
+That generates `.env` and `api/.env` with fresh random secrets, builds and starts
+the API + PostgreSQL + Redis + Mailhog, waits for the API to become healthy, and
+fills the database with demo data — sellers, products, purchases, wallets and
+platform revenue.
 
-```bash
-make dev          # starts API + PostgreSQL + Mailhog (hot reload)
-```
+When it finishes:
 
-Or start everything at once (backend via Docker + admin panel via Vite):
+| | |
+|---|---|
+| API | http://localhost:3000 |
+| Swagger | http://localhost:3000/swagger/index.html |
+| Mailhog (catches all email) | http://localhost:8025 |
+| Admin panel | `make web-dev` → http://localhost:5173 |
 
-```bash
-make start
-```
-
-### 3. Seed the database
-
-```bash
-make seed         # creates default admin accounts and plans
-```
-
-### 4. Open the admin panel
+Demo logins — password `demo1234` for all of them:
 
 ```
-http://localhost:5173
+seller1@demo.marketkit.test   … seller5@demo.marketkit.test
+buyer1@demo.marketkit.test    … buyer8@demo.marketkit.test
 ```
 
-### 5. Run the Flutter app
+The admin password is random per install and printed during bootstrap; it is
+also in `api/.env` as `ADMIN_PASSWORD`.
+
+Stop everything with `make down`.
+
+> Port 3000 already in use? Change `PORT` in the root `.env` and re-run.
+
+### Run the Flutter app
 
 ```bash
 cd app
 flutter pub get
-flutter run
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/api/v1   # Android emulator
 ```
+
+### Useful commands
+
+| Command | What |
+|---|---|
+| `make quickstart` | First run — bootstrap, start, seed demo data |
+| `make bootstrap` | Regenerate missing `.env` files (never overwrites) |
+| `make up` / `make down` | Start / stop the stack |
+| `make seed-demo` | Add demo data to an existing database |
+| `make seed-demo-reset` | Wipe demo data and re-seed |
+| `make test` | Go test suite against a throwaway Postgres |
+| `make swagger` | Regenerate the API docs |
 
 ---
 
@@ -213,7 +227,7 @@ committed even once stays in git history forever.
 ### Mobile App (Flutter)
 - OTP-based authentication
 - Browse and stream videos by category
-- Subscription plans with Razorpay payment
+- Subscription plans with in-app checkout (Razorpay or Stripe)
 - Video player with Chewie controls
 - Library of accessible videos
 - Profile with subscription status
@@ -222,16 +236,18 @@ committed even once stays in git history forever.
 - Dashboard with KPIs, charts, and recent activity
 - Video upload and management (DRAFT → PROCESSING → PUBLISHED)
 - User management with force logout and plan assignment
-- Payment records (Razorpay + manual)
+- Payment records (any gateway + manual)
 - Subscription plan configuration
 - Session management and audit logs
 - Revenue analytics and playback statistics
 
 ### Backend API
+- Wallet ledger with seller payouts and platform fee split
+- Pluggable payment providers — add a gateway without touching the modules that take money
 - Dual auth system — separate JWT flows for admins and users
 - httpOnly refresh token cookies (XSS-safe)
 - Video streaming with HTTP range request support
-- Razorpay webhook with HMAC verification
+- Gateway webhooks with signature verification (fails closed)
 - 8 transactional email templates
 - Daily cron for subscription expiry checks
 - Append-only audit log
