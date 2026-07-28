@@ -89,7 +89,7 @@ When it finishes:
 | | |
 |---|---|
 | API | http://localhost:3000 |
-| Swagger | http://localhost:3000/swagger/index.html |
+| API docs (Swagger UI, dev only) | http://localhost:3000/docs/index.html |
 | Mailhog (catches all email) | http://localhost:8025 |
 | Admin panel | `make web-dev` → http://localhost:5173 |
 

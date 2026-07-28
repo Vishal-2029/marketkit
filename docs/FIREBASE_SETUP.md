@@ -584,3 +584,84 @@ After successful setup:
 4. Merge to `main` once verified
 
 Good luck! 🚀
+
+---
+
+## Verifying it works
+
+Merged here from the former `FIREBASE_NOTIFICATION_SETUP.md`, which duplicated
+this setup — this is now the single Firebase document.
+
+### Step 13 — Verify notifications are working
+
+```bash
+# Check that FCM initialized successfully
+docker compose logs api | grep fcm
+
+# You should see:
+# fcm: initialized  project=your-firebase-project
+#
+# If you see this instead, the file is missing or wrong path:
+# fcm: credentials file not found — push notifications disabled
+```
+
+---
+
+### Step 14 — Verify device tokens are registering
+
+After a user logs in on the new APK, check the database:
+
+```bash
+docker compose exec postgres psql -U admin -d marketkit -c "SELECT user_id, platform, updated_at FROM device_tokens ORDER BY updated_at DESC LIMIT 10;"
+```
+
+You should see rows with `platform = android` or `platform = ios`.
+
+---
+
+### Step 15 — Send a test notification
+
+From the admin panel at `https://example.com`:
+1. Go to **Notifications** page
+2. Enter a title and message
+3. Click **Send**
+4. The Flutter app should receive it within a few seconds
+
+Or via curl:
+```bash
+curl -X POST https://example.com/api/v1/admin/notifications/broadcast \
+  -H "Authorization: Bearer YOUR_ADMIN_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Test", "message": "Hello from admin"}'
+```
+
+---
+
+## Quick Reference — File Locations
+
+| File | Location | Source |
+|------|----------|--------|
+| `google-services.json` | `app/android/app/` | Firebase Console → Android app |
+| `GoogleService-Info.plist` | `app/ios/Runner/` | Firebase Console → iOS app |
+| `firebase-service-account.json` | `api/` on live server only | Firebase Console → Service accounts |
+| `firebase_options.dart` | `app/lib/` | Updated manually from Firebase values |
+
+---
+
+## Troubleshooting
+
+| Problem | Check |
+|---------|-------|
+| `fcm: credentials file not found` | `firebase-service-account.json` missing from `api/` on server |
+| `fcm: initialized` but no notification received | Check `device_tokens` table — may be empty (user needs to re-login on new APK) |
+| Android notification not received | Verify `google-services.json` matches the same project as service account |
+| iOS notification not received | APNs key not uploaded in Firebase Console (Step 6) |
+| Token count is 0 in DB | APK was built pointing to wrong API URL — rebuild with `./scripts/build-apk.sh` |
+
+---
+
+## Related
+
+- [PUSH_NOTIFICATIONS.md](PUSH_NOTIFICATIONS.md) — how notifications flow through
+  the code, trigger points, and troubleshooting
+- [DEPLOY.md](DEPLOY.md) — putting the service account on a server

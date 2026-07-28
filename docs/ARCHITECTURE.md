@@ -327,7 +327,7 @@ Returns all active subscription plans — no authentication. Used by the mobile 
 #### Admin Payments (`/api/v1/payments/`)
 | Method | Route | Purpose |
 |---|---|---|
-| POST | `/payments/razorpay-webhook` | Receives Razorpay payment events (HMAC-verified) |
+| POST | `/payments/webhook` | Receives gateway payment events (signature-verified). `/payments/razorpay-webhook` remains as a legacy alias |
 | GET | `/payments/` | List all payment records |
 | GET | `/payments/:id` | Get single payment details |
 | POST | `/payments/manual` | Create a manual payment record (cash, bank transfer) |
@@ -576,32 +576,60 @@ The home screen shows:
 
 ## 6. External Services
 
-### 6.1 Razorpay (Payment Gateway)
+### 6.1 Payment gateways
 
-**What it does:** Processes subscription payments in India via UPI, cards, net banking, and wallets.
+Gateways sit behind a `Provider` interface (`internal/payments/provider`), so
+the modules that take money — plans, marketplace purchases, wallet top-ups,
+refunds — never reference a specific gateway.
 
-**Why Razorpay:**
-- Best support for Indian payment methods (especially UPI)
-- Low fees (~2% per transaction)
-- Flutter SDK available for in-app checkout
-- Webhook support for async payment confirmation
+**Shipped implementations:** Razorpay and Stripe. Select one with
+`PAYMENT_PROVIDER` in `api/.env`.
 
-**How it's used:**
-1. API creates an order via Razorpay REST API → gets `order_id`
-2. Mobile app opens Razorpay checkout using the Flutter SDK
-3. Student completes payment
-4. Razorpay sends a webhook (`payment.captured`) to `POST /api/v1/payments/razorpay-webhook`
-5. API verifies HMAC signature using `RAZORPAY_WEBHOOK_SECRET`
-6. If valid → activates subscription, sends emails and push notification
+**Adding a gateway** means implementing five methods and registering it in
+`internal/payments/payments.go`:
 
-**Environment variables:**
-```
-RAZORPAY_KEY_ID=rzp_live_xxxx
-RAZORPAY_KEY_SECRET=xxxx
-RAZORPAY_WEBHOOK_SECRET=xxxx
+```go
+Name() / CreateOrder() / VerifyCheckout() / ParseWebhook() / Refund()
 ```
 
----
+**Payment flow:**
+
+1. API creates an order/PaymentIntent through the active provider
+2. The endpoint returns a provider-neutral payload: `provider`, `order_id`,
+   `amount_minor`, `currency`, `public_key`, and `client_secret` when the
+   gateway needs one
+3. The app opens the matching checkout sheet
+   (`app/lib/core/payments/checkout.dart`)
+4. The gateway sends a webhook to `POST /api/v1/payments/webhook`
+5. The provider verifies the signature and normalizes the event
+6. `internal/payments/capture` dispatches it to whichever module owns the order
+   — learning plan, marketplace purchase, market plan, or wallet top-up
+
+**Security properties both implementations honour:**
+
+- Webhook verification **fails closed**: an unconfigured signing secret rejects
+  every request rather than accepting unsigned ones
+- Stripe additionally enforces a 5-minute timestamp tolerance, so a captured
+  request cannot be replayed
+- Stripe returns no client-side signature, so `VerifyCheckout` asks Stripe
+  whether the PaymentIntent actually succeeded rather than trusting the client
+
+**Environment:**
+
+```env
+PAYMENT_PROVIDER=razorpay        # or stripe
+PAYMENT_CURRENCY=INR
+
+RAZORPAY_KEY_ID=
+RAZORPAY_KEY_SECRET=
+RAZORPAY_WEBHOOK_SECRET=
+
+STRIPE_SECRET_KEY=
+STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
+```
+
+See [WALLET.md](WALLET.md) for what happens to the money after capture.
 
 ### 6.2 Firebase Cloud Messaging (FCM)
 
@@ -729,7 +757,7 @@ All tables use UUID primary keys (except `notification_logs` and `user_notificat
 | `user_sessions` | Active user login sessions | `user_id`, `device_info`, `ip_address`, `jwt_jti`, `last_active_at`, `revoked_at` |
 | `plans` | Subscription plans | `name`, `price_minor`, `duration_days`, `features`, `is_active` |
 | `subscriptions` | User subscription records | `user_id`, `plan_id`, `status` (ACTIVE/EXPIRED/SUSPENDED/CANCELLED), `expiry_date` |
-| `payments` | Payment transactions | `user_id`, `amount_minor`, `gateway` (RAZORPAY/MANUAL), `status`, `razorpay_payment_id` |
+| `payments` | Payment transactions | `user_id`, `amount_minor`, `provider` (razorpay/stripe/MANUAL), `status`, `provider_payment_id` |
 | `videos` | Video content | `title`, `category`, `status`, `file_key`, `thumbnail_url`, `is_free`, `is_preview` |
 | `playback_logs` | Video view history | `user_id`, `video_id`, `watched_seconds`, `completed`, `played_at` |
 | `video_progress` | Watch position per user/video | `user_id` + `video_id` (composite PK), `position_seconds` |

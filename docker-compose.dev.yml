@@ -30,6 +30,17 @@ services:
       retries: 5
       start_period: 90s
 
+  # Catches every email the API sends in development, so OTP codes, receipts
+  # and expiry warnings are readable without configuring a real SMTP provider.
+  # api/.env points SMTP_HOST at this service. Open http://localhost:8025.
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${MAILHOG_UI_PORT:-8025}:8025"
+    logging:
+      driver: none # Mailhog is extremely chatty on stdout
+
   # nginx needs the letsencrypt certs that only exist on the prod server, so
   # locally it just crash-loops. The profile keeps `up` from starting it in
   # dev; the app and admin panel talk to the API on :3000 directly.

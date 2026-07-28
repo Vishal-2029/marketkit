@@ -74,7 +74,7 @@ quickstart: bootstrap ## FIRST RUN: generate .env files, start everything, seed 
 	@$(MAKE) --no-print-directory seed-demo
 	@echo ""
 	@echo "  API          http://localhost:$(API_PORT)"
-	@echo "  Swagger      http://localhost:$(API_PORT)/swagger/index.html"
+	@echo "  API docs     http://localhost:$(API_PORT)/docs/index.html"
 	@echo "  Mailhog      http://localhost:8025"
 	@echo ""
 	@echo "  Admin panel:  make web-dev   -> http://localhost:5173"
