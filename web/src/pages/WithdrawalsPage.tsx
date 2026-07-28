@@ -1,3 +1,4 @@
+import { currencySymbol, formatMoney } from "@/lib/currency";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
@@ -10,9 +11,7 @@ import { toast } from "sonner";
 import { withdrawalsService, walletSettingsService, type Withdrawal } from "@/services/wallet";
 import { useAuth } from "@/contexts/AuthContext";
 
-function fmt(paise: number) {
-  return "₹" + (paise / 100).toLocaleString("en-IN");
-}
+const fmt = (v: number) => formatMoney(v);
 
 function copy(text: string, label: string) {
   navigator.clipboard.writeText(text);
@@ -53,7 +52,7 @@ function SettingsCard() {
     mutationFn: () =>
       walletSettingsService.update({
         fee_percent: Number(fee),
-        min_withdrawal_in_paise: Math.round(Number(minW) * 100),
+        min_withdrawal_minor: Math.round(Number(minW) * 100),
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["wallet-settings"] });
@@ -76,7 +75,7 @@ function SettingsCard() {
             size="sm"
             onClick={() => {
               setFee(String(data.fee_percent));
-              setMinW(String(data.min_withdrawal_in_paise / 100));
+              setMinW(String(data.min_withdrawal_minor / 100));
               setEditing(true);
             }}
           >
@@ -92,7 +91,7 @@ function SettingsCard() {
           </div>
           <div>
             <p className="text-muted-foreground">Minimum withdrawal</p>
-            <p className="text-lg font-bold text-foreground">{data ? fmt(data.min_withdrawal_in_paise) : "—"}</p>
+            <p className="text-lg font-bold text-foreground">{data ? fmt(data.min_withdrawal_minor) : "—"}</p>
           </div>
         </div>
       ) : (
@@ -102,7 +101,7 @@ function SettingsCard() {
             <Input className="mt-1 w-32" type="number" value={fee} onChange={e => setFee(e.target.value)} />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground">Min withdrawal (₹)</label>
+            <label className="text-xs text-muted-foreground">Min withdrawal ({currencySymbol()})</label>
             <Input className="mt-1 w-32" type="number" value={minW} onChange={e => setMinW(e.target.value)} />
           </div>
           <div className="flex gap-2">
@@ -202,7 +201,7 @@ export default function WithdrawalsPage() {
                     <p className="text-caption">{w.user_email ?? ""}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="text-sm font-bold text-foreground">{fmt(w.amount_in_paise)}</p>
+                    <p className="text-sm font-bold text-foreground">{fmt(w.amount_minor)}</p>
                   </td>
                   <td className="px-4 py-3">
                     <span className="inline-flex items-center gap-1.5 text-sm text-foreground">
@@ -280,7 +279,7 @@ export default function WithdrawalsPage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Amount</span>
-                  <span className="font-bold text-foreground text-base">{fmt(detail.amount_in_paise)}</span>
+                  <span className="font-bold text-foreground text-base">{fmt(detail.amount_minor)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Requested</span>
@@ -338,7 +337,7 @@ export default function WithdrawalsPage() {
                   </Button>
                   <p className="text-xs text-muted-foreground">
                     The balance was already deducted when the user requested this — settle only after you have
-                    actually transferred {fmt(detail.amount_in_paise)}.
+                    actually transferred {fmt(detail.amount_minor)}.
                   </p>
                 </div>
               )}

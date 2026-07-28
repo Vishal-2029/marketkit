@@ -23,8 +23,8 @@ func TestApply_CreditThenDebit(t *testing.T) {
 		var ledger1 models.PlatformLedger
 		require.NoError(t, tx.Where("source = ?", models.PlatformSourceLearningPlan).First(&ledger1).Error)
 		assert.Equal(t, "CREDIT", ledger1.Type)
-		assert.Equal(t, int64(50000), ledger1.AmountInPaise)
-		assert.Equal(t, int64(50000), ledger1.BalanceAfterInPaise)
+		assert.Equal(t, int64(50000), ledger1.AmountMinor)
+		assert.Equal(t, int64(50000), ledger1.BalanceAfterMinor)
 
 		balance, err = Apply(tx, models.PlatformSourceWithdrawal, -20000, nil, nil)
 		require.NoError(t, err)
@@ -32,12 +32,12 @@ func TestApply_CreditThenDebit(t *testing.T) {
 
 		var w models.PlatformWallet
 		require.NoError(t, tx.First(&w, "id = ?", models.PlatformWalletSingletonID).Error)
-		assert.Equal(t, int64(30000), w.BalanceInPaise)
+		assert.Equal(t, int64(30000), w.BalanceMinor)
 
 		var sum int64
 		require.NoError(t, tx.Model(&models.PlatformLedger{}).
-			Select("COALESCE(SUM(amount_in_paise), 0)").Scan(&sum).Error)
-		assert.Equal(t, w.BalanceInPaise, sum, "balance must always equal SUM(ledger.amount_in_paise)")
+			Select("COALESCE(SUM(amount_minor), 0)").Scan(&sum).Error)
+		assert.Equal(t, w.BalanceMinor, sum, "balance must always equal SUM(ledger.amount_minor)")
 	})
 }
 
@@ -53,7 +53,7 @@ func TestApply_RejectsOverdraft(t *testing.T) {
 
 		var w models.PlatformWallet
 		require.NoError(t, tx.First(&w, "id = ?", models.PlatformWalletSingletonID).Error)
-		assert.Equal(t, int64(10000), w.BalanceInPaise, "a rejected debit must not change the balance")
+		assert.Equal(t, int64(10000), w.BalanceMinor, "a rejected debit must not change the balance")
 	})
 }
 
@@ -81,14 +81,14 @@ func TestBackfill_SumsHistoricalRowsAndIsIdempotent(t *testing.T) {
 
 		var w models.PlatformWallet
 		require.NoError(t, tx.First(&w, "id = ?", models.PlatformWalletSingletonID).Error)
-		assert.Equal(t, int64(99900+49900+2000), w.BalanceInPaise)
+		assert.Equal(t, int64(99900+49900+2000), w.BalanceMinor)
 		require.NotNil(t, w.BackfilledAt)
 
 		// Re-running must be a no-op.
 		Backfill()
 		var w2 models.PlatformWallet
 		require.NoError(t, tx.First(&w2, "id = ?", models.PlatformWalletSingletonID).Error)
-		assert.Equal(t, w.BalanceInPaise, w2.BalanceInPaise, "re-running backfill must not double-credit")
+		assert.Equal(t, w.BalanceMinor, w2.BalanceMinor, "re-running backfill must not double-credit")
 
 		var ledgerCount int64
 		tx.Model(&models.PlatformLedger{}).Count(&ledgerCount)

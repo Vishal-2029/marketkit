@@ -26,12 +26,12 @@ func TestHandleMarketRevenueSummary_ReconcilesWithPlatformWalletAndExcludesLearn
 		buyer := testutil.MustCreateUser(t, tx)
 		product := testutil.MustCreateProduct(t, tx, seller.ID, 100000)
 		purchase := testutil.MustCreateProductPurchase(t, tx, product.ID, buyer.ID, seller.ID, 100000, 10000, models.PaymentSuccess)
-		_, err := platform_wallet.Apply(tx, models.PlatformSourcePlatformFee, purchase.FeeInPaise, &purchase.ID, nil)
+		_, err := platform_wallet.Apply(tx, models.PlatformSourcePlatformFee, purchase.FeeMinor, &purchase.ID, nil)
 		require.NoError(t, err)
 
 		marketPlan := testutil.MustCreateMarketPlan(t, tx, 49900)
 		sub := testutil.MustCreateMarketPlanSub(t, tx, buyer.ID, marketPlan.ID, 49900, true)
-		_, err = platform_wallet.Apply(tx, models.PlatformSourceMarketPlan, sub.AmountInPaise, &sub.ID, nil)
+		_, err = platform_wallet.Apply(tx, models.PlatformSourceMarketPlan, sub.AmountMinor, &sub.ID, nil)
 		require.NoError(t, err)
 
 		// A learning payment must never leak into these numbers.
@@ -48,26 +48,26 @@ func TestHandleMarketRevenueSummary_ReconcilesWithPlatformWalletAndExcludesLearn
 		require.NoError(t, err)
 		var parsed struct {
 			Data struct {
-				PlatformRevenuePaise int64 `json:"platform_revenue_paise"`
-				PlanRevenuePaise     int64 `json:"plan_revenue_paise"`
-				FeeRevenuePaise      int64 `json:"fee_revenue_paise"`
-				GrossSalesPaise      int64 `json:"gross_sales_paise"`
-				SellerPayoutsPaise   int64 `json:"seller_payouts_paise"`
+				PlatformRevenueMinor int64 `json:"platform_revenue_minor"`
+				PlanRevenueMinor     int64 `json:"plan_revenue_minor"`
+				FeeRevenueMinor      int64 `json:"fee_revenue_minor"`
+				GrossSalesMinor      int64 `json:"gross_sales_minor"`
+				SellerPayoutsMinor   int64 `json:"seller_payouts_minor"`
 			} `json:"data"`
 		}
 		require.NoError(t, json.Unmarshal(body, &parsed))
 
-		assert.Equal(t, int64(49900), parsed.Data.PlanRevenuePaise)
-		assert.Equal(t, int64(10000), parsed.Data.FeeRevenuePaise)
-		assert.Equal(t, int64(59900), parsed.Data.PlatformRevenuePaise, "must equal plan + fee, matching the platform wallet's two market-side sources")
-		assert.Equal(t, int64(100000), parsed.Data.GrossSalesPaise)
-		assert.Equal(t, int64(90000), parsed.Data.SellerPayoutsPaise)
+		assert.Equal(t, int64(49900), parsed.Data.PlanRevenueMinor)
+		assert.Equal(t, int64(10000), parsed.Data.FeeRevenueMinor)
+		assert.Equal(t, int64(59900), parsed.Data.PlatformRevenueMinor, "must equal plan + fee, matching the platform wallet's two market-side sources")
+		assert.Equal(t, int64(100000), parsed.Data.GrossSalesMinor)
+		assert.Equal(t, int64(90000), parsed.Data.SellerPayoutsMinor)
 
 		// The learning Payment row above was created directly (bypassing the
 		// payments handlers), so nothing credited the platform wallet for it —
 		// its balance must equal exactly the two market-side sources.
 		var w models.PlatformWallet
 		require.NoError(t, tx.First(&w, "id = ?", models.PlatformWalletSingletonID).Error)
-		assert.Equal(t, parsed.Data.PlatformRevenuePaise, w.BalanceInPaise)
+		assert.Equal(t, parsed.Data.PlatformRevenueMinor, w.BalanceMinor)
 	})
 }

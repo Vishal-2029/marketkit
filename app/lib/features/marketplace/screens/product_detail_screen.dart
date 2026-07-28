@@ -4,7 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
@@ -16,7 +15,7 @@ import '../providers/my_market_provider.dart';
 import '../providers/wallet_provider.dart';
 import '../widgets/product_card.dart';
 import '../widgets/product_favorite_button.dart';
-import 'package:marketkit/core/config/brand.dart';
+import 'package:marketkit/core/payments/checkout.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   final String productId;
@@ -27,7 +26,6 @@ class ProductDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
-  late Razorpay _razorpay;
   final _pageCtrl = PageController();
   Timer? _carouselTimer;
   ProductModel? _product;
@@ -39,16 +37,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _razorpay = Razorpay();
-    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handleSuccess);
-    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handleFailure);
-    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
     _load();
   }
 
   @override
   void dispose() {
-    _razorpay.clear();
     _carouselTimer?.cancel();
     _pageCtrl.dispose();
     super.dispose();
@@ -131,7 +124,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     // still pick it explicitly).
     try {
       final wallet = await ref.read(walletServiceProvider).fetchSummary();
-      if (wallet.balanceInPaise >= product.priceInPaise && mounted) {
+      if (wallet.balanceMinor >= product.priceMinor && mounted) {
         final useWallet = await _confirmWalletPay(product, wallet);
         if (useWallet == null) return; // dialog dismissed — no purchase
         if (useWallet) {
@@ -151,25 +144,39 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       final order = await ref
           .read(marketServiceProvider)
           .createOrder(product.id);
-      final keyId = order['key_id'] as String?;
-      final orderId = order['order_id'] as String?;
-      final amount = order['amount'];
-      if (keyId == null || orderId == null || amount == null) {
-        _snack('Payment setup failed. Please try again.', color: kDanger);
-        return;
+      final result = await CheckoutService.pay(
+        order: CheckoutOrder.fromJson(order),
+        description: product.title,
+        email: auth.user?.email,
+        phone: auth.user?.phone,
+      );
+
+      _snack('Payment successful! Unlocking your product...', color: kSuccess);
+
+      String purchaseId = '';
+      try {
+        purchaseId = await ref.read(marketServiceProvider).verifyPurchase(
+              razorpayOrderId: result.orderId,
+              razorpayPaymentId: result.paymentId,
+              razorpaySignature: result.signature,
+            );
+      } catch (e) {
+        // The server webhook can still capture the purchase.
+        _snack('Unlock is taking longer than usual: $e', color: kDanger);
       }
-      _razorpay.open({
-        'key': keyId,
-        'amount': amount,
-        'order_id': orderId,
-        'currency': order['currency'] ?? 'INR',
-        'name': Brand.checkoutName,
-        'description': product.title,
-        'prefill': {
-          'contact': auth.user?.phone ?? '',
-          'email': auth.user?.email ?? '',
-        },
-      });
+
+      if (!mounted) return;
+      ref.invalidate(myPurchasesProvider);
+      ref.read(productsProvider.notifier).load();
+      if (purchaseId.isNotEmpty) {
+        context.push('/market/purchase/$purchaseId/receipt');
+      } else {
+        await _load();
+      }
+    } on CheckoutCancelled {
+      // User backed out — nothing to report.
+    } on CheckoutFailure catch (e) {
+      _snack(e.message, color: kDanger);
     } catch (e) {
       _snack('Could not initiate payment: $e', color: kDanger);
     } finally {
@@ -230,51 +237,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     }
   }
 
-  void _handleSuccess(PaymentSuccessResponse response) async {
-    final orderId = response.orderId;
-    final paymentId = response.paymentId;
-    final signature = response.signature;
 
-    _snack('Payment successful! Unlocking your product...', color: kSuccess);
 
-    String purchaseId = '';
-    try {
-      if (orderId != null && paymentId != null && signature != null) {
-        purchaseId = await ref
-            .read(marketServiceProvider)
-            .verifyPurchase(
-              razorpayOrderId: orderId,
-              razorpayPaymentId: paymentId,
-              razorpaySignature: signature,
-            );
-      }
-    } catch (e) {
-      // Webhook fallback: the server webhook can still capture the purchase.
-      if (mounted) {
-        _snack('Unlock is taking longer than usual: $e', color: kDanger);
-      }
-    }
-
-    if (!mounted) return;
-    ref.invalidate(myPurchasesProvider);
-    ref.read(productsProvider.notifier).load();
-    if (purchaseId.isNotEmpty) {
-      context.push('/market/purchase/$purchaseId/receipt');
-    } else {
-      await _load();
-    }
-  }
-
-  void _handleFailure(PaymentFailureResponse response) {
-    _snack(
-      'Payment failed: ${response.message ?? 'Unknown error'}',
-      color: kDanger,
-    );
-  }
-
-  void _handleExternalWallet(ExternalWalletResponse response) {
-    _snack('External wallet selected: ${response.walletName ?? 'Unknown'}');
-  }
 
   Future<void> _download() async {
     final product = _product;

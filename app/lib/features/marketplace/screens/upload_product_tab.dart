@@ -11,6 +11,7 @@ import '../models/product_category_model.dart';
 import '../providers/products_provider.dart';
 import '../providers/my_market_provider.dart';
 import '../providers/wallet_provider.dart';
+import 'package:marketkit/core/config/currency.dart';
 
 class UploadProductTab extends ConsumerStatefulWidget {
   final VoidCallback? onUploaded;
@@ -21,6 +22,12 @@ class UploadProductTab extends ConsumerStatefulWidget {
 }
 
 class _UploadProductTabState extends ConsumerState<UploadProductTab> {
+  // Price bounds in minor units — must match minPriceMinor/maxPriceMinor in
+  // api/internal/modules/market/handler.go, or the server rejects what the
+  // form accepted.
+  static const int _minPriceMinor = 1000;
+  static const int _maxPriceMinor = 10000000;
+
   final _titleCtrl = TextEditingController();
   final _descriptionCtrl = TextEditingController();
   final _priceCtrl = TextEditingController();
@@ -67,17 +74,17 @@ class _UploadProductTabState extends ConsumerState<UploadProductTab> {
   /// same integer floor math as the server (fee = price*pct/100), so what the
   /// seller sees here is exactly what gets credited on a sale.
   Widget _feeBreakdown() {
-    final priceRupees = int.tryParse(_priceCtrl.text.trim());
-    if (priceRupees == null || priceRupees <= 0) return const SizedBox.shrink();
+    final priceMajor = double.tryParse(_priceCtrl.text.trim());
+    if (priceMajor == null || priceMajor <= 0) return const SizedBox.shrink();
     final fee = ref.watch(marketFeeProvider).valueOrNull;
     if (fee == null) return const SizedBox.shrink();
 
-    final priceInPaise = priceRupees * 100;
-    final feeInPaise = priceInPaise * fee ~/ 100;
-    final netInPaise = priceInPaise - feeInPaise;
-    String fmt(int paise) => paise % 100 == 0
-        ? '₹${paise ~/ 100}'
-        : '₹${(paise / 100).toStringAsFixed(2)}';
+    final priceMinor = Currency.toMinor(priceMajor);
+    final feeMinor = priceMinor * fee ~/ 100;
+    final netMinor = priceMinor - feeMinor;
+    String fmt(int minor) => minor % 100 == 0
+        ? Currency.format(minor)
+        : Currency.format(minor);
 
     return Container(
       margin: const EdgeInsets.only(top: 10),
@@ -95,7 +102,7 @@ class _UploadProductTabState extends ConsumerState<UploadProductTab> {
                   style:
                       const TextStyle(fontSize: 12, color: kMutedForeground)),
               const Spacer(),
-              Text('− ${fmt(feeInPaise)}',
+              Text('− ${fmt(feeMinor)}',
                   style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -111,7 +118,7 @@ class _UploadProductTabState extends ConsumerState<UploadProductTab> {
                       fontWeight: FontWeight.w600,
                       color: kForeground)),
               const Spacer(),
-              Text(fmt(netInPaise),
+              Text(fmt(netMinor),
                   style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -157,13 +164,14 @@ class _UploadProductTabState extends ConsumerState<UploadProductTab> {
 
   Future<void> _submit() async {
     final title = _titleCtrl.text.trim();
-    final priceRupees = int.tryParse(_priceCtrl.text.trim());
-    if (title.isEmpty || priceRupees == null) {
+    final priceMajor = double.tryParse(_priceCtrl.text.trim());
+    if (title.isEmpty || priceMajor == null) {
       _snack('Please fill in title and price');
       return;
     }
-    if (priceRupees < 10 || priceRupees > 100000) {
-      _snack('Price must be between ₹10 and ₹1,00,000');
+    final priceMinorValue = Currency.toMinor(priceMajor);
+    if (priceMinorValue < _minPriceMinor || priceMinorValue > _maxPriceMinor) {
+      _snack('Price must be between ${Currency.format(_minPriceMinor)} and ${Currency.format(_maxPriceMinor)}');
       return;
     }
     if (_productFile == null) {
@@ -193,7 +201,7 @@ class _UploadProductTabState extends ConsumerState<UploadProductTab> {
       await ref.read(marketServiceProvider).uploadProduct(
             title: title,
             description: _descriptionCtrl.text.trim(),
-            priceInPaise: priceRupees * 100,
+            priceMinor: priceMinorValue,
             file: _productFile!,
             previews: _previews,
             categoryId: _selectedCategoryId!,
@@ -284,7 +292,8 @@ class _UploadProductTabState extends ConsumerState<UploadProductTab> {
           controller: _priceCtrl,
           keyboardType: TextInputType.number,
           decoration:
-              _decoration('Price (₹)', hint: 'Between 10 and 1,00,000'),
+              _decoration('Price (${Currency.symbol})',
+                  hint: '${Currency.formatPlain(_minPriceMinor)} to ${Currency.formatPlain(_maxPriceMinor)}'),
           onChanged: (_) => setState(() {}),
         ),
         _feeBreakdown(),

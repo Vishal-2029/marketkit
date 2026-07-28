@@ -34,7 +34,7 @@ type Config struct {
 	// Payments
 	// PaymentProvider selects the active gateway ("razorpay", "stripe").
 	// PaymentCurrency is the ISO-4217 code every amount is charged in; the kit
-	// runs one currency per deployment, and all *InPaise fields are that
+	// runs one currency per deployment, and all *Minor fields are that
 	// currency's minor unit.
 	PaymentProvider string
 	PaymentCurrency string
@@ -43,6 +43,11 @@ type Config struct {
 	RazorpayKeyID         string
 	RazorpayKeySecret     string
 	RazorpayWebhookSecret string
+
+	// Stripe
+	StripeSecretKey      string
+	StripePublishableKey string // safe to expose to clients
+	StripeWebhookSecret  string
 
 	// Push notifications (FCM V1 API — service account JSON)
 	FirebaseCredentialsFile string
@@ -128,6 +133,11 @@ func Load() error {
 	cfg.RazorpayKeyID = getEnv("RAZORPAY_KEY_ID", "")
 	cfg.RazorpayKeySecret = getEnv("RAZORPAY_KEY_SECRET", "")
 	cfg.RazorpayWebhookSecret = getEnv("RAZORPAY_WEBHOOK_SECRET", "")
+
+	// Stripe
+	cfg.StripeSecretKey = getEnv("STRIPE_SECRET_KEY", "")
+	cfg.StripePublishableKey = getEnv("STRIPE_PUBLISHABLE_KEY", "")
+	cfg.StripeWebhookSecret = getEnv("STRIPE_WEBHOOK_SECRET", "")
 
 	// FCM V1 (optional — push notifications disabled when file is absent)
 	cfg.FirebaseCredentialsFile = getEnv("FIREBASE_CREDENTIALS_FILE", "./firebase-service-account.json")

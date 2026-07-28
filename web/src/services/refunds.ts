@@ -10,7 +10,7 @@ export interface RefundRequest {
   created_at: string;
   reviewed_at?: string;
   payment?: {
-    amount_in_paise: number;
+    amount_minor: number;
     provider: string;
     provider_payment_id?: string;
     user?: { name: string; email: string };

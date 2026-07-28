@@ -53,7 +53,7 @@ func HandleCreateOrder(c *fiber.Ctx) error {
 	}
 
 	// Create Razorpay order via REST API (no SDK dependency)
-	rzpOrderID, err := createRazorpayOrder(plan.PriceInPaise, userID, plan.ID)
+	order, err := createRazorpayOrder(plan.PriceMinor, userID, plan.ID)
 	if err != nil {
 		slog.Error("razorpay order creation failed", "error", err, "user_id", userID, "plan_id", plan.ID)
 		return response.InternalError(c, "failed to create payment order")
@@ -63,19 +63,14 @@ func HandleCreateOrder(c *fiber.Ctx) error {
 	payment := models.Payment{
 		UserID:          userID,
 		PlanID:          plan.ID,
-		AmountInPaise:   plan.PriceInPaise,
+		AmountMinor:     plan.PriceMinor,
 		Provider:        models.ProviderRazorpay,
 		Status:          models.PaymentPending,
-		ProviderOrderID: &rzpOrderID,
+		ProviderOrderID: &order.ID,
 	}
 	database.DB.Create(&payment)
 
-	return response.OK(c, fiber.Map{
-		"order_id": rzpOrderID,
-		"amount":   plan.PriceInPaise,
-		"currency": "INR",
-		"key_id":   config.App.RazorpayKeyID,
-	})
+	return response.OK(c, payments.NewCheckout(order, plan.PriceMinor))
 }
 
 // HandleVerifyPayment godoc
@@ -144,7 +139,7 @@ func HandleVerifyPayment(c *fiber.Ctx) error {
 		email.SendPaymentReceiptEmail(p.User.Email, email.PaymentReceiptData{
 			Name:          p.User.Name,
 			PlanName:      p.Plan.Name,
-			Amount:        email.FormatAmount(p.Plan.PriceInPaise),
+			Amount:        email.FormatAmount(p.Plan.PriceMinor),
 			TransactionID: body.ProviderPaymentID,
 			Provider:      string(p.Provider),
 			PaidAt:        email.FormatDate(now),
@@ -162,7 +157,7 @@ func HandleVerifyPayment(c *fiber.Ctx) error {
 				UserName:  p.User.Name,
 				UserEmail: p.User.Email,
 				PlanName:  p.Plan.Name,
-				Amount:    email.FormatAmount(p.Plan.PriceInPaise),
+				Amount:    email.FormatAmount(p.Plan.PriceMinor),
 				Provider:  string(p.Provider),
 				PaidAt:    email.FormatDate(now),
 				IsUpgrade: false,
@@ -199,7 +194,7 @@ func captureVerifiedPayment(p *models.Payment, razorpayPaymentID string, paidAt,
 			return nil
 		}
 
-		if _, err := platform_wallet.Apply(tx, models.PlatformSourceLearningPlan, p.AmountInPaise,
+		if _, err := platform_wallet.Apply(tx, models.PlatformSourceLearningPlan, p.AmountMinor,
 			&p.ID, models.JSONMap{"plan_id": p.PlanID, "plan_name": p.Plan.Name, "paid_via": "RAZORPAY"}); err != nil {
 			return err
 		}
@@ -214,12 +209,12 @@ func captureVerifiedPayment(p *models.Payment, razorpayPaymentID string, paidAt,
 	return captured, err
 }
 
-func createRazorpayOrder(amountInPaise int64, userID, planID string) (string, error) {
-	order, err := payments.CreateOrder(context.Background(), amountInPaise,
+func createRazorpayOrder(amountMinor int64, userID, planID string) (provider.Order, error) {
+	order, err := payments.CreateOrder(context.Background(), amountMinor,
 		payments.Receipt("u", userID, planID),
 		map[string]string{"user_id": userID, "plan_id": planID})
 	if err != nil {
-		return "", err
+		return provider.Order{}, err
 	}
-	return order.ID, nil
+	return order, nil
 }

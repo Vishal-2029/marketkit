@@ -23,7 +23,7 @@ func TestCaptureVerifiedPayment_CreditsLearningPlanExactlyOnce(t *testing.T) {
 
 		plan := testutil.MustCreatePlan(t, tx, 149900)
 		user := testutil.MustCreateUser(t, tx)
-		payment := testutil.MustCreatePayment(t, tx, user.ID, plan.ID, plan.PriceInPaise, models.PaymentPending)
+		payment := testutil.MustCreatePayment(t, tx, user.ID, plan.ID, plan.PriceMinor, models.PaymentPending)
 		payment.Plan = plan
 		expiresAt := time.Now().AddDate(0, 0, plan.DurationDays)
 
@@ -38,8 +38,8 @@ func TestCaptureVerifiedPayment_CreditsLearningPlanExactlyOnce(t *testing.T) {
 		var total int64
 		require.NoError(t, tx.Model(&models.PlatformLedger{}).
 			Where("source = ? AND reference_id = ?", models.PlatformSourceLearningPlan, payment.ID).
-			Select("COALESCE(SUM(amount_in_paise), 0)").Scan(&total).Error)
-		assert.Equal(t, plan.PriceInPaise, total, "must credit exactly once across both calls")
+			Select("COALESCE(SUM(amount_minor), 0)").Scan(&total).Error)
+		assert.Equal(t, plan.PriceMinor, total, "must credit exactly once across both calls")
 
 		var sub models.Subscription
 		require.NoError(t, tx.Where("user_id = ? AND plan_id = ?", user.ID, plan.ID).First(&sub).Error)

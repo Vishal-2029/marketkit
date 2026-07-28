@@ -23,7 +23,7 @@ func TestPlanFeatures_RoundTrip(t *testing.T) {
 
 		plan := models.Plan{
 			Name:         "Round Trip " + time.Now().Format("150405.000000"),
-			PriceInPaise: 99900,
+			PriceMinor:   99900,
 			Features:     []string{string(models.CategoryA), string(models.CategoryB)},
 			DurationDays: 365,
 		}
@@ -74,9 +74,9 @@ func TestUserFeatureAccess_UnionAndExpiry(t *testing.T) {
 		tx := database.DB
 		stamp := time.Now().Format("150405.000000")
 
-		planA := models.Plan{Name: "A " + stamp, PriceInPaise: 1000, Features: []string{"CATEGORY_A"}, DurationDays: 365}
-		planB := models.Plan{Name: "B " + stamp, PriceInPaise: 1000, Features: []string{"CATEGORY_B"}, DurationDays: 365}
-		planC := models.Plan{Name: "C " + stamp, PriceInPaise: 1000, Features: []string{"CATEGORY_C"}, DurationDays: 365}
+		planA := models.Plan{Name: "A " + stamp, PriceMinor: 1000, Features: []string{"CATEGORY_A"}, DurationDays: 365}
+		planB := models.Plan{Name: "B " + stamp, PriceMinor: 1000, Features: []string{"CATEGORY_B"}, DurationDays: 365}
+		planC := models.Plan{Name: "C " + stamp, PriceMinor: 1000, Features: []string{"CATEGORY_C"}, DurationDays: 365}
 		require.NoError(t, tx.Create(&planA).Error)
 		require.NoError(t, tx.Create(&planB).Error)
 		require.NoError(t, tx.Create(&planC).Error)

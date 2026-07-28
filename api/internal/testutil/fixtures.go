@@ -43,12 +43,12 @@ func MustCreateAdmin(t *testing.T, tx *gorm.DB, isSuper bool) models.Admin {
 	return a
 }
 
-func MustCreatePlan(t *testing.T, tx *gorm.DB, priceInPaise int64) models.Plan {
+func MustCreatePlan(t *testing.T, tx *gorm.DB, priceMinor int64) models.Plan {
 	t.Helper()
 	n := nextSeq()
 	p := models.Plan{
 		Name:         "Test Plan " + strconv.FormatInt(n, 10),
-		PriceInPaise: priceInPaise,
+		PriceMinor:   priceMinor,
 		DurationDays: 365,
 		IsActive:     true,
 	}
@@ -56,15 +56,15 @@ func MustCreatePlan(t *testing.T, tx *gorm.DB, priceInPaise int64) models.Plan {
 	return p
 }
 
-func MustCreatePayment(t *testing.T, tx *gorm.DB, userID, planID string, amountInPaise int64, status models.PaymentStatus) models.Payment {
+func MustCreatePayment(t *testing.T, tx *gorm.DB, userID, planID string, amountMinor int64, status models.PaymentStatus) models.Payment {
 	t.Helper()
 	now := time.Now()
 	p := models.Payment{
-		UserID:        userID,
-		PlanID:        planID,
-		AmountInPaise: amountInPaise,
-		Provider:      models.ProviderRazorpay,
-		Status:        status,
+		UserID:      userID,
+		PlanID:      planID,
+		AmountMinor: amountMinor,
+		Provider:    models.ProviderRazorpay,
+		Status:      status,
 	}
 	if status == models.PaymentSuccess {
 		p.PaidAt = &now
@@ -73,12 +73,12 @@ func MustCreatePayment(t *testing.T, tx *gorm.DB, userID, planID string, amountI
 	return p
 }
 
-func MustCreateMarketPlan(t *testing.T, tx *gorm.DB, priceInPaise int64) models.MarketPlan {
+func MustCreateMarketPlan(t *testing.T, tx *gorm.DB, priceMinor int64) models.MarketPlan {
 	t.Helper()
 	n := nextSeq()
 	p := models.MarketPlan{
 		Name:         "Test Market Plan " + strconv.FormatInt(n, 10),
-		PriceInPaise: priceInPaise,
+		PriceMinor:   priceMinor,
 		DurationDays: 30,
 		IsActive:     true,
 	}
@@ -89,15 +89,15 @@ func MustCreateMarketPlan(t *testing.T, tx *gorm.DB, priceInPaise int64) models.
 // MustCreateMarketPlanSub creates a market plan subscription. When paid is
 // true it's ACTIVE with PaidAt set (as activateMarketPlanSub/the wallet path
 // would leave it); otherwise it's an unpaid PENDING row.
-func MustCreateMarketPlanSub(t *testing.T, tx *gorm.DB, userID, planID string, amountInPaise int64, paid bool) models.MarketPlanSubscription {
+func MustCreateMarketPlanSub(t *testing.T, tx *gorm.DB, userID, planID string, amountMinor int64, paid bool) models.MarketPlanSubscription {
 	t.Helper()
 	now := time.Now()
 	sub := models.MarketPlanSubscription{
-		UserID:        userID,
-		PlanID:        planID,
-		AmountInPaise: amountInPaise,
-		StartDate:     now,
-		ExpiryDate:    now.AddDate(0, 0, 30),
+		UserID:      userID,
+		PlanID:      planID,
+		AmountMinor: amountMinor,
+		StartDate:   now,
+		ExpiryDate:  now.AddDate(0, 0, 30),
 	}
 	if paid {
 		sub.Status = models.SubscriptionActive
@@ -109,34 +109,34 @@ func MustCreateMarketPlanSub(t *testing.T, tx *gorm.DB, userID, planID string, a
 	return sub
 }
 
-func MustCreateProduct(t *testing.T, tx *gorm.DB, sellerID string, priceInPaise int64) models.Product {
+func MustCreateProduct(t *testing.T, tx *gorm.DB, sellerID string, priceMinor int64) models.Product {
 	t.Helper()
 	n := nextSeq()
 	d := models.Product{
-		SellerID:     sellerID,
-		Title:        "Test Product " + strconv.FormatInt(n, 10),
-		PriceInPaise: priceInPaise,
-		FileKey:      "products/test-" + strconv.FormatInt(n, 10) + ".zip",
-		FileName:     "test-" + strconv.FormatInt(n, 10) + ".zip",
-		IsActive:     true,
+		SellerID:   sellerID,
+		Title:      "Test Product " + strconv.FormatInt(n, 10),
+		PriceMinor: priceMinor,
+		FileKey:    "products/test-" + strconv.FormatInt(n, 10) + ".zip",
+		FileName:   "test-" + strconv.FormatInt(n, 10) + ".zip",
+		IsActive:   true,
 	}
 	require.NoError(t, tx.Create(&d).Error)
 	return d
 }
 
-func MustCreateProductPurchase(t *testing.T, tx *gorm.DB, productID, buyerID, sellerID string, amountInPaise, feeInPaise int64, status models.PaymentStatus) models.ProductPurchase {
+func MustCreateProductPurchase(t *testing.T, tx *gorm.DB, productID, buyerID, sellerID string, amountMinor, feeMinor int64, status models.PaymentStatus) models.ProductPurchase {
 	t.Helper()
 	now := time.Now()
 	p := models.ProductPurchase{
-		ProductID:     productID,
-		BuyerID:       buyerID,
-		SellerID:      sellerID,
-		AmountInPaise: amountInPaise,
-		Status:        status,
+		ProductID:   productID,
+		BuyerID:     buyerID,
+		SellerID:    sellerID,
+		AmountMinor: amountMinor,
+		Status:      status,
 	}
 	if status == models.PaymentSuccess {
-		p.FeeInPaise = feeInPaise
-		p.SellerNetInPaise = amountInPaise - feeInPaise
+		p.FeeMinor = feeMinor
+		p.SellerNetMinor = amountMinor - feeMinor
 		p.PaidAt = &now
 	}
 	require.NoError(t, tx.Create(&p).Error)

@@ -110,7 +110,7 @@ func HandleManual(c *fiber.Ctx) error {
 	database.DB.Create(&models.AuditLog{
 		EventType: models.EventManualActivation, ActorAdminID: &adminID,
 		TargetID: &body.UserID,
-		Details:  models.JSONMap{"plan_id": body.PlanID, "amount_paise": plan.PriceInPaise},
+		Details:  models.JSONMap{"plan_id": body.PlanID, "amount_minor": plan.PriceMinor},
 	})
 
 	go sendSubscriptionEmails(&user, &plan, &payment, expiresAt, false)
@@ -127,15 +127,15 @@ func createManualPayment(plan *models.Plan, userID, notes string, expiresAt time
 	now := time.Now()
 	payment := models.Payment{
 		UserID: userID, PlanID: plan.ID,
-		AmountInPaise: plan.PriceInPaise,
-		Provider:      models.ProviderManual, Status: models.PaymentSuccess,
+		AmountMinor: plan.PriceMinor,
+		Provider:    models.ProviderManual, Status: models.PaymentSuccess,
 		Notes: notes, PaidAt: &now,
 	}
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&payment).Error; err != nil {
 			return err
 		}
-		if _, err := platform_wallet.Apply(tx, models.PlatformSourceLearningPlan, plan.PriceInPaise,
+		if _, err := platform_wallet.Apply(tx, models.PlatformSourceLearningPlan, plan.PriceMinor,
 			&payment.ID, models.JSONMap{"plan_id": plan.ID, "plan_name": plan.Name, "paid_via": "MANUAL"}); err != nil {
 			return err
 		}
@@ -211,7 +211,7 @@ func CaptureLearningPlan(ev provider.Event) bool {
 		if err := tx.Where("provider_order_id = ?", ev.OrderID).First(&flippedP).Error; err != nil {
 			return err
 		}
-		if _, err := platform_wallet.Apply(tx, models.PlatformSourceLearningPlan, flippedP.AmountInPaise,
+		if _, err := platform_wallet.Apply(tx, models.PlatformSourceLearningPlan, flippedP.AmountMinor,
 			&flippedP.ID, models.JSONMap{"plan_id": flippedP.PlanID, "paid_via": flippedP.Provider}); err != nil {
 			return err
 		}
@@ -309,7 +309,7 @@ func HandleActivate(c *fiber.Ctx) error {
 			return nil
 		}
 		activated = true
-		if _, err := platform_wallet.Apply(tx, models.PlatformSourceLearningPlan, p.AmountInPaise,
+		if _, err := platform_wallet.Apply(tx, models.PlatformSourceLearningPlan, p.AmountMinor,
 			&p.ID, models.JSONMap{"plan_id": p.PlanID, "plan_name": plan.Name, "paid_via": "ADMIN_MANUAL"}); err != nil {
 			return err
 		}
@@ -343,7 +343,7 @@ func sendSubscriptionEmails(user *models.User, plan *models.Plan, payment *model
 	email.SendPaymentReceiptEmail(user.Email, email.PaymentReceiptData{
 		Name:          user.Name,
 		PlanName:      plan.Name,
-		Amount:        email.FormatAmount(plan.PriceInPaise),
+		Amount:        email.FormatAmount(plan.PriceMinor),
 		TransactionID: txnID,
 		Provider:      gateway,
 		PaidAt:        email.FormatDate(paidAt),
@@ -367,7 +367,7 @@ func sendSubscriptionEmails(user *models.User, plan *models.Plan, payment *model
 			UserName:  user.Name,
 			UserEmail: user.Email,
 			PlanName:  plan.Name,
-			Amount:    email.FormatAmount(plan.PriceInPaise),
+			Amount:    email.FormatAmount(plan.PriceMinor),
 			Provider:  gateway,
 			PaidAt:    email.FormatDate(paidAt),
 			IsUpgrade: isUpgrade,

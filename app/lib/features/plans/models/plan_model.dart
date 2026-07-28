@@ -1,8 +1,9 @@
+import 'package:marketkit/core/config/currency.dart';
 class PlanModel {
   final String id;
   final String name;
   final String description;
-  final int priceInPaise;
+  final int priceMinor;
   /// Feature keys this plan grants (e.g. video category keys).
   final List<String> features;
   final int durationDays;
@@ -12,7 +13,7 @@ class PlanModel {
     required this.id,
     required this.name,
     this.description = '',
-    required this.priceInPaise,
+    required this.priceMinor,
     this.features = const [],
     required this.durationDays,
     required this.isActive,
@@ -21,8 +22,8 @@ class PlanModel {
   /// Whether this plan grants [key].
   bool hasFeature(String key) => features.contains(key);
 
-  double get priceInRupees => priceInPaise / 100.0;
-  String get formattedPrice => '₹${priceInRupees.toStringAsFixed(0)}';
+  double get priceMajor => Currency.toMajor(priceMinor);
+  String get formattedPrice => Currency.format(priceMinor);
 
   String get durationLabel {
     if (durationDays == 365) return '1 Year';
@@ -34,7 +35,7 @@ class PlanModel {
         'id': id,
         'name': name,
         'description': description,
-        'price_in_paise': priceInPaise,
+        'price_minor': priceMinor,
         'features': features,
         'duration_days': durationDays,
         'is_active': isActive,
@@ -44,7 +45,7 @@ class PlanModel {
         id: json['id'] as String,
         name: json['name'] as String,
         description: json['description'] as String? ?? '',
-        priceInPaise: (json['price_in_paise'] as num).toInt(),
+        priceMinor: (json['price_minor'] as num).toInt(),
         features:
             (json['features'] as List?)?.map((e) => e as String).toList() ??
                 const [],

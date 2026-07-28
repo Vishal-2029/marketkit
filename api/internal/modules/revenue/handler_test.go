@@ -43,11 +43,11 @@ func TestHandleSummary_ExcludesProductMarketMoney(t *testing.T) {
 		require.NoError(t, err)
 		var parsed struct {
 			Data struct {
-				TotalRevenuePaise int64 `json:"total_revenue_paise"`
+				TotalRevenueMinor int64 `json:"total_revenue_minor"`
 			} `json:"data"`
 		}
 		require.NoError(t, json.Unmarshal(body, &parsed))
-		assert.Equal(t, int64(99900), parsed.Data.TotalRevenuePaise,
+		assert.Equal(t, int64(99900), parsed.Data.TotalRevenueMinor,
 			"learning revenue must equal only the learning payment — market-plan and product-sale money must not leak in")
 	})
 }

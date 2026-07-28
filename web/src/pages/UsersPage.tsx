@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { usersService } from "@/services/users";
 import { plansService } from "@/services/plans";
 import { walletService, type WalletTransaction } from "@/services/wallet";
+import { formatMoney } from "@/lib/currency";
 
 interface Subscription {
   id: string;
@@ -37,7 +38,7 @@ interface User {
   current_app_mode?: string;
   market_joined_at?: string;
   learning_joined_at?: string;
-  wallet_balance_in_paise?: number;
+  wallet_balance_minor?: number;
 }
 
 interface Plan {
@@ -82,8 +83,8 @@ function plural(n: number, word: string) {
   return `${n} ${word}${n === 1 ? "" : "s"}`;
 }
 
-function fmtPaise(paise: number) {
-  return "₹" + (paise / 100).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+function fmtMinor(minor: number) {
+  return formatMoney(minor);
 }
 
 function walletTxLabel(type: string) {
@@ -644,7 +645,7 @@ export default function UsersPage() {
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-caption">Wallet History</p>
                   <p className="text-sm font-semibold text-foreground">
-                    {fmtPaise(drawerUser.wallet_balance_in_paise ?? 0)}
+                    {fmtMinor(drawerUser.wallet_balance_minor ?? 0)}
                   </p>
                 </div>
                 {walletTxLoading ? (
@@ -658,7 +659,7 @@ export default function UsersPage() {
                 ) : (
                   <div className="space-y-2">
                     {walletTxs.map(tx => {
-                      const credit = tx.amount_in_paise >= 0;
+                      const credit = tx.amount_minor >= 0;
                       return (
                         <div key={tx.id} className="flex items-start justify-between gap-3 py-2 border-b border-border last:border-0">
                           <div className="min-w-0">
@@ -669,10 +670,10 @@ export default function UsersPage() {
                                 hour: "2-digit", minute: "2-digit",
                               })}
                             </p>
-                            <p className="text-caption">Bal: {fmtPaise(tx.balance_after_in_paise)}</p>
+                            <p className="text-caption">Bal: {fmtMinor(tx.balance_after_minor)}</p>
                           </div>
                           <p className={`text-sm font-semibold shrink-0 ${credit ? "text-emerald-600 dark:text-emerald-400" : "text-danger"}`}>
-                            {credit ? "+" : ""}{fmtPaise(tx.amount_in_paise)}
+                            {credit ? "+" : ""}{fmtMinor(tx.amount_minor)}
                           </p>
                         </div>
                       );

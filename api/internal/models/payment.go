@@ -50,7 +50,7 @@ type Payment struct {
 	ID                string          `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	UserID            string          `gorm:"index;not null"                                 json:"user_id"`
 	PlanID            string          `gorm:"not null"                                       json:"plan_id"`
-	AmountInPaise     int64           `gorm:"not null"                                       json:"amount_in_paise"`
+	AmountMinor       int64           `gorm:"not null"                                       json:"amount_minor"`
 	Currency          string          `gorm:"default:'INR'"                                  json:"currency"`
 	Provider          PaymentProvider `gorm:"type:varchar(20);not null;column:provider"      json:"provider"`
 	Status            PaymentStatus   `gorm:"type:varchar(20);not null"                      json:"status"`

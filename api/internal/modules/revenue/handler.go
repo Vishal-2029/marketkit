@@ -33,11 +33,11 @@ func HandleSummary(c *fiber.Ctx) error {
 
 	database.DB.Model(&models.Payment{}).
 		Where("status = ?", models.PaymentSuccess).
-		Select("COALESCE(SUM(amount_in_paise), 0)").Scan(&totalRevenue)
+		Select("COALESCE(SUM(amount_minor), 0)").Scan(&totalRevenue)
 
 	database.DB.Model(&models.Payment{}).
 		Where("status = ? AND paid_at >= ?", models.PaymentSuccess, startOfMonth).
-		Select("COALESCE(SUM(amount_in_paise), 0)").Scan(&monthRevenue)
+		Select("COALESCE(SUM(amount_minor), 0)").Scan(&monthRevenue)
 
 	database.DB.Model(&models.Subscription{}).
 		Where("status = ?", models.SubscriptionActive).Count(&activeSubs)
@@ -50,11 +50,11 @@ func HandleSummary(c *fiber.Ctx) error {
 	}
 
 	return response.OK(c, fiber.Map{
-		"total_revenue_paise":  totalRevenue,
-		"month_revenue_paise":  monthRevenue,
+		"total_revenue_minor":  totalRevenue,
+		"month_revenue_minor":  monthRevenue,
 		"active_subscriptions": activeSubs,
 		"total_users":          totalUsers,
-		"arpu_paise":           arpu,
+		"arpu_minor":           arpu,
 	})
 }
 
@@ -74,12 +74,12 @@ func HandleMonthly(c *fiber.Ctx) error {
 
 	type monthlyRow struct {
 		Month   int   `json:"month"`
-		Revenue int64 `json:"revenue_paise"`
+		Revenue int64 `json:"revenue_minor"`
 	}
 	var rows []monthlyRow
 	database.DB.Raw(`
 		SELECT EXTRACT(MONTH FROM paid_at)::int AS month,
-		       COALESCE(SUM(amount_in_paise), 0) AS revenue_paise
+		       COALESCE(SUM(amount_minor), 0) AS revenue_minor
 		FROM payments
 		WHERE status = ? AND EXTRACT(YEAR FROM paid_at) = ?
 		GROUP BY month ORDER BY month
@@ -103,13 +103,13 @@ func HandleByPlan(c *fiber.Ctx) error {
 		PlanID      string `json:"plan_id"`
 		PlanName    string `json:"plan_name"`
 		Subscribers int64  `json:"subscribers"`
-		Revenue     int64  `json:"revenue_paise"`
+		Revenue     int64  `json:"revenue_minor"`
 	}
 	var rows []planRow
 	database.DB.Raw(`
 		SELECT p.id AS plan_id, p.name AS plan_name,
 		       COUNT(DISTINCT s.id) AS subscribers,
-		       COALESCE(SUM(pay.amount_in_paise), 0) AS revenue
+		       COALESCE(SUM(pay.amount_minor), 0) AS revenue
 		FROM plans p
 		LEFT JOIN subscriptions s ON s.plan_id = p.id AND s.status = 'ACTIVE'
 		LEFT JOIN payments pay ON pay.plan_id = p.id AND pay.status = 'SUCCESS'
@@ -165,13 +165,13 @@ func HandleRenewalStats(c *fiber.Ctx) error {
 	type planForecast struct {
 		PlanName      string `json:"plan_name"`
 		ExpiringCount int64  `json:"expiring_count"`
-		ValuePaise    int64  `json:"expected_value_paise"`
+		ValueMinor    int64  `json:"expected_value_minor"`
 	}
 	var byPlan []planForecast
 	database.DB.Raw(`
 		SELECT p.name AS plan_name,
 		       COUNT(s.id) AS expiring_count,
-		       COALESCE(SUM(p.price_in_paise), 0) AS value_paise
+		       COALESCE(SUM(p.price_minor), 0) AS value_minor
 		FROM subscriptions s
 		JOIN plans p ON p.id = s.plan_id
 		WHERE s.status = 'ACTIVE' AND s.expiry_date <= ?
@@ -209,12 +209,12 @@ func HandleForecast(c *fiber.Ctx) error {
 		UserName   string    `json:"user_name"`
 		PlanName   string    `json:"plan_name"`
 		ExpiryDate time.Time `json:"expiry_date"`
-		ValuePaise int64     `json:"value_paise"`
+		ValueMinor int64     `json:"value_minor"`
 	}
 	var rows []forecastRow
 	database.DB.Raw(`
 		SELECT u.id AS user_id, u.name AS user_name, p.name AS plan_name,
-		       s.expiry_date, p.price_in_paise AS value_paise
+		       s.expiry_date, p.price_minor AS value_minor
 		FROM subscriptions s
 		JOIN users u ON u.id = s.user_id
 		JOIN plans p ON p.id = s.plan_id

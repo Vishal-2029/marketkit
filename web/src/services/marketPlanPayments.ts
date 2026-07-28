@@ -7,7 +7,7 @@ export interface MarketPlanPayment {
   status: string;
   start_date: string;
   expiry_date: string;
-  amount_in_paise: number;
+  amount_minor: number;
   provider_order_id?: string;
   provider_payment_id?: string;
   paid_at?: string;

@@ -1,3 +1,4 @@
+import { formatMoney } from "@/lib/currency";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
@@ -15,7 +16,7 @@ interface Payment {
   id: string;
   user?: { name: string; email: string };
   plan?: { name: string };
-  amount_in_paise: number;
+  amount_minor: number;
   provider: string;
   status: "SUCCESS" | "FAILED" | "REFUNDED" | "PENDING";
   provider_payment_id?: string;
@@ -35,9 +36,7 @@ const statusVariant = (s: string) => {
 
 const statusLabel = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
 
-function fmt(paise: number) {
-  return "₹" + (paise / 100).toLocaleString("en-IN");
-}
+const fmt = (v: number) => formatMoney(v);
 
 export default function PaymentsPage() {
   const qc = useQueryClient();
@@ -105,7 +104,7 @@ export default function PaymentsPage() {
           p.user?.name ?? "",
           p.user?.email ?? "",
           p.plan?.name ?? "",
-          fmt(p.amount_in_paise),
+          fmt(p.amount_minor),
           p.provider,
           p.status,
           new Date(p.created_at).toLocaleString(),
@@ -206,7 +205,7 @@ export default function PaymentsPage() {
                   <td className="px-4 py-3 hidden md:table-cell">
                     <StatusBadge variant="brand">{p.plan?.name ?? "—"}</StatusBadge>
                   </td>
-                  <td className="px-4 py-3 text-sm font-semibold text-foreground">{fmt(p.amount_in_paise)}</td>
+                  <td className="px-4 py-3 text-sm font-semibold text-foreground">{fmt(p.amount_minor)}</td>
                   <td className="px-4 py-3 hidden md:table-cell">
                     <StatusBadge variant={p.provider === "MANUAL" ? "neutral" : "brand"}>{p.provider}</StatusBadge>
                   </td>
@@ -289,7 +288,7 @@ export default function PaymentsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-xl border border-border p-3">
                   <p className="text-caption">Amount</p>
-                  <p className="text-lg font-bold text-foreground">{fmt(detail.amount_in_paise)}</p>
+                  <p className="text-lg font-bold text-foreground">{fmt(detail.amount_minor)}</p>
                 </div>
                 <div className="rounded-xl border border-border p-3">
                   <p className="text-caption">Status</p>
@@ -383,7 +382,7 @@ export default function PaymentsPage() {
                <div>
                  <h2 className="text-section-title">Request Refund</h2>
                  <p className="text-xs text-muted-foreground mt-0.5">
-                   {refundTarget.user?.name} · {refundTarget.plan?.name} · {fmt(refundTarget.amount_in_paise)}
+                   {refundTarget.user?.name} · {refundTarget.plan?.name} · {fmt(refundTarget.amount_minor)}
                  </p>
                </div>
                <Button variant="ghost" size="icon" onClick={closeRefundModal}>

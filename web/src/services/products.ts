@@ -4,7 +4,7 @@ export interface Product {
   id: string;
   title: string;
   description: string;
-  price_in_paise: number;
+  price_minor: number;
   file_name: string;
   file_format: string;
   file_size_bytes: number;
@@ -21,7 +21,7 @@ export interface Product {
 export interface ProductPurchase {
   id: string;
   product_id: string;
-  amount_in_paise: number;
+  amount_minor: number;
   currency: string;
   status: string;
   paid_at?: string;
@@ -47,19 +47,19 @@ export interface MarketUser {
   phone: string;
   product_count: number;
   purchase_count: number;
-  total_income_in_paise: number;
-  seller_income_in_paise: number;
-  platform_income_in_paise: number;
+  total_income_minor: number;
+  seller_income_minor: number;
+  platform_income_minor: number;
 }
 
 export interface MarketUserProduct {
   id: string;
   title: string;
-  price_in_paise: number;
+  price_minor: number;
   preview_urls: string[];
   sell_count: number;
-  user_profit_in_paise: number;
-  pf_profit_in_paise: number;
+  user_profit_minor: number;
+  pf_profit_minor: number;
 }
 
 export interface MarketUserPurchase {
@@ -67,8 +67,8 @@ export interface MarketUserPurchase {
   product_id: string;
   product_title: string;
   preview_url?: string;
-  amount_in_paise: number;
-  fee_in_paise: number;
+  amount_minor: number;
+  fee_minor: number;
   seller_name: string;
   provider: string;
   paid_at?: string;

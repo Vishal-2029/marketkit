@@ -1,3 +1,4 @@
+import { formatMoney } from "@/lib/currency";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
@@ -23,9 +24,7 @@ const statusVariant = (s: string) => {
 const statusLabel = (s: string) =>
   s.charAt(0) + s.slice(1).toLowerCase();
 
-function fmt(paise: number) {
-  return "₹" + (paise / 100).toLocaleString("en-IN");
-}
+const fmt = (v: number) => formatMoney(v);
 
 export default function MarketPlanPaymentsPage() {
   const [search, setSearch] = useState("");
@@ -66,7 +65,7 @@ export default function MarketPlanPaymentsPage() {
           p.user?.name ?? "",
           p.user?.email ?? "",
           p.plan?.name ?? "",
-          fmt(p.amount_in_paise),
+          fmt(p.amount_minor),
           p.provider,
           p.status,
           p.paid_at ? new Date(p.paid_at).toLocaleString() : "",
@@ -195,7 +194,7 @@ export default function MarketPlanPaymentsPage() {
                         </StatusBadge>
                       </td>
                       <td className="px-4 py-3 text-sm font-semibold text-foreground">
-                        {fmt(p.amount_in_paise)}
+                        {fmt(p.amount_minor)}
                       </td>
                       <td className="px-4 py-3 hidden md:table-cell">
                         <StatusBadge
@@ -287,7 +286,7 @@ export default function MarketPlanPaymentsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-muted-foreground mb-1">Amount</p>
-                  <p className="font-semibold">{fmt(detail.amount_in_paise)}</p>
+                  <p className="font-semibold">{fmt(detail.amount_minor)}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground mb-1">Gateway</p>

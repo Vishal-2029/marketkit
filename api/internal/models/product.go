@@ -7,7 +7,7 @@ type Product struct {
 	SellerID      string    `gorm:"index;not null"                                 json:"-"`
 	Title         string    `gorm:"not null"                                       json:"title"`
 	Description   string    `gorm:"type:text;default:''"                           json:"description"`
-	PriceInPaise  int64     `gorm:"not null"                                       json:"price_in_paise"`
+	PriceMinor    int64     `gorm:"not null"                                       json:"price_minor"`
 	FileKey       string    `gorm:"not null"                                       json:"-"`
 	FileName      string    `gorm:"not null"                                       json:"file_name"`
 	FileSizeBytes int64     `                                                      json:"file_size_bytes"`

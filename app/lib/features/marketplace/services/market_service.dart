@@ -50,7 +50,7 @@ class MarketService {
   Future<ProductModel> uploadProduct({
     required String title,
     required String description,
-    required int priceInPaise,
+    required int priceMinor,
     required PlatformFile file,
     required List<XFile> previews,
     required String categoryId,
@@ -59,7 +59,7 @@ class MarketService {
     final formData = FormData.fromMap({
       'title': title,
       'description': description,
-      'price_in_paise': priceInPaise.toString(),
+      'price_minor': priceMinor.toString(),
       'category_id': categoryId,
       if (categoryOther != null && categoryOther.isNotEmpty)
         'category_other': categoryOther,
@@ -109,7 +109,7 @@ class MarketService {
         .toList();
   }
 
-  /// Returns {view_count, sales_count, revenue_in_paise} for one of the
+  /// Returns {view_count, sales_count, revenue_minor} for one of the
   /// caller's own products — how many times it sold and total earned from it.
   Future<Map<String, dynamic>> fetchMyProductStats(String productId) async {
     final res = await _dio.get(ApiEndpoints.marketMyProductStats(productId));

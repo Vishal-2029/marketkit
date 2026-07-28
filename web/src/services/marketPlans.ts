@@ -3,7 +3,7 @@ import { api } from "@/lib/api";
 export interface MarketPlanPayload {
   name?: string;
   description?: string;
-  price_in_paise?: number;
+  price_minor?: number;
   duration_days?: number;
   fee_discount_pct?: number;
   featured_seller?: boolean;

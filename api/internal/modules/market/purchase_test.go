@@ -26,11 +26,11 @@ func TestCapturePurchase_CreditsSellerAndPlatformFeeExactlyOnce(t *testing.T) {
 		product := testutil.MustCreateProduct(t, tx, seller.ID, 100000) // ₹1000
 
 		purchase := models.ProductPurchase{
-			ProductID:     product.ID,
-			BuyerID:       buyer.ID,
-			SellerID:      seller.ID,
-			AmountInPaise: product.PriceInPaise,
-			Status:        models.PaymentPending,
+			ProductID:   product.ID,
+			BuyerID:     buyer.ID,
+			SellerID:    seller.ID,
+			AmountMinor: product.PriceMinor,
+			Status:      models.PaymentPending,
 		}
 		require.NoError(t, tx.Create(&purchase).Error)
 
@@ -45,12 +45,12 @@ func TestCapturePurchase_CreditsSellerAndPlatformFeeExactlyOnce(t *testing.T) {
 		var updated models.ProductPurchase
 		require.NoError(t, tx.First(&updated, "id = ?", purchase.ID).Error)
 		assert.Equal(t, models.PaymentSuccess, updated.Status)
-		assert.Equal(t, int64(10000), updated.FeeInPaise, "default platform fee is 10%%")
-		assert.Equal(t, int64(90000), updated.SellerNetInPaise)
+		assert.Equal(t, int64(10000), updated.FeeMinor, "default platform fee is 10%%")
+		assert.Equal(t, int64(90000), updated.SellerNetMinor)
 
 		var sellerAfter models.User
-		require.NoError(t, tx.Select("wallet_balance_in_paise").First(&sellerAfter, "id = ?", seller.ID).Error)
-		assert.Equal(t, int64(90000), sellerAfter.WalletBalanceInPaise, "seller wallet must be credited exactly once")
+		require.NoError(t, tx.Select("wallet_balance_minor").First(&sellerAfter, "id = ?", seller.ID).Error)
+		assert.Equal(t, int64(90000), sellerAfter.WalletBalanceMinor, "seller wallet must be credited exactly once")
 
 		var d models.Product
 		require.NoError(t, tx.First(&d, "id = ?", product.ID).Error)
@@ -59,11 +59,11 @@ func TestCapturePurchase_CreditsSellerAndPlatformFeeExactlyOnce(t *testing.T) {
 		var platformFeeTotal int64
 		require.NoError(t, tx.Model(&models.PlatformLedger{}).
 			Where("source = ?", models.PlatformSourcePlatformFee).
-			Select("COALESCE(SUM(amount_in_paise), 0)").Scan(&platformFeeTotal).Error)
+			Select("COALESCE(SUM(amount_minor), 0)").Scan(&platformFeeTotal).Error)
 		assert.Equal(t, int64(10000), platformFeeTotal, "platform wallet must be credited the fee exactly once, not the gross")
 
 		var w models.PlatformWallet
 		require.NoError(t, tx.First(&w, "id = ?", models.PlatformWalletSingletonID).Error)
-		assert.Equal(t, int64(10000), w.BalanceInPaise)
+		assert.Equal(t, int64(10000), w.BalanceMinor)
 	})
 }

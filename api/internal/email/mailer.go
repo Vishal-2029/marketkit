@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/marketkit/api/internal/config"
+	"github.com/marketkit/api/pkg/money"
 	"gopkg.in/gomail.v2"
 )
 
@@ -91,14 +92,10 @@ func sendTemplateWithAttachments(to, subject, tmplFile string, data interface{},
 	return getDialer().DialAndSend(m)
 }
 
-// FormatAmount converts paise to a formatted rupee string e.g. "₹4,999".
-func FormatAmount(paise int64) string {
-	rupees := paise / 100
-	paise2 := paise % 100
-	if paise2 == 0 {
-		return fmt.Sprintf("₹%d", rupees)
-	}
-	return fmt.Sprintf("₹%d.%02d", rupees, paise2)
+// FormatAmount renders a minor-unit amount in the configured currency,
+// e.g. "₹4,999" for INR or "$4,999.50" for USD.
+func FormatAmount(minor int64) string {
+	return money.Format(minor, config.App.PaymentCurrency)
 }
 
 // FormatDate formats a time.Time as "02 Jan 2006".

@@ -12,7 +12,7 @@ import 'package:marketkit/features/marketplace/services/market_service.dart';
 ProductModel _product(String id, String title, String catId) =>
     ProductModel.fromJson({
       "id": id, "title": title, "description": "",
-      "price_in_paise": 20000, "file_name": "$id.zip", "file_size_bytes": 0,
+      "price_minor": 20000, "file_name": "$id.zip", "file_size_bytes": 0,
       "file_format": "dst", "is_active": true, "sales_count": 0,
       "category_id": catId, "preview_urls": <String>[],
       "seller_name": "Seller", "featured_seller": false,

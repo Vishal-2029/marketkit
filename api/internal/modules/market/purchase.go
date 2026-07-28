@@ -17,7 +17,9 @@ import (
 	"github.com/marketkit/api/internal/modules/platform_wallet"
 	"github.com/marketkit/api/internal/modules/wallet"
 	"github.com/marketkit/api/internal/payments"
+	"github.com/marketkit/api/internal/payments/provider"
 	"github.com/marketkit/api/internal/storage"
+	"github.com/marketkit/api/pkg/money"
 	"github.com/marketkit/api/pkg/response"
 	"gorm.io/gorm"
 )
@@ -65,7 +67,7 @@ func HandleCreatePurchaseOrder(c *fiber.Ctx) error {
 		return response.InternalError(c, "razorpay is not configured on the server")
 	}
 
-	rzpOrderID, err := createRazorpayOrder(product.PriceInPaise, userID, product.ID)
+	order, err := createRazorpayOrder(product.PriceMinor, userID, product.ID)
 	if err != nil {
 		slog.Error("market: razorpay order creation failed", "error", err, "user_id", userID, "product_id", product.ID)
 		return response.InternalError(c, "failed to create payment order")
@@ -75,19 +77,14 @@ func HandleCreatePurchaseOrder(c *fiber.Ctx) error {
 		ProductID:       product.ID,
 		BuyerID:         userID,
 		SellerID:        product.SellerID,
-		AmountInPaise:   product.PriceInPaise,
+		AmountMinor:     product.PriceMinor,
 		Status:          models.PaymentPending,
-		ProviderOrderID: &rzpOrderID,
+		ProviderOrderID: &order.ID,
 	}
 	database.DB.Create(&purchase)
 
 	// Same response shape as the plans order endpoint so the app checkout code is shared.
-	return response.OK(c, fiber.Map{
-		"order_id": rzpOrderID,
-		"amount":   product.PriceInPaise,
-		"currency": "INR",
-		"key_id":   config.App.RazorpayKeyID,
-	})
+	return response.OK(c, payments.NewCheckout(order, product.PriceMinor))
 }
 
 // HandleVerifyPurchase godoc
@@ -140,7 +137,7 @@ func HandleVerifyPurchase(c *fiber.Ctx) error {
 		return response.OK(c, fiber.Map{"message": "purchase already verified", "purchase_id": p.ID})
 	}
 
-	go notifySeller(p.SellerID, p.ProductID, p.AmountInPaise)
+	go notifySeller(p.SellerID, p.ProductID, p.AmountMinor)
 	sendPurchaseEmailAsync(p.ID)
 
 	return response.OK(c, fiber.Map{"message": "purchase verified", "purchase_id": p.ID})
@@ -157,7 +154,7 @@ func capturePurchase(p *models.ProductPurchase, razorpayPaymentID string, gatewa
 	// Read the fee outside the transaction to keep the locked section short;
 	// the snapshot on the purchase row is what makes it durable.
 	pct := sellerFeePercent(p.SellerID)
-	fee, net := wallet.SplitFee(p.AmountInPaise, pct)
+	fee, net := wallet.SplitFee(p.AmountMinor, pct)
 
 	captured := false
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
@@ -165,8 +162,8 @@ func capturePurchase(p *models.ProductPurchase, razorpayPaymentID string, gatewa
 			"status":              models.PaymentSuccess,
 			"provider_payment_id": razorpayPaymentID,
 			"paid_at":             time.Now(),
-			"fee_in_paise":        fee,
-			"seller_net_in_paise": net,
+			"fee_minor":           fee,
+			"seller_net_minor":    net,
 			"paid_via":            "RAZORPAY",
 		}
 		if gatewayResponse != nil {
@@ -187,7 +184,7 @@ func capturePurchase(p *models.ProductPurchase, razorpayPaymentID string, gatewa
 			return err
 		}
 		if _, err := wallet.Apply(tx, p.SellerID, models.WalletTxSaleCredit, net, &p.ID,
-			models.JSONMap{"fee_in_paise": fee, "fee_percent": pct, "product_id": p.ProductID}); err != nil {
+			models.JSONMap{"fee_minor": fee, "fee_percent": pct, "product_id": p.ProductID}); err != nil {
 			return err
 		}
 		if fee > 0 {
@@ -221,19 +218,20 @@ func CaptureOrder(orderID, razorpayPaymentID string, entity models.JSONMap) bool
 	if !capturePurchase(&p, razorpayPaymentID, entity) {
 		return true
 	}
-	go notifySeller(p.SellerID, p.ProductID, p.AmountInPaise)
+	go notifySeller(p.SellerID, p.ProductID, p.AmountMinor)
 	sendPurchaseEmailAsync(p.ID)
 	return true
 }
 
-func notifySeller(sellerID, productID string, amountInPaise int64) {
+func notifySeller(sellerID, productID string, amountMinor int64) {
 	var d models.Product
 	title := "your product"
 	if err := database.DB.Select("title").First(&d, "id = ?", productID).Error; err == nil {
 		title = "'" + d.Title + "'"
 	}
-	_, net := wallet.SplitFee(amountInPaise, sellerFeePercent(sellerID))
-	msg := fmt.Sprintf("Your product %s just sold! ₹%d has been added to your wallet.", title, net/100)
+	_, net := wallet.SplitFee(amountMinor, sellerFeePercent(sellerID))
+	msg := fmt.Sprintf("Your product %s just sold! %s has been added to your wallet.",
+		title, money.Format(net, config.App.PaymentCurrency))
 	if err := fcm.SendToUser(sellerID, "Product Sold", msg); err != nil {
 		slog.Error("market: seller sale notification failed", "seller_id", sellerID, "error", err)
 	}
@@ -320,50 +318,50 @@ func HandleEarnings(c *fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(string)
 
 	var summary struct {
-		TotalEarnedInPaise int64 `json:"total_earned_in_paise"`
-		TotalSales         int64 `json:"total_sales"`
+		TotalEarnedMinor int64 `json:"total_earned_minor"`
+		TotalSales       int64 `json:"total_sales"`
 	}
-	// Rows from before the wallet era have seller_net_in_paise = 0 and were
-	// paid out gross — count those at amount_in_paise, new rows at net.
-	netExpr := "CASE WHEN seller_net_in_paise > 0 THEN seller_net_in_paise ELSE amount_in_paise END"
+	// Rows from before the wallet era have seller_net_minor = 0 and were
+	// paid out gross — count those at amount_minor, new rows at net.
+	netExpr := "CASE WHEN seller_net_minor > 0 THEN seller_net_minor ELSE amount_minor END"
 	database.DB.Model(&models.ProductPurchase{}).
 		Where("seller_id = ? AND status = ?", userID, models.PaymentSuccess).
-		Select("COALESCE(SUM(" + netExpr + "), 0) AS total_earned_in_paise, COUNT(*) AS total_sales").
+		Select("COALESCE(SUM(" + netExpr + "), 0) AS total_earned_minor, COUNT(*) AS total_sales").
 		Scan(&summary)
 
 	type item struct {
-		ProductID     string `json:"product_id"`
-		Title         string `json:"title"`
-		Sales         int64  `json:"sales"`
-		EarnedInPaise int64  `json:"earned_in_paise"`
+		ProductID   string `json:"product_id"`
+		Title       string `json:"title"`
+		Sales       int64  `json:"sales"`
+		EarnedMinor int64  `json:"earned_minor"`
 	}
 	var items []item
 	database.DB.Model(&models.ProductPurchase{}).
 		Joins("JOIN products ON products.id = product_purchases.product_id").
 		Where("product_purchases.seller_id = ? AND product_purchases.status = ?", userID, models.PaymentSuccess).
-		Select("product_purchases.product_id, products.title, COUNT(*) AS sales, SUM(CASE WHEN product_purchases.seller_net_in_paise > 0 THEN product_purchases.seller_net_in_paise ELSE product_purchases.amount_in_paise END) AS earned_in_paise").
+		Select("product_purchases.product_id, products.title, COUNT(*) AS sales, SUM(CASE WHEN product_purchases.seller_net_minor > 0 THEN product_purchases.seller_net_minor ELSE product_purchases.amount_minor END) AS earned_minor").
 		Group("product_purchases.product_id, products.title").
-		Order("earned_in_paise DESC").
+		Order("earned_minor DESC").
 		Scan(&items)
 	if items == nil {
 		items = []item{}
 	}
 
 	return response.OK(c, fiber.Map{
-		"total_earned_in_paise": summary.TotalEarnedInPaise,
-		"total_sales":           summary.TotalSales,
-		"items":                 items,
+		"total_earned_minor": summary.TotalEarnedMinor,
+		"total_sales":        summary.TotalSales,
+		"items":              items,
 	})
 }
 
 // createRazorpayOrder creates an order via the Razorpay REST API (no SDK),
 // mirroring the user_payments module's helper.
-func createRazorpayOrder(amountInPaise int64, buyerID, productID string) (string, error) {
-	order, err := payments.CreateOrder(context.Background(), amountInPaise,
+func createRazorpayOrder(amountMinor int64, buyerID, productID string) (provider.Order, error) {
+	order, err := payments.CreateOrder(context.Background(), amountMinor,
 		payments.Receipt("mkt", buyerID, productID),
 		map[string]string{"buyer_id": buyerID, "product_id": productID})
 	if err != nil {
-		return "", err
+		return provider.Order{}, err
 	}
-	return order.ID, nil
+	return order, nil
 }

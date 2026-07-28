@@ -33,7 +33,7 @@ type User struct {
 	AvatarURL        *string    `gorm:"type:varchar(500)"                          json:"avatar_url"`
 	// Cached wallet balance; source of truth is the wallet_transactions ledger.
 	// Mutated only via wallet.Apply, which row-locks this record first.
-	WalletBalanceInPaise int64 `gorm:"default:0" json:"wallet_balance_in_paise"`
+	WalletBalanceMinor int64 `gorm:"default:0" json:"wallet_balance_minor"`
 	// CurrentAppMode is the dual-mode app's active side for this user:
 	// "" (legacy accounts predating this feature), "learning", or "market".
 	// Set at registration now that mode is chosen before signup; changed later

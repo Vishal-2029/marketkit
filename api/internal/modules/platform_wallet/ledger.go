@@ -18,7 +18,7 @@ import (
 
 var ErrInsufficientBalance = errors.New("insufficient platform wallet balance")
 
-// Apply mutates the singleton platform wallet balance by amountInPaise
+// Apply mutates the singleton platform wallet balance by amountMinor
 // (credits positive, debits negative) and appends the matching ledger row.
 // It row-locks the wallet record so concurrent credits/debits serialize.
 //
@@ -26,35 +26,35 @@ var ErrInsufficientBalance = errors.New("insufficient platform wallet balance")
 // transaction as the event that earns/spends it (a product sale, a plan
 // activation, a withdrawal) — a rollback must undo the platform credit
 // together with whatever else that transaction did.
-func Apply(tx *gorm.DB, source string, amountInPaise int64, referenceID *string, meta models.JSONMap) (int64, error) {
+func Apply(tx *gorm.DB, source string, amountMinor int64, referenceID *string, meta models.JSONMap) (int64, error) {
 	var w models.PlatformWallet
 	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 		First(&w, "id = ?", models.PlatformWalletSingletonID).Error; err != nil {
 		return 0, err
 	}
 
-	newBalance := w.BalanceInPaise + amountInPaise
+	newBalance := w.BalanceMinor + amountMinor
 	if newBalance < 0 {
 		return 0, ErrInsufficientBalance
 	}
 
 	if err := tx.Model(&models.PlatformWallet{}).
 		Where("id = ?", models.PlatformWalletSingletonID).
-		UpdateColumn("balance_in_paise", newBalance).Error; err != nil {
+		UpdateColumn("balance_minor", newBalance).Error; err != nil {
 		return 0, err
 	}
 
 	txType := "CREDIT"
-	if amountInPaise < 0 {
+	if amountMinor < 0 {
 		txType = "DEBIT"
 	}
 	if err := tx.Create(&models.PlatformLedger{
-		Type:                txType,
-		Source:              source,
-		AmountInPaise:       amountInPaise,
-		BalanceAfterInPaise: newBalance,
-		ReferenceID:         referenceID,
-		Metadata:            meta,
+		Type:              txType,
+		Source:            source,
+		AmountMinor:       amountMinor,
+		BalanceAfterMinor: newBalance,
+		ReferenceID:       referenceID,
+		Metadata:          meta,
 	}).Error; err != nil {
 		return 0, err
 	}
@@ -63,7 +63,7 @@ func Apply(tx *gorm.DB, source string, amountInPaise int64, referenceID *string,
 }
 
 // Backfill seeds the platform ledger/balance from historical rows the first
-// time it runs: SUM(fee_in_paise) over successful product_purchases, plus
+// time it runs: SUM(fee_minor) over successful product_purchases, plus
 // historical learning payments, plus paid market_plan_subscriptions. Guarded
 // by PlatformWallet.BackfilledAt so re-runs on every boot never double-credit.
 func Backfill() {
@@ -81,17 +81,17 @@ func Backfill() {
 
 		if err := tx.Model(&models.Payment{}).
 			Where("status = ?", models.PaymentSuccess).
-			Select("COALESCE(SUM(amount_in_paise), 0)").Scan(&learningTotal).Error; err != nil {
+			Select("COALESCE(SUM(amount_minor), 0)").Scan(&learningTotal).Error; err != nil {
 			return err
 		}
 		if err := tx.Model(&models.MarketPlanSubscription{}).
 			Where("paid_at IS NOT NULL").
-			Select("COALESCE(SUM(amount_in_paise), 0)").Scan(&marketPlanTotal).Error; err != nil {
+			Select("COALESCE(SUM(amount_minor), 0)").Scan(&marketPlanTotal).Error; err != nil {
 			return err
 		}
 		if err := tx.Model(&models.ProductPurchase{}).
 			Where("status = ?", models.PaymentSuccess).
-			Select("COALESCE(SUM(fee_in_paise), 0)").Scan(&feeTotal).Error; err != nil {
+			Select("COALESCE(SUM(fee_minor), 0)").Scan(&feeTotal).Error; err != nil {
 			return err
 		}
 

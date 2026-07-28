@@ -3,10 +3,10 @@ package models
 import "time"
 
 type Plan struct {
-	ID           string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
-	Name         string `gorm:"uniqueIndex;not null"                           json:"name"`
-	Description  string `gorm:"default:''"                                     json:"description"`
-	PriceInPaise int64  `gorm:"not null"                                       json:"price_in_paise"`
+	ID          string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	Name        string `gorm:"uniqueIndex;not null"                           json:"name"`
+	Description string `gorm:"default:''"                                     json:"description"`
+	PriceMinor  int64  `gorm:"not null"                                       json:"price_minor"`
 
 	// Features lists the feature keys this plan grants. A user's entitlements
 	// are the union of Features across all their active subscriptions, so

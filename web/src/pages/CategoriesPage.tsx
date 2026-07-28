@@ -1,3 +1,4 @@
+import { formatMoney } from "@/lib/currency";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Pencil, Trash2, Lock } from "lucide-react";
@@ -9,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { productCategoriesService, ProductCategory, ProductCategoryPayload } from "@/services/productCategories";
 import { productsService } from "@/services/products";
 
-const formatPrice = (paise: number) => `₹${(paise / 100).toLocaleString("en-IN")}`;
+const formatPrice = (minor: number) => `${formatMoney(minor)}`;
 
 const emptyForm = (): ProductCategoryPayload => ({ name: "", display_order: 0 });
 
@@ -348,7 +349,7 @@ export default function CategoriesPage() {
                   )}
                   <div className="p-2">
                     <p className="text-xs font-medium text-foreground truncate">{d.title}</p>
-                    <p className="text-xs text-muted-foreground">{formatPrice(d.price_in_paise)}</p>
+                    <p className="text-xs text-muted-foreground">{formatPrice(d.price_minor)}</p>
                   </div>
                 </a>
               ))}

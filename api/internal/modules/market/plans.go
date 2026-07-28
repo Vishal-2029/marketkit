@@ -18,6 +18,7 @@ import (
 	"github.com/marketkit/api/internal/modules/platform_wallet"
 	"github.com/marketkit/api/internal/modules/wallet"
 	"github.com/marketkit/api/internal/payments"
+	"github.com/marketkit/api/internal/payments/provider"
 	"github.com/marketkit/api/pkg/response"
 	"gorm.io/gorm"
 )
@@ -100,7 +101,7 @@ func HandleGetSellerFee(c *fiber.Ctx) error {
 // @Router      /user/market/plans [get]
 func HandleListMarketPlans(c *fiber.Ctx) error {
 	var plans []models.MarketPlan
-	if err := database.DB.Where("is_active = true").Order("price_in_paise ASC").Find(&plans).Error; err != nil {
+	if err := database.DB.Where("is_active = true").Order("price_minor ASC").Find(&plans).Error; err != nil {
 		return response.InternalError(c, "failed to fetch market plans")
 	}
 	if plans == nil {
@@ -199,7 +200,7 @@ func HandleCreateMarketPlanOrder(c *fiber.Ctx) error {
 		return response.InternalError(c, "razorpay is not configured on the server")
 	}
 
-	rzpOrderID, err := createMarketPlanRazorpayOrder(plan.PriceInPaise, userID, plan.ID)
+	order, err := createMarketPlanRazorpayOrder(plan.PriceMinor, userID, plan.ID)
 	if err != nil {
 		slog.Error("market plans: razorpay order creation failed", "error", err, "user_id", userID, "plan_id", plan.ID)
 		return response.InternalError(c, "failed to create payment order")
@@ -211,19 +212,14 @@ func HandleCreateMarketPlanOrder(c *fiber.Ctx) error {
 		Status:          models.SubscriptionPending,
 		StartDate:       time.Now(),
 		ExpiryDate:      time.Now(), // set on verify
-		AmountInPaise:   plan.PriceInPaise,
-		ProviderOrderID: &rzpOrderID,
+		AmountMinor:     plan.PriceMinor,
+		ProviderOrderID: &order.ID,
 	}
 	if err := database.DB.Create(&sub).Error; err != nil {
 		return response.InternalError(c, "failed to create pending subscription")
 	}
 
-	return response.OK(c, fiber.Map{
-		"order_id": rzpOrderID,
-		"amount":   plan.PriceInPaise,
-		"currency": "INR",
-		"key_id":   config.App.RazorpayKeyID,
-	})
+	return response.OK(c, payments.NewCheckout(order, plan.PriceMinor))
 }
 
 // HandleVerifyMarketPlan godoc
@@ -314,24 +310,24 @@ func HandleSubscribeMarketPlanWithWallet(c *fiber.Ctx) error {
 	expiresAt := marketPlanExpiry(now, plan.DurationDays)
 
 	sub := models.MarketPlanSubscription{
-		UserID:        userID,
-		PlanID:        plan.ID,
-		Status:        models.SubscriptionActive,
-		StartDate:     now,
-		ExpiryDate:    expiresAt,
-		AmountInPaise: plan.PriceInPaise,
-		PaidAt:        &now,
+		UserID:      userID,
+		PlanID:      plan.ID,
+		Status:      models.SubscriptionActive,
+		StartDate:   now,
+		ExpiryDate:  expiresAt,
+		AmountMinor: plan.PriceMinor,
+		PaidAt:      &now,
 	}
 
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&sub).Error; err != nil {
 			return err
 		}
-		if _, err := wallet.Apply(tx, userID, models.WalletTxPlanDebit, -plan.PriceInPaise,
+		if _, err := wallet.Apply(tx, userID, models.WalletTxPlanDebit, -plan.PriceMinor,
 			&sub.ID, models.JSONMap{"plan_id": plan.ID, "plan_name": plan.Name}); err != nil {
 			return err
 		}
-		_, err := platform_wallet.Apply(tx, models.PlatformSourceMarketPlan, plan.PriceInPaise,
+		_, err := platform_wallet.Apply(tx, models.PlatformSourceMarketPlan, plan.PriceMinor,
 			&sub.ID, models.JSONMap{"plan_id": plan.ID, "plan_name": plan.Name, "paid_via": "WALLET"})
 		return err
 	})
@@ -375,7 +371,7 @@ func activateMarketPlanSub(sub *models.MarketPlanSubscription, razorpayPaymentID
 		if result.RowsAffected == 0 {
 			return nil
 		}
-		if _, err := platform_wallet.Apply(tx, models.PlatformSourceMarketPlan, sub.AmountInPaise,
+		if _, err := platform_wallet.Apply(tx, models.PlatformSourceMarketPlan, sub.AmountMinor,
 			&sub.ID, models.JSONMap{"plan_id": sub.PlanID, "paid_via": "RAZORPAY"}); err != nil {
 			return err
 		}
@@ -452,7 +448,7 @@ func HandleAdminCreateMarketPlan(c *fiber.Ctx) error {
 	var body struct {
 		Name           string `json:"name"`
 		Description    string `json:"description"`
-		PriceInPaise   int64  `json:"price_in_paise"`
+		PriceMinor     int64  `json:"price_minor"`
 		DurationDays   int    `json:"duration_days"`
 		FeeDiscountPct int    `json:"fee_discount_pct"`
 		FeaturedSeller bool   `json:"featured_seller"`
@@ -463,7 +459,7 @@ func HandleAdminCreateMarketPlan(c *fiber.Ctx) error {
 	if body.Name == "" {
 		return response.BadRequest(c, "plan name is required")
 	}
-	if body.PriceInPaise <= 0 {
+	if body.PriceMinor <= 0 {
 		return response.BadRequest(c, "price must be greater than 0")
 	}
 	if body.DurationDays <= 0 {
@@ -476,7 +472,7 @@ func HandleAdminCreateMarketPlan(c *fiber.Ctx) error {
 	plan := models.MarketPlan{
 		Name:           body.Name,
 		Description:    body.Description,
-		PriceInPaise:   body.PriceInPaise,
+		PriceMinor:     body.PriceMinor,
 		DurationDays:   body.DurationDays,
 		FeeDiscountPct: body.FeeDiscountPct,
 		FeaturedSeller: body.FeaturedSeller,
@@ -507,7 +503,7 @@ func HandleAdminUpdateMarketPlan(c *fiber.Ctx) error {
 	var body struct {
 		Name           *string `json:"name"`
 		Description    *string `json:"description"`
-		PriceInPaise   *int64  `json:"price_in_paise"`
+		PriceMinor     *int64  `json:"price_minor"`
 		DurationDays   *int    `json:"duration_days"`
 		FeeDiscountPct *int    `json:"fee_discount_pct"`
 		FeaturedSeller *bool   `json:"featured_seller"`
@@ -524,11 +520,11 @@ func HandleAdminUpdateMarketPlan(c *fiber.Ctx) error {
 	if body.Description != nil {
 		updates["description"] = *body.Description
 	}
-	if body.PriceInPaise != nil {
-		if *body.PriceInPaise <= 0 {
+	if body.PriceMinor != nil {
+		if *body.PriceMinor <= 0 {
 			return response.BadRequest(c, "price must be greater than 0")
 		}
-		updates["price_in_paise"] = *body.PriceInPaise
+		updates["price_minor"] = *body.PriceMinor
 	}
 	if body.DurationDays != nil {
 		if *body.DurationDays <= 0 {
@@ -590,7 +586,7 @@ type marketPlanPaymentRow struct {
 	Status            string     `json:"status"`
 	StartDate         time.Time  `json:"start_date"`
 	ExpiryDate        time.Time  `json:"expiry_date"`
-	AmountInPaise     int64      `json:"amount_in_paise"`
+	AmountMinor       int64      `json:"amount_minor"`
 	ProviderOrderID   *string    `json:"provider_order_id,omitempty"`
 	ProviderPaymentID *string    `json:"provider_payment_id,omitempty"`
 	PaidAt            *time.Time `json:"paid_at,omitempty"`
@@ -673,7 +669,7 @@ func HandleAdminListMarketPlanPayments(c *fiber.Ctx) error {
 			Status:            string(sub.Status),
 			StartDate:         sub.StartDate,
 			ExpiryDate:        sub.ExpiryDate,
-			AmountInPaise:     sub.AmountInPaise,
+			AmountMinor:       sub.AmountMinor,
 			ProviderOrderID:   sub.ProviderOrderID,
 			ProviderPaymentID: sub.ProviderPaymentID,
 			PaidAt:            sub.PaidAt,
@@ -702,12 +698,12 @@ func HandleAdminListMarketPlanPayments(c *fiber.Ctx) error {
 	})
 }
 
-func createMarketPlanRazorpayOrder(amountInPaise int64, userID, planID string) (string, error) {
-	order, err := payments.CreateOrder(context.Background(), amountInPaise,
+func createMarketPlanRazorpayOrder(amountMinor int64, userID, planID string) (provider.Order, error) {
+	order, err := payments.CreateOrder(context.Background(), amountMinor,
 		payments.Receipt("mp", userID, planID),
 		map[string]string{"user_id": userID, "market_plan_id": planID})
 	if err != nil {
-		return "", err
+		return provider.Order{}, err
 	}
-	return order.ID, nil
+	return order, nil
 }

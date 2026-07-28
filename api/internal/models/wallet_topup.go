@@ -8,7 +8,7 @@ import "time"
 type WalletTopup struct {
 	ID                string        `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	UserID            string        `gorm:"index;not null"                  json:"-"`
-	AmountInPaise     int64         `gorm:"not null"                        json:"amount_in_paise"`
+	AmountMinor       int64         `gorm:"not null"                        json:"amount_minor"`
 	Currency          string        `gorm:"default:'INR'"                   json:"currency"`
 	Status            PaymentStatus `gorm:"type:varchar(20);not null;index" json:"status"`
 	ProviderOrderID   *string       `gorm:"uniqueIndex"                     json:"provider_order_id,omitempty"`

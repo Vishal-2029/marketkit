@@ -1,3 +1,4 @@
+import { currencySymbol, formatMoney } from "@/lib/currency";
 import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
@@ -22,9 +23,7 @@ const TOOLTIP_STYLE = {
 
 const MONTH_NAMES = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-function fmt(paise: number) {
-  return "₹" + (paise / 100).toLocaleString("en-IN");
-}
+const fmt = (v: number) => formatMoney(v);
 
 export default function DashboardPage() {
   const stats = useQuery({ queryKey: ["dashboard-stats"], queryFn: dashboardService.getStats });
@@ -39,9 +38,9 @@ export default function DashboardPage() {
     users: r.count,
   }));
 
-  const revenueData = (monthlyRev.data ?? []).map((r: { month: number; revenue_paise: number }) => ({
+  const revenueData = (monthlyRev.data ?? []).map((r: { month: number; revenue_minor: number }) => ({
     month: MONTH_NAMES[r.month],
-    revenue: Math.round(r.revenue_paise / 100000),
+    revenue: Math.round(r.revenue_minor / 100000),
   }));
 
   const planData = (planDist.data ?? []).map((r: { plan_name: string; subscribers: number }, i: number) => ({
@@ -65,7 +64,7 @@ export default function DashboardPage() {
             <StatCard label="Total Users" value={Number(s?.total_users ?? 0).toLocaleString()} trend="up" />
             <StatCard label="Active Subscriptions" value={Number(s?.active_subs ?? 0).toLocaleString()} />
             <StatCard label="Videos Published" value={Number(s?.published_videos ?? 0).toLocaleString()} trend="up" />
-            <StatCard label="Revenue (This Month)" value={fmt(s?.month_revenue_paise ?? 0)} trend="up" />
+            <StatCard label="Revenue (This Month)" value={fmt(s?.month_revenue_minor ?? 0)} trend="up" />
           </>
         )}
       </div>
@@ -107,11 +106,11 @@ export default function DashboardPage() {
                   ? Array(4).fill(0).map((_, i) => (
                     <tr key={i}><td colSpan={4} className="px-4 py-3"><Skeleton className="h-4" /></td></tr>
                   ))
-                  : (recentPayments.data ?? []).map((p: { id: string; user?: { name: string }; plan?: { name: string }; amount_in_paise: number; status: string }) => (
+                  : (recentPayments.data ?? []).map((p: { id: string; user?: { name: string }; plan?: { name: string }; amount_minor: number; status: string }) => (
                     <tr key={p.id} className="border-b border-border last:border-0 hover:bg-table-hover transition-colors">
                       <td className="px-4 py-3 text-sm font-medium">{p.user?.name ?? "—"}</td>
                       <td className="px-4 py-3"><StatusBadge variant="brand">{p.plan?.name ?? "—"}</StatusBadge></td>
-                      <td className="px-4 py-3 text-sm font-semibold">{fmt(p.amount_in_paise)}</td>
+                      <td className="px-4 py-3 text-sm font-semibold">{fmt(p.amount_minor)}</td>
                       <td className="px-4 py-3">
                         <StatusBadge variant={p.status === "SUCCESS" ? "success" : "danger"}>{p.status}</StatusBadge>
                       </td>
@@ -154,14 +153,14 @@ export default function DashboardPage() {
 
       {/* Monthly Revenue */}
       <div className="rounded-xl border border-border bg-card p-5 mb-6">
-        <h2 className="text-section-title mb-4">Monthly Revenue (₹K)</h2>
+        <h2 className="text-section-title mb-4">Monthly Revenue ({currencySymbol()}K)</h2>
         {monthlyRev.isLoading ? <Skeleton className="h-48" /> : (
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={revenueData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(36 14% 90%)" />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} unit="K" />
-              <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => [`₹${v}K`, "Revenue"]} />
+              <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => [`${currencySymbol()}${v}K`, "Revenue"]} />
               <Bar dataKey="revenue" fill="#b8965a" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>

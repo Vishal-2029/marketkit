@@ -1,3 +1,4 @@
+import { formatMoney } from "@/lib/currency";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
@@ -10,9 +11,7 @@ import { toast } from "sonner";
 import { refundsService, type RefundRequest } from "@/services/refunds";
 import { useAuth } from "@/contexts/AuthContext";
 
-function fmt(paise: number) {
-  return "₹" + (paise / 100).toLocaleString("en-IN");
-}
+const fmt = (v: number) => formatMoney(v);
 
 const statusVariant = (s: string) => {
   if (s === "APPROVED") return "success" as const;
@@ -141,7 +140,7 @@ export default function RefundsPage() {
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
                     <p className="text-sm text-foreground">{r.payment?.plan?.name ?? "—"}</p>
-                    <p className="text-caption font-semibold">{r.payment ? fmt(r.payment.amount_in_paise) : "—"}</p>
+                    <p className="text-caption font-semibold">{r.payment ? fmt(r.payment.amount_minor) : "—"}</p>
                   </td>
                   <td className="px-4 py-3">
                     <p className="text-sm text-muted-foreground truncate max-w-[200px]">{r.reason}</p>
@@ -240,7 +239,7 @@ export default function RefundsPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Amount</span>
                   <span className="font-bold text-foreground text-base">
-                    {detail.payment ? fmt(detail.payment.amount_in_paise) : "—"}
+                    {detail.payment ? fmt(detail.payment.amount_minor) : "—"}
                   </span>
                 </div>
                 {detail.payment?.provider_payment_id && (
@@ -315,7 +314,7 @@ export default function RefundsPage() {
                       <div className="flex items-start gap-2 p-3 rounded-xl bg-warning/10 border border-warning/20">
                         <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
                         <p className="text-xs text-warning leading-relaxed">
-                          Approving will call Razorpay and issue a <strong>full refund of {detail.payment ? fmt(detail.payment.amount_in_paise) : ""}</strong> and cancel the subscription. This cannot be undone.
+                          Approving will call Razorpay and issue a <strong>full refund of {detail.payment ? fmt(detail.payment.amount_minor) : ""}</strong> and cancel the subscription. This cannot be undone.
                         </p>
                       </div>
 

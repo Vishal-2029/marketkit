@@ -13,6 +13,7 @@ import (
 	"github.com/marketkit/api/internal/config"
 	"github.com/marketkit/api/internal/payments/provider"
 	"github.com/marketkit/api/internal/payments/provider/razorpay"
+	"github.com/marketkit/api/internal/payments/provider/stripe"
 )
 
 // Init registers every compiled-in gateway and validates that the configured
@@ -28,6 +29,11 @@ func Init() error {
 		KeyID:         config.App.RazorpayKeyID,
 		KeySecret:     config.App.RazorpayKeySecret,
 		WebhookSecret: config.App.RazorpayWebhookSecret,
+	}))
+
+	provider.Register(stripe.New(stripe.Config{
+		SecretKey:     config.App.StripeSecretKey,
+		WebhookSecret: config.App.StripeWebhookSecret,
 	}))
 
 	name := config.App.PaymentProvider
@@ -87,6 +93,49 @@ func Refund(ctx context.Context, paymentID string, amountMinor int64, reason str
 		AmountMinor: amountMinor,
 		Reason:      reason,
 	})
+}
+
+// Checkout is the payload the clients need to open a payment sheet. It is
+// deliberately provider-shaped rather than gateway-specific so the app's
+// checkout code branches on Provider once instead of per screen.
+type Checkout struct {
+	Provider    string `json:"provider"`
+	OrderID     string `json:"order_id"`
+	AmountMinor int64  `json:"amount_minor"`
+	Currency    string `json:"currency"`
+
+	// PublicKey is the client-safe key: Razorpay's key id, Stripe's
+	// publishable key. Never the secret.
+	PublicKey string `json:"public_key"`
+
+	// ClientSecret is set by gateways whose SDK needs it (Stripe). Empty for
+	// gateways that key checkout off the order id alone (Razorpay).
+	ClientSecret string `json:"client_secret,omitempty"`
+}
+
+// NewCheckout builds the client payload for a created order.
+func NewCheckout(order provider.Order, amountMinor int64) Checkout {
+	name := config.App.PaymentProvider
+	return Checkout{
+		Provider:     name,
+		OrderID:      order.ID,
+		AmountMinor:  amountMinor,
+		Currency:     Currency(),
+		PublicKey:    PublicKey(),
+		ClientSecret: order.ClientSecret,
+	}
+}
+
+// PublicKey returns the active gateway's client-safe key.
+func PublicKey() string {
+	switch config.App.PaymentProvider {
+	case "stripe":
+		return config.App.StripePublishableKey
+	case "razorpay":
+		return config.App.RazorpayKeyID
+	default:
+		return ""
+	}
 }
 
 // Receipt builds a gateway receipt reference from up to two ids. Gateways cap

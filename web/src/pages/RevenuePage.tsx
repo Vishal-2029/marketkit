@@ -1,3 +1,4 @@
+import { currencySymbol, formatMoney } from "@/lib/currency";
 import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
@@ -10,9 +11,7 @@ const TOOLTIP_STYLE = {
   contentStyle: { background: "hsl(0 0% 100%)", border: "1px solid hsl(36 14% 90%)", borderRadius: "10px", fontSize: "12px", color: "hsl(240 6% 12%)" },
 };
 
-function fmt(paise: number) {
-  return "₹" + (paise / 100).toLocaleString("en-IN");
-}
+const fmt = (v: number) => formatMoney(v);
 
 export default function RevenuePage() {
   const summary = useQuery({ queryKey: ["revenue-summary"], queryFn: revenueService.summary });
@@ -23,9 +22,9 @@ export default function RevenuePage() {
 
   const s = summary.data;
 
-  const monthlyData = (monthly.data ?? []).map((r: { month: number; revenue_paise: number }) => ({
+  const monthlyData = (monthly.data ?? []).map((r: { month: number; revenue_minor: number }) => ({
     month: MONTH_NAMES[r.month],
-    amount: Math.round(r.revenue_paise / 100000),
+    amount: Math.round(r.revenue_minor / 100000),
   }));
 
   const cumulativeData = (() => {
@@ -36,7 +35,7 @@ export default function RevenuePage() {
     });
   })();
 
-  const totalRevForPct = (byPlan.data ?? []).reduce((sum: number, r: { revenue_paise: number }) => sum + Number(r.revenue_paise), 0);
+  const totalRevForPct = (byPlan.data ?? []).reduce((sum: number, r: { revenue_minor: number }) => sum + Number(r.revenue_minor), 0);
 
   return (
     <div>
@@ -48,23 +47,23 @@ export default function RevenuePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {summary.isLoading ? Array(4).fill(0).map((_,i)=><Skeleton key={i} className="h-24 rounded-xl"/>) : (
           <>
-            <StatCard label="Total Revenue" value={fmt(s?.total_revenue_paise ?? 0)} />
-            <StatCard label="This Month" value={fmt(s?.month_revenue_paise ?? 0)} trend="up" />
+            <StatCard label="Total Revenue" value={fmt(s?.total_revenue_minor ?? 0)} />
+            <StatCard label="This Month" value={fmt(s?.month_revenue_minor ?? 0)} trend="up" />
             <StatCard label="Active Subscriptions" value={Number(s?.active_subscriptions ?? 0).toLocaleString()} />
-            <StatCard label="Avg. Revenue Per User" value={fmt(s?.arpu_paise ?? 0)} />
+            <StatCard label="Avg. Revenue Per User" value={fmt(s?.arpu_minor ?? 0)} />
           </>
         )}
       </div>
 
       <div className="rounded-xl border border-border bg-card p-6 mb-8">
-        <h2 className="text-section-title mb-6">Monthly Revenue (₹K)</h2>
+        <h2 className="text-section-title mb-6">Monthly Revenue ({currencySymbol()}K)</h2>
         {monthly.isLoading ? <Skeleton className="h-48" /> : (
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={monthlyData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(36 14% 90%)" />
               <XAxis dataKey="month" tick={{ fontSize: 12, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} unit="K" />
-              <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => [`₹${v}K`, "Revenue"]} />
+              <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => [`${currencySymbol()}${v}K`, "Revenue"]} />
               <Bar dataKey="amount" fill="#b8965a" radius={[5, 5, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -72,14 +71,14 @@ export default function RevenuePage() {
       </div>
 
       <div className="rounded-xl border border-border bg-card p-6 mb-8">
-        <h2 className="text-section-title mb-6">Cumulative Revenue Growth (₹K)</h2>
+        <h2 className="text-section-title mb-6">Cumulative Revenue Growth ({currencySymbol()}K)</h2>
         {monthly.isLoading ? <Skeleton className="h-44" /> : (
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={cumulativeData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(36 14% 90%)" />
               <XAxis dataKey="month" tick={{ fontSize: 12, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} unit="K" />
-              <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => [`₹${v}K`, "Cumulative"]} />
+              <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => [`${currencySymbol()}${v}K`, "Cumulative"]} />
               <Line type="monotone" dataKey="cumulative" stroke="#8a6d3b" strokeWidth={2.5} dot={{ fill: "#8a6d3b", r: 4 }} activeDot={{ r: 6, fill: "#b8965a" }} />
             </LineChart>
           </ResponsiveContainer>
@@ -100,13 +99,13 @@ export default function RevenuePage() {
           <tbody>
             {byPlan.isLoading
               ? Array(3).fill(0).map((_,i)=><tr key={i}><td colSpan={4} className="px-4 py-3"><Skeleton className="h-4"/></td></tr>)
-              : (byPlan.data ?? []).map((r: { plan_name: string; subscribers: number; revenue_paise: number }) => {
-                const pct = totalRevForPct > 0 ? Math.round((Number(r.revenue_paise) / totalRevForPct) * 100) : 0;
+              : (byPlan.data ?? []).map((r: { plan_name: string; subscribers: number; revenue_minor: number }) => {
+                const pct = totalRevForPct > 0 ? Math.round((Number(r.revenue_minor) / totalRevForPct) * 100) : 0;
                 return (
                   <tr key={r.plan_name} className="border-b border-border last:border-0 hover:bg-table-hover transition-colors">
                     <td className="px-4 py-3 text-sm font-medium text-foreground">{r.plan_name}</td>
                     <td className="px-4 py-3 text-sm text-foreground">{r.subscribers}</td>
-                    <td className="px-4 py-3 text-sm font-semibold text-foreground">{fmt(Number(r.revenue_paise))}</td>
+                    <td className="px-4 py-3 text-sm font-semibold text-foreground">{fmt(Number(r.revenue_minor))}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="w-20 h-2 rounded-full bg-muted overflow-hidden">
@@ -135,8 +134,8 @@ export default function RevenuePage() {
         ) : (() => {
           const rs: RenewalStats = renewal.data ?? { total_expired_90d: 0, renewals_90d: 0, renewal_rate_pct: 0, churn_rate_pct: 0, forecast_by_plan: [] };
           const forecastRows = forecast.data ?? [];
-          const totalExpectedPaise = forecastRows.reduce((s: number, r: { value_paise: number }) => s + r.value_paise, 0);
-          const adjustedPaise = Math.round(totalExpectedPaise * rs.renewal_rate_pct / 100);
+          const totalExpectedMinor = forecastRows.reduce((s: number, r: { value_minor: number }) => s + r.value_minor, 0);
+          const adjustedMinor = Math.round(totalExpectedMinor * rs.renewal_rate_pct / 100);
           const hasHistory = rs.total_expired_90d > 0;
 
           return (
@@ -169,7 +168,7 @@ export default function RevenuePage() {
                   <p className="text-xs text-muted-foreground mt-1">Expiring in 30 days</p>
                   {forecastRows.length > 0 && (
                     <p className="text-[11px] text-muted-foreground mt-0.5">
-                      {fmt(totalExpectedPaise)} at stake
+                      {fmt(totalExpectedMinor)} at stake
                     </p>
                   )}
                 </div>
@@ -179,14 +178,14 @@ export default function RevenuePage() {
               <div className="px-5 py-4 border-b border-border bg-muted/30 flex flex-wrap gap-6">
                 <div>
                   <p className="text-xs text-muted-foreground mb-0.5">If all renew</p>
-                  <p className="text-base font-semibold text-foreground">{fmt(totalExpectedPaise)}</p>
+                  <p className="text-base font-semibold text-foreground">{fmt(totalExpectedMinor)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground mb-0.5">
                     Adjusted ({hasHistory ? `${rs.renewal_rate_pct}% rate` : "no history"})
                   </p>
                   <p className={`text-base font-semibold ${hasHistory ? "text-primary" : "text-muted-foreground"}`}>
-                    {hasHistory ? fmt(adjustedPaise) : "—"}
+                    {hasHistory ? fmt(adjustedMinor) : "—"}
                   </p>
                 </div>
                 {!hasHistory && (
@@ -209,12 +208,12 @@ export default function RevenuePage() {
                   </thead>
                   <tbody>
                     {rs.forecast_by_plan.map(row => {
-                      const adj = hasHistory ? Math.round(row.expected_value_paise * rs.renewal_rate_pct / 100) : null;
+                      const adj = hasHistory ? Math.round(row.expected_value_minor * rs.renewal_rate_pct / 100) : null;
                       return (
                         <tr key={row.plan_name} className="border-b border-border last:border-0 hover:bg-table-hover transition-colors">
                           <td className="px-5 py-3 text-sm font-medium text-foreground">{row.plan_name}</td>
                           <td className="px-5 py-3 text-sm text-foreground">{row.expiring_count}</td>
-                          <td className="px-5 py-3 text-sm text-foreground">{fmt(row.expected_value_paise)}</td>
+                          <td className="px-5 py-3 text-sm text-foreground">{fmt(row.expected_value_minor)}</td>
                           <td className="px-5 py-3 text-sm font-medium text-primary">
                             {adj !== null ? fmt(adj) : <span className="text-muted-foreground">—</span>}
                           </td>

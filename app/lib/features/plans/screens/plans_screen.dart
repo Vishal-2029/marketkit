@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../models/plan_model.dart';
 import '../providers/plans_provider.dart';
 import '../widgets/plan_card.dart';
-import 'package:marketkit/core/config/brand.dart';
+import 'package:marketkit/core/payments/checkout.dart';
 
 class PlansScreen extends ConsumerStatefulWidget {
   const PlansScreen({super.key});
@@ -18,117 +17,50 @@ class PlansScreen extends ConsumerStatefulWidget {
 }
 
 class _PlansScreenState extends ConsumerState<PlansScreen> {
-  late Razorpay _razorpay;
-
   @override
   void initState() {
     super.initState();
-    _razorpay = Razorpay();
-    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handleSuccess);
-    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handleFailure);
-    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
     Future.microtask(() => ref.read(plansProvider.notifier).load());
   }
 
-  @override
-  void dispose() {
-    _razorpay.clear();
-    super.dispose();
+  void _snack(String msg, {Color? color}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(msg), backgroundColor: color));
   }
 
   Future<void> _handleBuyTap(PlanModel plan) async {
     final auth = ref.read(authProvider);
     try {
-      final order =
-          await ref.read(plansProvider.notifier).createOrder(plan.id);
-      final keyId = order['key_id'] as String?;
-      final orderId = order['order_id'] as String?;
-      final amount = order['amount'];
-      if (keyId == null || orderId == null || amount == null) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Payment setup failed. Please try again.'),
-            backgroundColor: kDanger,
-          ),
-        );
-        return;
-      }
-      _razorpay.open({
-        'key': keyId,
-        'amount': amount,
-        'order_id': orderId,
-        'currency': order['currency'] ?? 'INR',
-        'name': Brand.checkoutName,
-        'description': plan.name,
-        'prefill': {
-          'contact': auth.user?.phone ?? '',
-          'email': auth.user?.email ?? '',
-        },
-      });
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not initiate payment: $e'),
-          backgroundColor: kDanger,
-        ),
+      final raw = await ref.read(plansProvider.notifier).createOrder(plan.id);
+      final result = await CheckoutService.pay(
+        order: CheckoutOrder.fromJson(raw),
+        description: plan.name,
+        email: auth.user?.email,
+        phone: auth.user?.phone,
       );
-    }
-  }
 
-  void _handleSuccess(PaymentSuccessResponse response) async {
-    final orderId = response.orderId;
-    final paymentId = response.paymentId;
-    final signature = response.signature;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Payment successful! Activating your plan...'),
-        backgroundColor: kSuccess,
-      ),
-    );
-
-    try {
-      if (orderId != null && paymentId != null && signature != null) {
+      _snack('Payment successful! Activating your plan...', color: kSuccess);
+      try {
         await ref.read(plansProvider.notifier).verifyPayment(
-              razorpayOrderId: orderId,
-              razorpayPaymentId: paymentId,
-              razorpaySignature: signature,
+              razorpayOrderId: result.orderId,
+              razorpayPaymentId: result.paymentId,
+              razorpaySignature: result.signature,
             );
+      } catch (e) {
+        // The server webhook still activates the plan if this call fails.
+        _snack('Activation is taking longer than usual: $e', color: kDanger);
       }
+
+      await ref.read(plansProvider.notifier).refreshAfterPayment();
+      if (mounted) context.go('/home');
+    } on CheckoutCancelled {
+      // User backed out — nothing to report.
+    } on CheckoutFailure catch (e) {
+      _snack(e.message, color: kDanger);
     } catch (e) {
-      // Webhook fallback: even if verify fails, the server webhook can still activate.
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Activation is taking longer than usual: $e'),
-            backgroundColor: kDanger,
-          ),
-        );
-      }
+      _snack('Could not initiate payment: $e', color: kDanger);
     }
-
-    await ref.read(plansProvider.notifier).refreshAfterPayment();
-    if (mounted) context.go('/home');
-  }
-
-  void _handleFailure(PaymentFailureResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Payment failed: ${response.message ?? 'Unknown error'}'),
-        backgroundColor: kDanger,
-      ),
-    );
-  }
-
-  void _handleExternalWallet(ExternalWalletResponse response) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-            'External wallet selected: ${response.walletName ?? 'Unknown'}'),
-      ),
-    );
   }
 
   @override

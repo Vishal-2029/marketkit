@@ -1,8 +1,9 @@
+import 'package:marketkit/core/config/currency.dart';
 class ProductModel {
   final String id;
   final String title;
   final String description;
-  final int priceInPaise;
+  final int priceMinor;
   final String fileName;
   final String fileFormat;
   final int fileSizeBytes;
@@ -21,7 +22,7 @@ class ProductModel {
     required this.id,
     required this.title,
     required this.description,
-    required this.priceInPaise,
+    required this.priceMinor,
     required this.fileName,
     required this.fileFormat,
     required this.fileSizeBytes,
@@ -37,13 +38,13 @@ class ProductModel {
     this.categoryId,
   });
 
-  String get formattedPrice => '₹${(priceInPaise / 100).toStringAsFixed(0)}';
+  String get formattedPrice => Currency.format(priceMinor);
 
   factory ProductModel.fromJson(Map<String, dynamic> json) => ProductModel(
         id: json['id'] as String? ?? '',
         title: json['title'] as String? ?? '',
         description: json['description'] as String? ?? '',
-        priceInPaise: (json['price_in_paise'] as num?)?.toInt() ?? 0,
+        priceMinor: (json['price_minor'] as num?)?.toInt() ?? 0,
         fileName: json['file_name'] as String? ?? '',
         fileFormat: json['file_format'] as String? ?? '',
         fileSizeBytes: (json['file_size_bytes'] as num?)?.toInt() ?? 0,
@@ -67,7 +68,7 @@ class ProductModel {
         'id': id,
         'title': title,
         'description': description,
-        'price_in_paise': priceInPaise,
+        'price_minor': priceMinor,
         'file_name': fileName,
         'file_format': fileFormat,
         'file_size_bytes': fileSizeBytes,

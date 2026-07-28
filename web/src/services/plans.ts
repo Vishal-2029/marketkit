@@ -3,7 +3,7 @@ import { api } from "@/lib/api";
 export interface PlanPayload {
   name?: string;
   description?: string;
-  price_in_paise?: number;
+  price_minor?: number;
   features?: string[];
   duration_days?: number;
   is_active?: boolean;

@@ -1,8 +1,9 @@
+import 'package:marketkit/core/config/currency.dart';
 class MarketPlanModel {
   final String id;
   final String name;
   final String description;
-  final int priceInPaise;
+  final int priceMinor;
   final int durationDays;
   final int feeDiscountPct;
   final bool featuredSeller;
@@ -12,15 +13,15 @@ class MarketPlanModel {
     required this.id,
     required this.name,
     this.description = '',
-    required this.priceInPaise,
+    required this.priceMinor,
     required this.durationDays,
     required this.feeDiscountPct,
     required this.featuredSeller,
     required this.isActive,
   });
 
-  double get priceInRupees => priceInPaise / 100.0;
-  String get formattedPrice => '₹${priceInRupees.toStringAsFixed(0)}';
+  double get priceMajor => Currency.toMajor(priceMinor);
+  String get formattedPrice => Currency.format(priceMinor);
 
   String get durationLabel {
     if (durationDays == 365) return '1 Year';
@@ -32,7 +33,7 @@ class MarketPlanModel {
         'id': id,
         'name': name,
         'description': description,
-        'price_in_paise': priceInPaise,
+        'price_minor': priceMinor,
         'duration_days': durationDays,
         'fee_discount_pct': feeDiscountPct,
         'featured_seller': featuredSeller,
@@ -44,7 +45,7 @@ class MarketPlanModel {
         id: json['id'] as String,
         name: json['name'] as String,
         description: json['description'] as String? ?? '',
-        priceInPaise: (json['price_in_paise'] as num).toInt(),
+        priceMinor: (json['price_minor'] as num).toInt(),
         durationDays: (json['duration_days'] as num?)?.toInt() ?? 30,
         feeDiscountPct: (json['fee_discount_pct'] as num?)?.toInt() ?? 0,
         featuredSeller: json['featured_seller'] as bool? ?? false,

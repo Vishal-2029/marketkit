@@ -20,11 +20,12 @@ class WalletService {
         .toList();
   }
 
-  /// Returns {order_id, amount, currency, key_id} — same shape as the product
+  /// Returns the `payments.Checkout` payload (provider, order_id, amount_minor,
+  /// currency, public_key, client_secret) — same shape as the product
   /// purchase order, so the Razorpay checkout call is identical.
-  Future<Map<String, dynamic>> createTopupOrder(int amountInPaise) async {
+  Future<Map<String, dynamic>> createTopupOrder(int amountMinor) async {
     final res = await _dio.post(ApiEndpoints.walletTopupOrder,
-        data: {'amount_in_paise': amountInPaise});
+        data: {'amount_minor': amountMinor});
     return res.data['data'] as Map<String, dynamic>;
   }
 
@@ -61,11 +62,11 @@ class WalletService {
   }
 
   Future<void> createWithdrawal({
-    required int amountInPaise,
+    required int amountMinor,
     required String method,
   }) async {
     await _dio.post(ApiEndpoints.walletWithdrawals, data: {
-      'amount_in_paise': amountInPaise,
+      'amount_minor': amountMinor,
       'method': method,
     });
   }

@@ -5,7 +5,7 @@ import "time"
 // Keys in platform_settings.
 const (
 	SettingMarketFeePercent   = "market_fee_percent"
-	SettingMinWithdrawalPaise = "min_withdrawal_in_paise"
+	SettingMinWithdrawalMinor = "min_withdrawal_minor"
 )
 
 // PlatformSetting is a generic admin-tunable key/value row.

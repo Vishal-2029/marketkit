@@ -10,8 +10,10 @@ import (
 
 	"github.com/go-pdf/fpdf"
 	"github.com/gofiber/fiber/v2"
+	"github.com/marketkit/api/internal/config"
 	"github.com/marketkit/api/internal/database"
 	"github.com/marketkit/api/internal/models"
+	"github.com/marketkit/api/pkg/money"
 	"github.com/marketkit/api/pkg/response"
 	"gorm.io/gorm"
 )
@@ -55,34 +57,34 @@ func HandleGet(c *fiber.Ctx) error {
 	}
 	var totals []sourceTotal
 	if err := database.DB.Model(&models.PlatformLedger{}).
-		Select("source, COALESCE(SUM(amount_in_paise), 0) AS total").
+		Select("source, COALESCE(SUM(amount_minor), 0) AS total").
 		Group("source").
 		Scan(&totals).Error; err != nil {
 		return response.InternalErrorWithLog(c, "platform_wallet: load breakdown", err)
 	}
 
 	breakdown := fiber.Map{
-		"learning_plan_in_paise": int64(0),
-		"market_plan_in_paise":   int64(0),
-		"platform_fee_in_paise":  int64(0),
-		"withdrawal_in_paise":    int64(0),
+		"learning_plan_minor": int64(0),
+		"market_plan_minor":   int64(0),
+		"platform_fee_minor":  int64(0),
+		"withdrawal_minor":    int64(0),
 	}
 	for _, t := range totals {
 		switch t.Source {
 		case models.PlatformSourceLearningPlan:
-			breakdown["learning_plan_in_paise"] = t.Total
+			breakdown["learning_plan_minor"] = t.Total
 		case models.PlatformSourceMarketPlan:
-			breakdown["market_plan_in_paise"] = t.Total
+			breakdown["market_plan_minor"] = t.Total
 		case models.PlatformSourcePlatformFee:
-			breakdown["platform_fee_in_paise"] = t.Total
+			breakdown["platform_fee_minor"] = t.Total
 		case models.PlatformSourceWithdrawal:
-			breakdown["withdrawal_in_paise"] = t.Total
+			breakdown["withdrawal_minor"] = t.Total
 		}
 	}
 
 	return response.OK(c, fiber.Map{
-		"balance_in_paise": w.BalanceInPaise,
-		"breakdown":        breakdown,
+		"balance_minor": w.BalanceMinor,
+		"breakdown":     breakdown,
 	})
 }
 
@@ -147,7 +149,7 @@ func exportCSV(c *fiber.Ctx) error {
 
 	var buf bytes.Buffer
 	wr := csv.NewWriter(&buf)
-	_ = wr.Write([]string{"date", "type", "source", "reference_id", "amount_in_paise", "balance_after_in_paise"})
+	_ = wr.Write([]string{"date", "type", "source", "reference_id", "amount_minor", "balance_after_minor"})
 	for _, r := range rows {
 		ref := ""
 		if r.ReferenceID != nil {
@@ -158,8 +160,8 @@ func exportCSV(c *fiber.Ctx) error {
 			r.Type,
 			r.Source,
 			ref,
-			strconv.FormatInt(r.AmountInPaise, 10),
-			strconv.FormatInt(r.BalanceAfterInPaise, 10),
+			strconv.FormatInt(r.AmountMinor, 10),
+			strconv.FormatInt(r.BalanceAfterMinor, 10),
 		})
 	}
 	wr.Flush()
@@ -170,17 +172,10 @@ func exportCSV(c *fiber.Ctx) error {
 	return c.SendString(buf.String())
 }
 
-func formatPaise(paise int64) string {
-	rupees := float64(paise) / 100
-	sign := ""
-	if rupees < 0 {
-		sign = "-"
-		rupees = -rupees
-	}
-	if rupees == float64(int64(rupees)) {
-		return fmt.Sprintf("%sRs. %d", sign, int64(rupees))
-	}
-	return fmt.Sprintf("%sRs. %.2f", sign, rupees)
+// formatMinor renders an amount for the PDF. It uses the ISO code rather than
+// the currency symbol because fpdf's core fonts are Latin-1 and cannot draw ₹.
+func formatMinor(minor int64) string {
+	return money.FormatASCII(minor, config.App.PaymentCurrency)
 }
 
 var sourceLabel = map[string]string{
@@ -215,7 +210,7 @@ func exportPDF(c *fiber.Ctx) error {
 
 	pdf.SetTextColor(0, 0, 0)
 	pdf.SetFont("Helvetica", "B", 12)
-	pdf.CellFormat(0, 8, fmt.Sprintf("Current Balance: %s", formatPaise(w.BalanceInPaise)), "", 1, "L", false, 0, "")
+	pdf.CellFormat(0, 8, fmt.Sprintf("Current Balance: %s", formatMinor(w.BalanceMinor)), "", 1, "L", false, 0, "")
 	pdf.Ln(6)
 
 	colWidths := []float64{28, 40, 40, 40, 40}
@@ -236,8 +231,8 @@ func exportPDF(c *fiber.Ctx) error {
 		pdf.CellFormat(colWidths[0], 6, r.CreatedAt.Format("02 Jan 2006"), "1", 0, "L", false, 0, "")
 		pdf.CellFormat(colWidths[1], 6, r.Type, "1", 0, "L", false, 0, "")
 		pdf.CellFormat(colWidths[2], 6, label, "1", 0, "L", false, 0, "")
-		pdf.CellFormat(colWidths[3], 6, formatPaise(r.AmountInPaise), "1", 0, "R", false, 0, "")
-		pdf.CellFormat(colWidths[4], 6, formatPaise(r.BalanceAfterInPaise), "1", 0, "R", false, 0, "")
+		pdf.CellFormat(colWidths[3], 6, formatMinor(r.AmountMinor), "1", 0, "R", false, 0, "")
+		pdf.CellFormat(colWidths[4], 6, formatMinor(r.BalanceAfterMinor), "1", 0, "R", false, 0, "")
 		pdf.Ln(-1)
 	}
 
@@ -258,7 +253,7 @@ func exportPDF(c *fiber.Ctx) error {
 // @Accept      json
 // @Produce     json
 // @Security    BearerAuth
-// @Param       body  body  map[string]interface{}  true  "amount_in_paise, note"
+// @Param       body  body  map[string]interface{}  true  "amount_minor, note"
 // @Success     201  {object}  map[string]interface{}
 // @Failure     400  {object}  map[string]string
 // @Failure     403  {object}  map[string]string
@@ -271,20 +266,20 @@ func HandleCreateWithdrawal(c *fiber.Ctx) error {
 	adminID, _ := c.Locals("adminID").(string)
 
 	var body struct {
-		AmountInPaise int64  `json:"amount_in_paise"`
-		Note          string `json:"note"`
+		AmountMinor int64  `json:"amount_minor"`
+		Note        string `json:"note"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return response.BadRequest(c, "invalid request body")
 	}
-	if body.AmountInPaise <= 0 {
+	if body.AmountMinor <= 0 {
 		return response.BadRequest(c, "amount must be greater than 0")
 	}
 
 	var newBalance int64
 	txErr := database.DB.Transaction(func(tx *gorm.DB) error {
 		var applyErr error
-		newBalance, applyErr = Apply(tx, models.PlatformSourceWithdrawal, -body.AmountInPaise, nil,
+		newBalance, applyErr = Apply(tx, models.PlatformSourceWithdrawal, -body.AmountMinor, nil,
 			models.JSONMap{"withdrawn_by": adminID, "note": body.Note})
 		return applyErr
 	})
@@ -300,15 +295,15 @@ func HandleCreateWithdrawal(c *fiber.Ctx) error {
 		ActorAdminID: &adminID,
 		IPAddress:    c.IP(),
 		Details: models.JSONMap{
-			"action":          "platform_wallet_withdrawal",
-			"amount_in_paise": body.AmountInPaise,
-			"note":            body.Note,
+			"action":       "platform_wallet_withdrawal",
+			"amount_minor": body.AmountMinor,
+			"note":         body.Note,
 		},
 	})
 
 	return response.Created(c, fiber.Map{
-		"message":          "withdrawal recorded",
-		"amount_in_paise":  body.AmountInPaise,
-		"balance_in_paise": newBalance,
+		"message":       "withdrawal recorded",
+		"amount_minor":  body.AmountMinor,
+		"balance_minor": newBalance,
 	})
 }

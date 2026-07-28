@@ -10,6 +10,7 @@ import (
 	"github.com/marketkit/api/internal/database"
 	"github.com/marketkit/api/internal/models"
 	"github.com/marketkit/api/pkg/mask"
+	"github.com/marketkit/api/pkg/money"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -79,20 +80,20 @@ func main() {
 	catC := string(models.CategoryC)
 
 	plans := []models.Plan{
-		{Name: "Category A", PriceInPaise: 99900, Features: []string{catA}, DurationDays: 365},
-		{Name: "Category B", PriceInPaise: 99900, Features: []string{catB}, DurationDays: 365},
-		{Name: "Category C", PriceInPaise: 99900, Features: []string{catC}, DurationDays: 365},
-		{Name: "A + B", PriceInPaise: 179900, Features: []string{catA, catB}, DurationDays: 365},
-		{Name: "A + C", PriceInPaise: 179900, Features: []string{catA, catC}, DurationDays: 365},
-		{Name: "All Access", PriceInPaise: 249900, Features: []string{catA, catB, catC}, DurationDays: 365},
+		{Name: "Category A", PriceMinor: 99900, Features: []string{catA}, DurationDays: 365},
+		{Name: "Category B", PriceMinor: 99900, Features: []string{catB}, DurationDays: 365},
+		{Name: "Category C", PriceMinor: 99900, Features: []string{catC}, DurationDays: 365},
+		{Name: "A + B", PriceMinor: 179900, Features: []string{catA, catB}, DurationDays: 365},
+		{Name: "A + C", PriceMinor: 179900, Features: []string{catA, catC}, DurationDays: 365},
+		{Name: "All Access", PriceMinor: 249900, Features: []string{catA, catB, catC}, DurationDays: 365},
 	}
 	for _, p := range plans {
 		var existing models.Plan
 		if database.DB.Where("name = ?", p.Name).First(&existing).Error != nil {
 			database.DB.Create(&p)
-			log.Printf("Plan created: %s (₹%.0f)", p.Name, float64(p.PriceInPaise)/100)
+			log.Printf("Plan created: %s (%s)", p.Name, money.Format(p.PriceMinor, config.App.PaymentCurrency))
 		} else {
-			log.Printf("Plan exists:  %s (₹%.0f)", existing.Name, float64(existing.PriceInPaise)/100)
+			log.Printf("Plan exists:  %s (%s)", existing.Name, money.Format(existing.PriceMinor, config.App.PaymentCurrency))
 		}
 	}
 

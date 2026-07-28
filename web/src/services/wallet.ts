@@ -2,7 +2,7 @@ import { api } from "@/lib/api";
 
 export interface Withdrawal {
   id: string;
-  amount_in_paise: number;
+  amount_minor: number;
   method: "UPI" | "BANK";
   upi_id?: string;
   bank_account_number?: string;
@@ -20,15 +20,15 @@ export interface Withdrawal {
 export interface WalletTransaction {
   id: string;
   type: "TOPUP" | "PURCHASE_DEBIT" | "SALE_CREDIT" | "WITHDRAWAL" | string;
-  amount_in_paise: number;
-  balance_after_in_paise: number;
+  amount_minor: number;
+  balance_after_minor: number;
   reference_id?: string;
   created_at: string;
 }
 
 export interface WalletSettings {
   fee_percent: number;
-  min_withdrawal_in_paise: number;
+  min_withdrawal_minor: number;
 }
 
 export const withdrawalsService = {

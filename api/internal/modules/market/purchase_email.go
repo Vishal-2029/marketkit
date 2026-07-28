@@ -68,7 +68,7 @@ func sendPurchaseEmailAsync(purchaseID string) {
 			Name:         purchase.Buyer.Name,
 			ProductTitle: purchase.Product.Title,
 			SellerName:   purchase.Seller.Name,
-			Amount:       email.FormatAmount(purchase.AmountInPaise),
+			Amount:       email.FormatAmount(purchase.AmountMinor),
 			PaidVia:      purchase.PaidVia,
 			PaidAt:       email.FormatDate(paidAt),
 			PurchaseID:   purchase.ID,

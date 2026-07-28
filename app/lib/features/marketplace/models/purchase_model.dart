@@ -1,26 +1,27 @@
 import 'product_model.dart';
+import 'package:marketkit/core/config/currency.dart';
 
 class PurchaseModel {
   final String id;
   final String productId;
-  final int amountInPaise;
+  final int amountMinor;
   final DateTime? paidAt;
   final ProductModel? product;
 
   const PurchaseModel({
     required this.id,
     required this.productId,
-    required this.amountInPaise,
+    required this.amountMinor,
     this.paidAt,
     this.product,
   });
 
-  String get formattedAmount => '₹${(amountInPaise / 100).toStringAsFixed(0)}';
+  String get formattedAmount => Currency.format(amountMinor);
 
   factory PurchaseModel.fromJson(Map<String, dynamic> json) => PurchaseModel(
         id: json['id'] as String? ?? '',
         productId: json['product_id'] as String? ?? '',
-        amountInPaise: (json['amount_in_paise'] as num?)?.toInt() ?? 0,
+        amountMinor: (json['amount_minor'] as num?)?.toInt() ?? 0,
         paidAt: json['paid_at'] != null
             ? DateTime.tryParse(json['paid_at'] as String)
             : null,

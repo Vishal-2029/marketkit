@@ -21,22 +21,22 @@ func TestPurchaseWithWallet_CreditsOnlyFee(t *testing.T) {
 
 		seller := testutil.MustCreateUser(t, tx)
 		buyer := testutil.MustCreateUser(t, tx)
-		require.NoError(t, tx.Model(&buyer).Update("wallet_balance_in_paise", int64(200000)).Error)
+		require.NoError(t, tx.Model(&buyer).Update("wallet_balance_minor", int64(200000)).Error)
 		product := testutil.MustCreateProduct(t, tx, seller.ID, 100000)
 
 		_, err := purchaseWithWallet(&product, buyer.ID)
 		require.NoError(t, err)
 
 		var buyerAfter, sellerAfter models.User
-		require.NoError(t, tx.Select("wallet_balance_in_paise").First(&buyerAfter, "id = ?", buyer.ID).Error)
-		require.NoError(t, tx.Select("wallet_balance_in_paise").First(&sellerAfter, "id = ?", seller.ID).Error)
-		assert.Equal(t, int64(200000-100000), buyerAfter.WalletBalanceInPaise)
-		assert.Equal(t, int64(90000), sellerAfter.WalletBalanceInPaise)
+		require.NoError(t, tx.Select("wallet_balance_minor").First(&buyerAfter, "id = ?", buyer.ID).Error)
+		require.NoError(t, tx.Select("wallet_balance_minor").First(&sellerAfter, "id = ?", seller.ID).Error)
+		assert.Equal(t, int64(200000-100000), buyerAfter.WalletBalanceMinor)
+		assert.Equal(t, int64(90000), sellerAfter.WalletBalanceMinor)
 
 		var platformFeeTotal int64
 		require.NoError(t, tx.Model(&models.PlatformLedger{}).
 			Where("source = ?", models.PlatformSourcePlatformFee).
-			Select("COALESCE(SUM(amount_in_paise), 0)").Scan(&platformFeeTotal).Error)
+			Select("COALESCE(SUM(amount_minor), 0)").Scan(&platformFeeTotal).Error)
 		assert.Equal(t, int64(10000), platformFeeTotal, "only the fee is new platform revenue, never the gross")
 	})
 }

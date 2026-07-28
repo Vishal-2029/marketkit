@@ -112,7 +112,7 @@ class _TxTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '$date · balance ${formatPaise(tx.balanceAfterInPaise)}',
+                  '$date · balance ${formatMinor(tx.balanceAfterMinor)}',
                   style:
                       const TextStyle(fontSize: 11, color: kMutedForeground),
                 ),
@@ -120,7 +120,7 @@ class _TxTile extends StatelessWidget {
             ),
           ),
           Text(
-            '$sign${formatPaise(tx.amountInPaise.abs())}',
+            '$sign${formatMinor(tx.amountMinor.abs())}',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,

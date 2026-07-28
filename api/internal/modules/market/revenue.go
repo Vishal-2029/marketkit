@@ -25,7 +25,7 @@ func HandleMarketRevenueSummary(c *fiber.Ctx) error {
 	// (Razorpay or wallet) — matches the platform wallet's MARKET_PLAN source.
 	database.DB.Model(&models.MarketPlanSubscription{}).
 		Where("paid_at IS NOT NULL").
-		Select("COALESCE(SUM(amount_in_paise), 0)").Scan(&planRevenue)
+		Select("COALESCE(SUM(amount_minor), 0)").Scan(&planRevenue)
 	database.DB.Model(&models.MarketPlanSubscription{}).
 		Where("paid_at IS NOT NULL").Count(&planCount)
 
@@ -34,17 +34,17 @@ func HandleMarketRevenueSummary(c *fiber.Ctx) error {
 	// context but only the fee counts toward platform revenue.
 	database.DB.Model(&models.ProductPurchase{}).
 		Where("status = ?", models.PaymentSuccess).
-		Select("COALESCE(SUM(fee_in_paise), 0) AS fee, COALESCE(SUM(amount_in_paise), 0) AS gross, COALESCE(SUM(seller_net_in_paise), 0) AS payouts").
+		Select("COALESCE(SUM(fee_minor), 0) AS fee, COALESCE(SUM(amount_minor), 0) AS gross, COALESCE(SUM(seller_net_minor), 0) AS payouts").
 		Row().Scan(&feeRevenue, &grossSales, &sellerPayouts)
 	database.DB.Model(&models.ProductPurchase{}).
 		Where("status = ?", models.PaymentSuccess).Count(&saleCount)
 
 	return response.OK(c, fiber.Map{
-		"platform_revenue_paise": planRevenue + feeRevenue,
-		"plan_revenue_paise":     planRevenue,
-		"fee_revenue_paise":      feeRevenue,
-		"gross_sales_paise":      grossSales,
-		"seller_payouts_paise":   sellerPayouts,
+		"platform_revenue_minor": planRevenue + feeRevenue,
+		"plan_revenue_minor":     planRevenue,
+		"fee_revenue_minor":      feeRevenue,
+		"gross_sales_minor":      grossSales,
+		"seller_payouts_minor":   sellerPayouts,
 		"plan_count":             planCount,
 		"sale_count":             saleCount,
 	})
@@ -69,7 +69,7 @@ func HandleMarketRevenueMonthly(c *fiber.Ctx) error {
 	var planRows []row
 	database.DB.Raw(`
 		SELECT EXTRACT(MONTH FROM paid_at)::int AS month,
-		       COALESCE(SUM(amount_in_paise), 0) AS total
+		       COALESCE(SUM(amount_minor), 0) AS total
 		FROM market_plan_subscriptions
 		WHERE paid_at IS NOT NULL AND EXTRACT(YEAR FROM paid_at) = ?
 		GROUP BY month
@@ -78,7 +78,7 @@ func HandleMarketRevenueMonthly(c *fiber.Ctx) error {
 	var feeRows []row
 	database.DB.Raw(`
 		SELECT EXTRACT(MONTH FROM paid_at)::int AS month,
-		       COALESCE(SUM(fee_in_paise), 0) AS total
+		       COALESCE(SUM(fee_minor), 0) AS total
 		FROM product_purchases
 		WHERE status = ? AND EXTRACT(YEAR FROM paid_at) = ?
 		GROUP BY month
@@ -95,17 +95,17 @@ func HandleMarketRevenueMonthly(c *fiber.Ctx) error {
 
 	type monthResult struct {
 		Month             int   `json:"month"`
-		PlanRevenuePaise  int64 `json:"plan_revenue_paise"`
-		FeeRevenuePaise   int64 `json:"fee_revenue_paise"`
-		TotalRevenuePaise int64 `json:"total_revenue_paise"`
+		PlanRevenueMinor  int64 `json:"plan_revenue_minor"`
+		FeeRevenueMinor   int64 `json:"fee_revenue_minor"`
+		TotalRevenueMinor int64 `json:"total_revenue_minor"`
 	}
 	results := make([]monthResult, 12)
 	for m := 1; m <= 12; m++ {
 		results[m-1] = monthResult{
 			Month:             m,
-			PlanRevenuePaise:  planByMonth[m],
-			FeeRevenuePaise:   feeByMonth[m],
-			TotalRevenuePaise: planByMonth[m] + feeByMonth[m],
+			PlanRevenueMinor:  planByMonth[m],
+			FeeRevenueMinor:   feeByMonth[m],
+			TotalRevenueMinor: planByMonth[m] + feeByMonth[m],
 		}
 	}
 

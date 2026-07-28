@@ -12,7 +12,7 @@ type MarketPlan struct {
 	ID             string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
 	Name           string    `gorm:"uniqueIndex;not null"                           json:"name"`
 	Description    string    `gorm:"default:''"                                     json:"description"`
-	PriceInPaise   int64     `gorm:"not null"                                       json:"price_in_paise"`
+	PriceMinor     int64     `gorm:"not null"                                       json:"price_minor"`
 	DurationDays   int       `gorm:"default:30"                                     json:"duration_days"`
 	FeeDiscountPct int       `gorm:"default:0"                                      json:"fee_discount_pct"` // 0-100; placeholder perk
 	FeaturedSeller bool      `gorm:"default:false"                                  json:"featured_seller"`  // placeholder perk

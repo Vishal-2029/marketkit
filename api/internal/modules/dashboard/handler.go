@@ -29,13 +29,13 @@ func HandleStats(c *fiber.Ctx) error {
 	database.DB.Model(&models.Video{}).Where("status = ?", models.VideoStatusPublished).Count(&totalVideos)
 	database.DB.Model(&models.Payment{}).
 		Where("status = ? AND paid_at >= ?", models.PaymentSuccess, startOfMonth).
-		Select("COALESCE(SUM(amount_in_paise), 0)").Scan(&monthRevenue)
+		Select("COALESCE(SUM(amount_minor), 0)").Scan(&monthRevenue)
 
 	return response.OK(c, fiber.Map{
 		"total_users":         totalUsers,
 		"active_subs":         activeSubs,
 		"published_videos":    totalVideos,
-		"month_revenue_paise": monthRevenue,
+		"month_revenue_minor": monthRevenue,
 	})
 }
 

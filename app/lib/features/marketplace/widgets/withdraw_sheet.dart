@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/wallet_model.dart';
 import '../providers/wallet_provider.dart';
+import 'package:marketkit/core/config/currency.dart';
 
 /// Bottom sheet: pick UPI or bank, enter an amount, and withdraw. The request
 /// is approved instantly (balance deducted); the payout itself is transferred
@@ -51,29 +52,29 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
     super.dispose();
   }
 
-  int? get _amountInPaise {
-    final rupees = int.tryParse(_amountCtrl.text.trim());
-    if (rupees == null || rupees <= 0) return null;
-    return rupees * 100;
+  int? get _amountMinor {
+    final major = double.tryParse(_amountCtrl.text.trim());
+    if (major == null || major <= 0) return null;
+    return Currency.toMinor(major);
   }
 
   bool get _canSubmit {
-    final amount = _amountInPaise;
+    final amount = _amountMinor;
     return _method != null &&
         amount != null &&
-        amount >= widget.summary.minWithdrawalInPaise &&
-        amount <= widget.summary.balanceInPaise &&
+        amount >= widget.summary.minWithdrawalMinor &&
+        amount <= widget.summary.balanceMinor &&
         !_isSubmitting;
   }
 
   Future<void> _submit() async {
-    final amount = _amountInPaise;
+    final amount = _amountMinor;
     final method = _method;
     if (amount == null || method == null) return;
     setState(() => _isSubmitting = true);
     try {
       await ref.read(walletServiceProvider).createWithdrawal(
-            amountInPaise: amount,
+            amountMinor: amount,
             method: method,
           );
       if (!mounted) return;
@@ -169,7 +170,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Available: ${s.formattedBalance} · minimum ${formatPaise(s.minWithdrawalInPaise)}',
+            'Available: ${s.formattedBalance} · minimum ${formatMinor(s.minWithdrawalMinor)}',
             style: const TextStyle(fontSize: 12, color: kMutedForeground),
           ),
           const SizedBox(height: 16),
@@ -196,7 +197,7 @@ class _WithdrawSheetState extends ConsumerState<WithdrawSheet> {
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: InputDecoration(
-              prefixText: '₹ ',
+              prefixText: '${Currency.symbol} ',
               hintText: 'Amount',
               filled: true,
               fillColor: kInput,

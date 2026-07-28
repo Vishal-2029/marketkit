@@ -105,7 +105,7 @@ func Migrate() error {
 	// change the values later without boots resetting them.
 	for key, value := range map[string]string{
 		models.SettingMarketFeePercent:   "10",
-		models.SettingMinWithdrawalPaise: "10000", // ₹100
+		models.SettingMinWithdrawalMinor: "10000", // 100.00 in the configured currency
 	} {
 		DB.Where("key = ?", key).FirstOrCreate(&models.PlatformSetting{}, models.PlatformSetting{Key: key, Value: value})
 	}

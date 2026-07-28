@@ -24,7 +24,7 @@ func TestHandleCreateWithdrawal_OnlySuperAdmin(t *testing.T) {
 		app := testutil.FiberApp(map[string]string{"adminID": regularAdmin.ID})
 		app.Post("/x", HandleCreateWithdrawal)
 
-		req := httptest.NewRequest("POST", "/x", testutil.JSONBody(t, map[string]interface{}{"amount_in_paise": 50000}))
+		req := httptest.NewRequest("POST", "/x", testutil.JSONBody(t, map[string]interface{}{"amount_minor": 50000}))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
@@ -32,7 +32,7 @@ func TestHandleCreateWithdrawal_OnlySuperAdmin(t *testing.T) {
 
 		var w models.PlatformWallet
 		require.NoError(t, tx.First(&w, "id = ?", models.PlatformWalletSingletonID).Error)
-		assert.Equal(t, int64(100000), w.BalanceInPaise, "a rejected non-super withdrawal must not touch the balance")
+		assert.Equal(t, int64(100000), w.BalanceMinor, "a rejected non-super withdrawal must not touch the balance")
 	})
 }
 
@@ -49,13 +49,13 @@ func TestHandleCreateWithdrawal_SuperAdminDebits(t *testing.T) {
 		app.Post("/x", HandleCreateWithdrawal)
 
 		// Over the balance must be rejected and leave it untouched.
-		req := httptest.NewRequest("POST", "/x", testutil.JSONBody(t, map[string]interface{}{"amount_in_paise": 999999}))
+		req := httptest.NewRequest("POST", "/x", testutil.JSONBody(t, map[string]interface{}{"amount_minor": 999999}))
 		req.Header.Set("Content-Type", "application/json")
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 		assert.Equal(t, 400, resp.StatusCode)
 
-		req2 := httptest.NewRequest("POST", "/x", testutil.JSONBody(t, map[string]interface{}{"amount_in_paise": 40000, "note": "payout"}))
+		req2 := httptest.NewRequest("POST", "/x", testutil.JSONBody(t, map[string]interface{}{"amount_minor": 40000, "note": "payout"}))
 		req2.Header.Set("Content-Type", "application/json")
 		resp2, err := app.Test(req2)
 		require.NoError(t, err)
@@ -63,11 +63,11 @@ func TestHandleCreateWithdrawal_SuperAdminDebits(t *testing.T) {
 
 		var w models.PlatformWallet
 		require.NoError(t, tx.First(&w, "id = ?", models.PlatformWalletSingletonID).Error)
-		assert.Equal(t, int64(60000), w.BalanceInPaise)
+		assert.Equal(t, int64(60000), w.BalanceMinor)
 
 		var ledgerRow models.PlatformLedger
 		require.NoError(t, tx.Where("source = ?", models.PlatformSourceWithdrawal).First(&ledgerRow).Error)
-		assert.Equal(t, int64(-40000), ledgerRow.AmountInPaise)
+		assert.Equal(t, int64(-40000), ledgerRow.AmountMinor)
 	})
 }
 

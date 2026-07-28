@@ -58,7 +58,7 @@ func HandlePurchaseWithWallet(c *fiber.Ctx) error {
 		return response.InternalErrorWithLog(c, "market: wallet purchase", err)
 	}
 
-	go notifySeller(product.SellerID, product.ID, product.PriceInPaise)
+	go notifySeller(product.SellerID, product.ID, product.PriceMinor)
 	sendPurchaseEmailAsync(purchase.ID)
 
 	return response.OK(c, purchase)
@@ -69,19 +69,19 @@ func HandlePurchaseWithWallet(c *fiber.Ctx) error {
 // the handler's fire-and-forget notification/email goroutines.
 func purchaseWithWallet(product *models.Product, userID string) (models.ProductPurchase, error) {
 	pct := sellerFeePercent(product.SellerID)
-	fee, net := wallet.SplitFee(product.PriceInPaise, pct)
+	fee, net := wallet.SplitFee(product.PriceMinor, pct)
 	now := time.Now()
 
 	purchase := models.ProductPurchase{
-		ProductID:        product.ID,
-		BuyerID:          userID,
-		SellerID:         product.SellerID,
-		AmountInPaise:    product.PriceInPaise,
-		Status:           models.PaymentSuccess,
-		FeeInPaise:       fee,
-		SellerNetInPaise: net,
-		PaidVia:          "WALLET",
-		PaidAt:           &now,
+		ProductID:      product.ID,
+		BuyerID:        userID,
+		SellerID:       product.SellerID,
+		AmountMinor:    product.PriceMinor,
+		Status:         models.PaymentSuccess,
+		FeeMinor:       fee,
+		SellerNetMinor: net,
+		PaidVia:        "WALLET",
+		PaidAt:         &now,
 	}
 
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
@@ -90,7 +90,7 @@ func purchaseWithWallet(product *models.Product, userID string) (models.ProductP
 		}
 		// Fixed lock order everywhere: debit the buyer before crediting the
 		// seller (see wallet.Apply).
-		if _, err := wallet.Apply(tx, userID, models.WalletTxPurchaseDebit, -product.PriceInPaise,
+		if _, err := wallet.Apply(tx, userID, models.WalletTxPurchaseDebit, -product.PriceMinor,
 			&purchase.ID, models.JSONMap{"product_id": product.ID}); err != nil {
 			return err
 		}
@@ -100,7 +100,7 @@ func purchaseWithWallet(product *models.Product, userID string) (models.ProductP
 			return err
 		}
 		if _, err := wallet.Apply(tx, product.SellerID, models.WalletTxSaleCredit, net,
-			&purchase.ID, models.JSONMap{"fee_in_paise": fee, "fee_percent": pct, "product_id": product.ID}); err != nil {
+			&purchase.ID, models.JSONMap{"fee_minor": fee, "fee_percent": pct, "product_id": product.ID}); err != nil {
 			return err
 		}
 		if fee > 0 {

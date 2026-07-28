@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -9,7 +8,7 @@ import '../../marketplace/providers/wallet_provider.dart';
 import '../models/market_plan_model.dart';
 import '../providers/market_plans_provider.dart';
 import '../widgets/market_plan_card.dart';
-import 'package:marketkit/core/config/brand.dart';
+import 'package:marketkit/core/payments/checkout.dart';
 
 class MarketPlansTab extends ConsumerStatefulWidget {
   const MarketPlansTab({super.key});
@@ -19,21 +18,15 @@ class MarketPlansTab extends ConsumerStatefulWidget {
 }
 
 class _MarketPlansTabState extends ConsumerState<MarketPlansTab> {
-  late Razorpay _razorpay;
 
   @override
   void initState() {
     super.initState();
-    _razorpay = Razorpay();
-    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handleSuccess);
-    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handleFailure);
-    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
     Future.microtask(() => ref.read(marketPlansProvider.notifier).load());
   }
 
   @override
   void dispose() {
-    _razorpay.clear();
     super.dispose();
   }
 
@@ -130,7 +123,7 @@ class _MarketPlansTabState extends ConsumerState<MarketPlansTab> {
       final wallet = await ref.read(walletServiceProvider).fetchSummary();
       if (!mounted) return;
 
-      if (wallet.balanceInPaise < plan.priceInPaise) {
+      if (wallet.balanceMinor < plan.priceMinor) {
         await _showInsufficientBalance(plan, wallet);
         return;
       }
@@ -151,62 +144,34 @@ class _MarketPlansTabState extends ConsumerState<MarketPlansTab> {
   Future<void> _openRazorpay(MarketPlanModel plan) async {
     final auth = ref.read(authProvider);
     try {
-      final order =
+      final raw =
           await ref.read(marketPlansProvider.notifier).createOrder(plan.id);
-      final keyId = order['key_id'] as String?;
-      final orderId = order['order_id'] as String?;
-      final amount = order['amount'];
-      if (keyId == null || orderId == null || amount == null) {
-        _snack('Payment setup failed. Please try again.', color: kDanger);
-        return;
+      final result = await CheckoutService.pay(
+        order: CheckoutOrder.fromJson(raw),
+        description: plan.name,
+        email: auth.user?.email,
+        phone: auth.user?.phone,
+      );
+
+      _snack('Payment successful! Activating your plan...', color: kSuccess);
+      try {
+        await ref.read(marketPlansProvider.notifier).verifyPayment(
+              razorpayOrderId: result.orderId,
+              razorpayPaymentId: result.paymentId,
+              razorpaySignature: result.signature,
+            );
+      } catch (e) {
+        // The server webhook still activates the plan if this call fails.
+        _snack('Activation is taking longer than usual: $e', color: kDanger);
       }
-      _razorpay.open({
-        'key': keyId,
-        'amount': amount,
-        'order_id': orderId,
-        'currency': order['currency'] ?? 'INR',
-        'name': Brand.checkoutName,
-        'description': plan.name,
-        'prefill': {
-          'contact': auth.user?.phone ?? '',
-          'email': auth.user?.email ?? '',
-        },
-      });
+      await ref.read(marketPlansProvider.notifier).refreshAfterPayment();
+    } on CheckoutCancelled {
+      // User backed out — nothing to report.
+    } on CheckoutFailure catch (e) {
+      _snack(e.message, color: kDanger);
     } catch (e) {
       _snack('Could not initiate payment: $e', color: kDanger);
     }
-  }
-
-  void _handleSuccess(PaymentSuccessResponse response) async {
-    final orderId = response.orderId;
-    final paymentId = response.paymentId;
-    final signature = response.signature;
-
-    _snack('Payment successful! Activating your plan...', color: kSuccess);
-
-    try {
-      if (orderId != null && paymentId != null && signature != null) {
-        await ref.read(marketPlansProvider.notifier).verifyPayment(
-              razorpayOrderId: orderId,
-              razorpayPaymentId: paymentId,
-              razorpaySignature: signature,
-            );
-      }
-    } catch (e) {
-      _snack('Activation is taking longer than usual: $e', color: kDanger);
-    }
-
-    await ref.read(marketPlansProvider.notifier).refreshAfterPayment();
-    _snack('Market plan activated!', color: kSuccess);
-  }
-
-  void _handleFailure(PaymentFailureResponse response) {
-    _snack('Payment failed: ${response.message ?? 'Unknown error'}',
-        color: kDanger);
-  }
-
-  void _handleExternalWallet(ExternalWalletResponse response) {
-    _snack('External wallet selected: ${response.walletName ?? 'Unknown'}');
   }
 
   @override

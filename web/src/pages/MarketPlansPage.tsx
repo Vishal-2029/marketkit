@@ -8,6 +8,7 @@ import { Check, Plus, Trash2, Pencil, Bold, Italic, Underline, List, ListOrdered
 import { toast } from "sonner";
 import { marketPlansService, MarketPlanPayload } from "@/services/marketPlans";
 import { Skeleton } from "@/components/ui/skeleton";
+import { currencySymbol, formatMoney } from "@/lib/currency";
 
 // Plan descriptions only ever need the rich-text editor's own output
 // (bold/italic/underline/lists) — no attributes are needed for any of that,
@@ -23,7 +24,7 @@ interface MarketPlan {
   id: string;
   name: string;
   description: string;
-  price_in_paise: number;
+  price_minor: number;
   duration_days: number;
   fee_discount_pct: number;
   featured_seller: boolean;
@@ -34,7 +35,7 @@ interface MarketPlan {
 const emptyForm = (): MarketPlanPayload => ({
   name: "",
   description: "",
-  price_in_paise: 0,
+  price_minor: 0,
   duration_days: 30,
   fee_discount_pct: 0,
   featured_seller: false,
@@ -177,13 +178,13 @@ export default function MarketPlansPage() {
     setForm({
       name: plan.name,
       description: plan.description ?? "",
-      price_in_paise: plan.price_in_paise,
+      price_minor: plan.price_minor,
       duration_days: plan.duration_days,
       fee_discount_pct: plan.fee_discount_pct,
       featured_seller: plan.featured_seller,
       is_active: plan.is_active,
     });
-    setPriceInput(String(plan.price_in_paise / 100));
+    setPriceInput(String(plan.price_minor / 100));
     setModal(plan);
   };
 
@@ -205,7 +206,7 @@ export default function MarketPlansPage() {
 
     const payload: MarketPlanPayload = {
       ...form,
-      price_in_paise: Number(raw) * 100,
+      price_minor: Number(raw) * 100,
     };
 
     if (modal === "create") {
@@ -242,7 +243,7 @@ export default function MarketPlansPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {visiblePlans.map(plan => {
-            const revenue = (plan.price_in_paise / 100) * plan.subscribers;
+            const revenue = (plan.price_minor / 100) * plan.subscribers;
             return (
               <div key={plan.id} className="rounded-2xl border border-border bg-card p-6 flex flex-col">
                 {/* Header */}
@@ -269,14 +270,14 @@ export default function MarketPlansPage() {
 
                 {/* Price */}
                 <p className="text-2xl font-bold text-primary mb-1">
-                  ₹{(plan.price_in_paise / 100).toLocaleString("en-IN")}
+                  {formatMoney(plan.price_minor)}
                   <span className="text-sm font-normal text-muted-foreground"> / period</span>
                 </p>
 
                 {/* Revenue */}
                 {plan.subscribers > 0 && (
                   <p className="text-xs text-success font-medium mb-2">
-                    ₹{revenue.toLocaleString("en-IN")} from active subscribers
+                    {formatMoney(revenue)} from active subscribers
                   </p>
                 )}
 
@@ -421,7 +422,7 @@ export default function MarketPlansPage() {
 
               {/* Price */}
               <div>
-                <label className="text-sm font-medium text-foreground">Price (₹) *</label>
+                <label className="text-sm font-medium text-foreground">Price ({currencySymbol()}) *</label>
                 <Input
                   className="mt-1"
                   placeholder="e.g. 499"

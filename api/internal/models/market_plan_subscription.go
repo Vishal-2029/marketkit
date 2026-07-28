@@ -11,7 +11,7 @@ type MarketPlanSubscription struct {
 	Status            SubscriptionStatus `gorm:"type:varchar(20);default:'ACTIVE'"              json:"status"`
 	StartDate         time.Time          `gorm:"default:now()"                                  json:"start_date"`
 	ExpiryDate        time.Time          `gorm:"index"                                          json:"expiry_date"`
-	AmountInPaise     int64              `gorm:"default:0"                                      json:"amount_in_paise"`
+	AmountMinor       int64              `gorm:"default:0"                                      json:"amount_minor"`
 	ProviderOrderID   *string            `gorm:"uniqueIndex"                                    json:"provider_order_id,omitempty"`
 	ProviderPaymentID *string            `gorm:"uniqueIndex"                                    json:"provider_payment_id,omitempty"`
 	PaidAt            *time.Time         `                                                      json:"paid_at,omitempty"`

@@ -4334,7 +4334,7 @@ const docTemplate = `{
                 "summary": "Record a super-admin withdrawal from the platform wallet",
                 "parameters": [
                     {
-                        "description": "amount_in_paise, note",
+                        "description": "amount_minor, note",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -5457,7 +5457,7 @@ const docTemplate = `{
                 "summary": "Verify Razorpay payment and activate Product Market plan",
                 "parameters": [
                     {
-                        "description": "provider_order_id, provider_payment_id, razorpay_signature",
+                        "description": "provider_order_id, provider_payment_id, provider_signature",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -5642,8 +5642,8 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "Price in paise (min 1000 = ₹10)",
-                        "name": "price_in_paise",
+                        "description": "Price in the currency's minor unit (min 1000)",
+                        "name": "price_minor",
                         "in": "formData",
                         "required": true
                     },
@@ -6062,7 +6062,7 @@ const docTemplate = `{
                 "summary": "Verify a Razorpay product purchase signature",
                 "parameters": [
                     {
-                        "description": "provider_order_id, provider_payment_id, razorpay_signature",
+                        "description": "provider_order_id, provider_payment_id, provider_signature",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -6479,7 +6479,7 @@ const docTemplate = `{
                 "summary": "Verify a Razorpay payment signature and activate subscription",
                 "parameters": [
                     {
-                        "description": "provider_order_id, provider_payment_id, razorpay_signature",
+                        "description": "provider_order_id, provider_payment_id, provider_signature",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -7481,7 +7481,7 @@ const docTemplate = `{
                 "summary": "Create a Razorpay order to add money to the wallet",
                 "parameters": [
                     {
-                        "description": "amount_in_paise",
+                        "description": "amount_minor",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -7541,7 +7541,7 @@ const docTemplate = `{
                 "summary": "Verify a Razorpay wallet topup signature and credit the wallet",
                 "parameters": [
                     {
-                        "description": "provider_order_id, provider_payment_id, razorpay_signature",
+                        "description": "provider_order_id, provider_payment_id, provider_signature",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -7696,7 +7696,7 @@ const docTemplate = `{
                 "summary": "Request a withdrawal (auto-approved; balance deducted immediately)",
                 "parameters": [
                     {
-                        "description": "amount_in_paise, method (UPI|BANK)",
+                        "description": "amount_minor, method (UPI|BANK)",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -8181,7 +8181,7 @@ const docTemplate = `{
                 "summary": "Update wallet platform settings (super admin)",
                 "parameters": [
                     {
-                        "description": "fee_percent, min_withdrawal_in_paise",
+                        "description": "fee_percent, min_withdrawal_minor",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -8472,7 +8472,7 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
-                "platform_income_in_paise": {
+                "platform_income_minor": {
                     "type": "integer"
                 },
                 "product_count": {
@@ -8481,10 +8481,10 @@ const docTemplate = `{
                 "purchase_count": {
                     "type": "integer"
                 },
-                "seller_income_in_paise": {
+                "seller_income_minor": {
                     "type": "integer"
                 },
-                "total_income_in_paise": {
+                "total_income_minor": {
                     "type": "integer"
                 }
             }
@@ -8548,7 +8548,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "price_in_paise": {
+                "price_minor": {
                     "type": "integer"
                 },
                 "subscribers": {
@@ -8701,7 +8701,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "price_in_paise": {
+                "price_minor": {
                     "type": "integer"
                 },
                 "updated_at": {
@@ -8712,7 +8712,7 @@ const docTemplate = `{
         "models.MarketPlanSubscription": {
             "type": "object",
             "properties": {
-                "amount_in_paise": {
+                "amount_minor": {
                     "type": "integer"
                 },
                 "created_at": {
@@ -8759,7 +8759,7 @@ const docTemplate = `{
         "models.Payment": {
             "type": "object",
             "properties": {
-                "amount_in_paise": {
+                "amount_minor": {
                     "type": "integer"
                 },
                 "created_at": {
@@ -8941,7 +8941,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "price_in_paise": {
+                "price_minor": {
                     "type": "integer"
                 },
                 "updated_at": {
@@ -8952,10 +8952,10 @@ const docTemplate = `{
         "models.PlatformLedger": {
             "type": "object",
             "properties": {
-                "amount_in_paise": {
+                "amount_minor": {
                     "type": "integer"
                 },
-                "balance_after_in_paise": {
+                "balance_after_minor": {
                     "type": "integer"
                 },
                 "created_at": {
@@ -9060,7 +9060,7 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "price_in_paise": {
+                "price_minor": {
                     "type": "integer"
                 },
                 "sales_count": {
@@ -9114,7 +9114,7 @@ const docTemplate = `{
         "models.ProductPurchase": {
             "type": "object",
             "properties": {
-                "amount_in_paise": {
+                "amount_minor": {
                     "type": "integer"
                 },
                 "buyer": {
@@ -9133,7 +9133,7 @@ const docTemplate = `{
                 "currency": {
                     "type": "string"
                 },
-                "fee_in_paise": {
+                "fee_minor": {
                     "description": "Fee snapshot taken at capture time so historic sales keep the fee\npercent they were sold under. Zero on rows from before the wallet era.",
                     "type": "integer"
                 },
@@ -9170,7 +9170,7 @@ const docTemplate = `{
                 "seller_name": {
                     "type": "string"
                 },
-                "seller_net_in_paise": {
+                "seller_net_minor": {
                     "type": "integer"
                 },
                 "status": {
@@ -9333,7 +9333,7 @@ const docTemplate = `{
                 "updated_at": {
                     "type": "string"
                 },
-                "wallet_balance_in_paise": {
+                "wallet_balance_minor": {
                     "description": "Cached wallet balance; source of truth is the wallet_transactions ledger.\nMutated only via wallet.Apply, which row-locks this record first.",
                     "type": "integer"
                 }
@@ -9541,11 +9541,11 @@ const docTemplate = `{
         "models.WalletTransaction": {
             "type": "object",
             "properties": {
-                "amount_in_paise": {
+                "amount_minor": {
                     "description": "Signed: TOPUP/SALE_CREDIT positive, PURCHASE_DEBIT/WITHDRAWAL/PLAN_DEBIT negative.",
                     "type": "integer"
                 },
-                "balance_after_in_paise": {
+                "balance_after_minor": {
                     "description": "Balance snapshot taken inside the row lock, for drift auditing.",
                     "type": "integer"
                 },
@@ -9569,7 +9569,7 @@ const docTemplate = `{
         "models.Withdrawal": {
             "type": "object",
             "properties": {
-                "amount_in_paise": {
+                "amount_minor": {
                     "type": "integer"
                 },
                 "bank_account_number": {
@@ -9643,7 +9643,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "price_in_paise": {
+                "price_minor": {
                     "type": "integer"
                 },
                 "subscribers": {

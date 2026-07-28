@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { plansService, PlanPayload } from "@/services/plans";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CONTENT_CATEGORIES, categoryLabel } from "@/lib/featureCatalog";
+import { currencySymbol, formatMoney } from "@/lib/currency";
 
 // Plan descriptions only ever need the rich-text editor's own output
 // (bold/italic/underline/lists) — no attributes are needed for any of that,
@@ -24,7 +25,7 @@ interface Plan {
   id: string;
   name: string;
   description: string;
-  price_in_paise: number;
+  price_minor: number;
   features: string[];
   duration_days: number;
   is_active: boolean;
@@ -34,7 +35,7 @@ interface Plan {
 const emptyForm = (): PlanPayload => ({
   name: "",
   description: "",
-  price_in_paise: 0,
+  price_minor: 0,
   features: [],
   duration_days: 365,
   is_active: true,
@@ -176,12 +177,12 @@ export default function PlansPage() {
     setForm({
       name: plan.name,
       description: plan.description ?? "",
-      price_in_paise: plan.price_in_paise,
+      price_minor: plan.price_minor,
       features: plan.features ?? [],
       duration_days: plan.duration_days,
       is_active: plan.is_active,
     });
-    setPriceInput(String(plan.price_in_paise / 100));
+    setPriceInput(String(plan.price_minor / 100));
     setModal(plan);
   };
 
@@ -198,7 +199,7 @@ export default function PlansPage() {
 
     const payload: PlanPayload = {
       ...form,
-      price_in_paise: Number(raw) * 100,
+      price_minor: Number(raw) * 100,
     };
 
     if (modal === "create") {
@@ -235,7 +236,7 @@ export default function PlansPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {visiblePlans.map(plan => {
-            const revenueYearly = (plan.price_in_paise / 100) * plan.subscribers;
+            const revenueYearly = (plan.price_minor / 100) * plan.subscribers;
             return (
               <div key={plan.id} className="rounded-2xl border border-border bg-card p-6 flex flex-col">
                 {/* Header */}
@@ -262,14 +263,14 @@ export default function PlansPage() {
 
                 {/* Price */}
                 <p className="text-2xl font-bold text-primary mb-1">
-                  ₹{(plan.price_in_paise / 100).toLocaleString("en-IN")}
+                  {formatMoney(plan.price_minor)}
                   <span className="text-sm font-normal text-muted-foreground"> / year</span>
                 </p>
 
                 {/* Revenue */}
                 {plan.subscribers > 0 && (
                   <p className="text-xs text-success font-medium mb-2">
-                    ₹{revenueYearly.toLocaleString("en-IN")} yearly revenue
+                    {formatMoney(revenueYearly)} yearly revenue
                   </p>
                 )}
 
@@ -418,7 +419,7 @@ export default function PlansPage() {
 
               {/* Price */}
               <div>
-                <label className="text-sm font-medium text-foreground">Yearly Price (₹) *</label>
+                <label className="text-sm font-medium text-foreground">Yearly Price ({currencySymbol()}) *</label>
                 <Input
                   className="mt-1"
                   placeholder="e.g. 1499"

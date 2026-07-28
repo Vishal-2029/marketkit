@@ -6,18 +6,18 @@ import (
 
 	"github.com/go-pdf/fpdf"
 	"github.com/gofiber/fiber/v2"
+	"github.com/marketkit/api/internal/config"
 	"github.com/marketkit/api/internal/database"
 	"github.com/marketkit/api/internal/models"
 	"github.com/marketkit/api/internal/storage"
+	"github.com/marketkit/api/pkg/money"
 	"github.com/marketkit/api/pkg/response"
 )
 
-func formatPaise(paise int64) string {
-	rupees := float64(paise) / 100
-	if rupees == float64(int64(rupees)) {
-		return fmt.Sprintf("Rs. %d", int64(rupees))
-	}
-	return fmt.Sprintf("Rs. %.2f", rupees)
+// formatMinor renders an amount for the PDF. It uses the ISO code rather than
+// the currency symbol because fpdf's core fonts are Latin-1 and cannot draw ₹.
+func formatMinor(minor int64) string {
+	return money.FormatASCII(minor, config.App.PaymentCurrency)
 }
 
 // fetchPreviewImageBytes downloads a product's first preview image over HTTP
@@ -86,7 +86,7 @@ func buildInvoicePDF(purchase *models.ProductPurchase) ([]byte, error) {
 	pdf.CellFormat(0, 8, "Payment", "", 1, "L", false, 0, "")
 	pdf.SetFont("Helvetica", "", 10)
 	pdf.CellFormat(95, 6, "Amount Paid", "", 0, "L", false, 0, "")
-	pdf.CellFormat(95, 6, formatPaise(purchase.AmountInPaise), "", 1, "L", false, 0, "")
+	pdf.CellFormat(95, 6, formatMinor(purchase.AmountMinor), "", 1, "L", false, 0, "")
 	pdf.CellFormat(95, 6, "Payment Method", "", 0, "L", false, 0, "")
 	pdf.CellFormat(95, 6, purchase.PaidVia, "", 1, "L", false, 0, "")
 	pdf.Ln(10)

@@ -303,7 +303,7 @@ Returns all active subscription plans — no authentication. Used by the mobile 
 
 
 
-**Pricing:** Stored in paise (1 rupee = 100 paise) to avoid floating-point issues.
+**Pricing:** Stored in minor units (1 rupee = 100 minor units) to avoid floating-point issues.
 `duration_days` controls how long the subscription lasts after activation.
 
 ---
@@ -727,9 +727,9 @@ All tables use UUID primary keys (except `notification_logs` and `user_notificat
 | `refresh_tokens` | Admin long-lived tokens | `admin_id`, `token_hash`, `expires_at`, `revoked` |
 | `user_refresh_tokens` | User long-lived tokens | `user_id`, `token_hash`, `expires_at`, `revoked` |
 | `user_sessions` | Active user login sessions | `user_id`, `device_info`, `ip_address`, `jwt_jti`, `last_active_at`, `revoked_at` |
-| `plans` | Subscription plans | `name`, `price_in_paise`, `duration_days`, `features`, `is_active` |
+| `plans` | Subscription plans | `name`, `price_minor`, `duration_days`, `features`, `is_active` |
 | `subscriptions` | User subscription records | `user_id`, `plan_id`, `status` (ACTIVE/EXPIRED/SUSPENDED/CANCELLED), `expiry_date` |
-| `payments` | Payment transactions | `user_id`, `amount_paise`, `gateway` (RAZORPAY/MANUAL), `status`, `razorpay_payment_id` |
+| `payments` | Payment transactions | `user_id`, `amount_minor`, `gateway` (RAZORPAY/MANUAL), `status`, `razorpay_payment_id` |
 | `videos` | Video content | `title`, `category`, `status`, `file_key`, `thumbnail_url`, `is_free`, `is_preview` |
 | `playback_logs` | Video view history | `user_id`, `video_id`, `watched_seconds`, `completed`, `played_at` |
 | `video_progress` | Watch position per user/video | `user_id` + `video_id` (composite PK), `position_seconds` |

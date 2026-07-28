@@ -1,3 +1,4 @@
+import { currencySymbol, formatMoney } from "@/lib/currency";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -21,8 +22,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/services/auth";
 import { platformWalletService, type PlatformLedgerRow } from "@/services/platformWallet";
 
-function fmtPaise(paise: number) {
-  return "₹" + (paise / 100).toLocaleString("en-IN");
+function fmtMinor(minor: number) {
+  return formatMoney(minor);
 }
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -52,7 +53,7 @@ function PlatformWalletSection() {
   const withdrawMut = useMutation({
     mutationFn: () =>
       platformWalletService.withdraw({
-        amount_in_paise: Math.round(Number(amount) * 100),
+        amount_minor: Math.round(Number(amount) * 100),
         note: note.trim() || undefined,
       }),
     onSuccess: () => {
@@ -117,13 +118,13 @@ function PlatformWalletSection() {
           <>
             <div className="rounded-xl border border-border bg-muted/30 p-5">
               <p className="text-caption mb-1">Total balance</p>
-              <p className="text-[32px] font-bold text-primary">{fmtPaise(s?.balance_in_paise ?? 0)}</p>
+              <p className="text-[32px] font-bold text-primary">{fmtMinor(s?.balance_minor ?? 0)}</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <StatCard label="Learning plans" value={fmtPaise(s?.breakdown.learning_plan_in_paise ?? 0)} />
-              <StatCard label="Market plans" value={fmtPaise(s?.breakdown.market_plan_in_paise ?? 0)} />
-              <StatCard label="Product sale fees" value={fmtPaise(s?.breakdown.platform_fee_in_paise ?? 0)} />
-              <StatCard label="Withdrawn" value={fmtPaise(Math.abs(s?.breakdown.withdrawal_in_paise ?? 0))} />
+              <StatCard label="Learning plans" value={fmtMinor(s?.breakdown.learning_plan_minor ?? 0)} />
+              <StatCard label="Market plans" value={fmtMinor(s?.breakdown.market_plan_minor ?? 0)} />
+              <StatCard label="Product sale fees" value={fmtMinor(s?.breakdown.platform_fee_minor ?? 0)} />
+              <StatCard label="Withdrawn" value={fmtMinor(Math.abs(s?.breakdown.withdrawal_minor ?? 0))} />
             </div>
           </>
         )}
@@ -133,7 +134,7 @@ function PlatformWalletSection() {
             <p className="text-sm font-semibold text-foreground">Record a withdrawal</p>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <Label htmlFor="pw_amount">Amount (₹)</Label>
+                <Label htmlFor="pw_amount">Amount ({currencySymbol()})</Label>
                 <Input id="pw_amount" type="number" min="1" value={amount}
                   onChange={e => setAmount(e.target.value)} className="mt-1" />
               </div>
@@ -210,11 +211,11 @@ function PlatformWalletSection() {
                     <td className="px-4 py-3 text-xs font-mono text-muted-foreground">
                       {r.reference_id ? r.reference_id.slice(0, 8) : "—"}
                     </td>
-                    <td className={`px-4 py-3 text-sm text-right font-semibold ${r.amount_in_paise < 0 ? "text-danger" : "text-success"}`}>
-                      {r.amount_in_paise < 0 ? "-" : "+"}{fmtPaise(Math.abs(r.amount_in_paise))}
+                    <td className={`px-4 py-3 text-sm text-right font-semibold ${r.amount_minor < 0 ? "text-danger" : "text-success"}`}>
+                      {r.amount_minor < 0 ? "-" : "+"}{fmtMinor(Math.abs(r.amount_minor))}
                     </td>
                     <td className="px-4 py-3 text-sm text-right text-foreground">
-                      {fmtPaise(r.balance_after_in_paise)}
+                      {fmtMinor(r.balance_after_minor)}
                     </td>
                   </tr>
                 ))

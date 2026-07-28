@@ -12,10 +12,12 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/marketkit/api/internal/config"
 	"github.com/marketkit/api/internal/database"
 	"github.com/marketkit/api/internal/imageutil"
 	"github.com/marketkit/api/internal/models"
 	"github.com/marketkit/api/internal/storage"
+	"github.com/marketkit/api/pkg/money"
 	"github.com/marketkit/api/pkg/response"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
@@ -58,8 +60,10 @@ const (
 	maxPreviewImageBytes = 5 * 1024 * 1024 // 5 MB
 	maxProductFileBytes  = 5 * 1024 * 1024 // 5 MB
 	maxPreviewImages     = 7
-	minPriceInPaise      = 1000     // ₹10
-	maxPriceInPaise      = 10000000 // ₹1,00,000
+	// Bounds are in minor units, so they scale with whatever currency is
+	// configured: 1000 is ₹10 under INR and $10.00 under USD.
+	minPriceMinor = 1000
+	maxPriceMinor = 10000000
 )
 
 // populateProductURLs resolves preview keys → public URLs and computes
@@ -287,7 +291,7 @@ func HandleGetProduct(c *fiber.Ctx) error {
 // @Security    UserAuth
 // @Param       title           formData  string  true   "Product title"
 // @Param       description     formData  string  false  "Description"
-// @Param       price_in_paise  formData  int     true   "Price in paise (min 1000 = ₹10)"
+// @Param       price_minor  formData  int     true   "Price in the currency's minor unit (min 1000)"
 // @Param       file            formData  file    true   "Product file (.pdf/.zip/.png/...)"
 // @Param       previews        formData  file    true   "1-7 preview images"
 // @Success     201  {object}  models.Product
@@ -299,12 +303,14 @@ func HandleCreateProduct(c *fiber.Ctx) error {
 
 	title := strings.TrimSpace(c.FormValue("title"))
 	description := strings.TrimSpace(c.FormValue("description"))
-	price, err := strconv.ParseInt(c.FormValue("price_in_paise"), 10, 64)
+	price, err := strconv.ParseInt(c.FormValue("price_minor"), 10, 64)
 	if title == "" || err != nil {
-		return response.BadRequest(c, "title and price_in_paise are required")
+		return response.BadRequest(c, "title and price_minor are required")
 	}
-	if price < minPriceInPaise || price > maxPriceInPaise {
-		return response.BadRequest(c, "price must be between ₹10 and ₹1,00,000")
+	if price < minPriceMinor || price > maxPriceMinor {
+		return response.BadRequest(c, fmt.Sprintf("price must be between %s and %s",
+			money.Format(minPriceMinor, config.App.PaymentCurrency),
+			money.Format(maxPriceMinor, config.App.PaymentCurrency)))
 	}
 
 	categoryID := strings.TrimSpace(c.FormValue("category_id"))
@@ -362,7 +368,7 @@ func HandleCreateProduct(c *fiber.Ctx) error {
 		SellerID:      userID,
 		Title:         title,
 		Description:   description,
-		PriceInPaise:  price,
+		PriceMinor:    price,
 		FileKey:       fileKey,
 		FileName:      filepath.Base(fileHeader.Filename),
 		FileSizeBytes: fileHeader.Size,
@@ -472,13 +478,13 @@ func HandleMyProductStats(c *fiber.Ctx) error {
 	var revenue int64
 	database.DB.Model(&models.ProductPurchase{}).
 		Where("product_id = ? AND seller_id = ? AND status = ?", productID, userID, models.PaymentSuccess).
-		Select("COALESCE(SUM(seller_net_in_paise), 0)").
+		Select("COALESCE(SUM(seller_net_minor), 0)").
 		Scan(&revenue)
 
 	return response.OK(c, fiber.Map{
-		"view_count":       d.ViewCount,
-		"sales_count":      d.SalesCount,
-		"revenue_in_paise": revenue,
+		"view_count":    d.ViewCount,
+		"sales_count":   d.SalesCount,
+		"revenue_minor": revenue,
 	})
 }
 

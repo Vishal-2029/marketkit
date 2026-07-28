@@ -17,16 +17,16 @@ import (
 func TestBuildInvoicePDF_ProducesValidPDF(t *testing.T) {
 	now := time.Now()
 	purchase := &models.ProductPurchase{
-		ID:               "test-purchase-id",
-		AmountInPaise:    400000,
-		FeeInPaise:       40000,
-		SellerNetInPaise: 360000,
-		PaidVia:          "WALLET",
-		Status:           models.PaymentSuccess,
-		PaidAt:           &now,
-		CreatedAt:        now,
-		Buyer:            models.User{Name: "Test Buyer", Email: "buyer@example.com"},
-		Seller:           models.User{Name: "Test Seller", Email: "seller@example.com"},
+		ID:             "test-purchase-id",
+		AmountMinor:    400000,
+		FeeMinor:       40000,
+		SellerNetMinor: 360000,
+		PaidVia:        "WALLET",
+		Status:         models.PaymentSuccess,
+		PaidAt:         &now,
+		CreatedAt:      now,
+		Buyer:          models.User{Name: "Test Buyer", Email: "buyer@example.com"},
+		Seller:         models.User{Name: "Test Seller", Email: "seller@example.com"},
 		Product: models.Product{
 			Title:    "Sample Product Pack",
 			FileName: "sample-pack.zip",

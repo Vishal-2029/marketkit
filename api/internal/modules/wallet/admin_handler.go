@@ -6,9 +6,11 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/marketkit/api/internal/config"
 	"github.com/marketkit/api/internal/database"
 	"github.com/marketkit/api/internal/fcm"
 	"github.com/marketkit/api/internal/models"
+	"github.com/marketkit/api/pkg/money"
 	"github.com/marketkit/api/pkg/response"
 )
 
@@ -132,15 +134,15 @@ func HandleAdminSettle(c *fiber.Ctx) error {
 		Details: models.JSONMap{
 			"action":        "withdrawal_settled",
 			"withdrawal_id": w.ID,
-			"amount":        w.AmountInPaise,
+			"amount":        w.AmountMinor,
 			"method":        w.Method,
 		},
 	})
 
 	go func(userID string, amount int64) {
 		_ = fcm.SendToUser(userID, "Payout Sent",
-			"Your withdrawal of ₹"+strconv.FormatInt(amount/100, 10)+" has been transferred.")
-	}(w.UserID, w.AmountInPaise)
+			"Your withdrawal of "+money.Format(amount, config.App.PaymentCurrency)+" has been transferred.")
+	}(w.UserID, w.AmountMinor)
 
 	return response.OK(c, w)
 }
@@ -154,8 +156,8 @@ func HandleAdminSettle(c *fiber.Ctx) error {
 // @Router      /wallet/settings [get]
 func HandleGetSettings(c *fiber.Ctx) error {
 	return response.OK(c, fiber.Map{
-		"fee_percent":             FeePercent(),
-		"min_withdrawal_in_paise": MinWithdrawal(),
+		"fee_percent":          FeePercent(),
+		"min_withdrawal_minor": MinWithdrawal(),
 	})
 }
 
@@ -165,7 +167,7 @@ func HandleGetSettings(c *fiber.Ctx) error {
 // @Accept      json
 // @Produce     json
 // @Security    BearerAuth
-// @Param       body  body  map[string]int64  true  "fee_percent, min_withdrawal_in_paise"
+// @Param       body  body  map[string]int64  true  "fee_percent, min_withdrawal_minor"
 // @Success     200  {object}  map[string]int64
 // @Failure     400  {object}  map[string]string
 // @Failure     403  {object}  map[string]string
@@ -181,8 +183,8 @@ func HandleUpdateSettings(c *fiber.Ctx) error {
 	}
 
 	var body struct {
-		FeePercent           int64 `json:"fee_percent"`
-		MinWithdrawalInPaise int64 `json:"min_withdrawal_in_paise"`
+		FeePercent         int64 `json:"fee_percent"`
+		MinWithdrawalMinor int64 `json:"min_withdrawal_minor"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return response.BadRequest(c, "invalid request body")
@@ -190,13 +192,13 @@ func HandleUpdateSettings(c *fiber.Ctx) error {
 	if body.FeePercent < 0 || body.FeePercent > 50 {
 		return response.BadRequest(c, "fee_percent must be between 0 and 50")
 	}
-	if body.MinWithdrawalInPaise < 0 {
-		return response.BadRequest(c, "min_withdrawal_in_paise must not be negative")
+	if body.MinWithdrawalMinor < 0 {
+		return response.BadRequest(c, "min_withdrawal_minor must not be negative")
 	}
 
 	for key, value := range map[string]int64{
 		models.SettingMarketFeePercent:   body.FeePercent,
-		models.SettingMinWithdrawalPaise: body.MinWithdrawalInPaise,
+		models.SettingMinWithdrawalMinor: body.MinWithdrawalMinor,
 	} {
 		if err := database.DB.Model(&models.PlatformSetting{}).
 			Where("key = ?", key).
@@ -210,15 +212,15 @@ func HandleUpdateSettings(c *fiber.Ctx) error {
 		ActorAdminID: &actorID,
 		IPAddress:    c.IP(),
 		Details: models.JSONMap{
-			"action":                  "wallet_settings_updated",
-			"fee_percent":             body.FeePercent,
-			"min_withdrawal_in_paise": body.MinWithdrawalInPaise,
+			"action":               "wallet_settings_updated",
+			"fee_percent":          body.FeePercent,
+			"min_withdrawal_minor": body.MinWithdrawalMinor,
 		},
 	})
 
 	return response.OK(c, fiber.Map{
-		"fee_percent":             body.FeePercent,
-		"min_withdrawal_in_paise": body.MinWithdrawalInPaise,
+		"fee_percent":          body.FeePercent,
+		"min_withdrawal_minor": body.MinWithdrawalMinor,
 	})
 }
 

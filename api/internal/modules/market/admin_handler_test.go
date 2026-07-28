@@ -47,8 +47,8 @@ func TestHandleAdminMarketUserProducts_ShowsPurchasesForBuyerOnlyUser(t *testing
 		assert.Empty(t, parsed.Data.ProductsSold, "buyer never listed a product")
 		require.Len(t, parsed.Data.Purchases, 1)
 		assert.Equal(t, product.Title, parsed.Data.Purchases[0].ProductTitle)
-		assert.Equal(t, int64(50000), parsed.Data.Purchases[0].AmountInPaise)
-		assert.Equal(t, int64(5000), parsed.Data.Purchases[0].FeeInPaise)
+		assert.Equal(t, int64(50000), parsed.Data.Purchases[0].AmountMinor)
+		assert.Equal(t, int64(5000), parsed.Data.Purchases[0].FeeMinor)
 		assert.Equal(t, seller.Name, parsed.Data.Purchases[0].SellerName)
 	})
 }

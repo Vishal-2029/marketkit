@@ -37,15 +37,15 @@ definitions:
         type: string
       phone:
         type: string
-      platform_income_in_paise:
+      platform_income_minor:
         type: integer
       product_count:
         type: integer
       purchase_count:
         type: integer
-      seller_income_in_paise:
+      seller_income_minor:
         type: integer
-      total_income_in_paise:
+      total_income_minor:
         type: integer
     type: object
   market.categoryWithCount:
@@ -91,7 +91,7 @@ definitions:
         type: boolean
       name:
         type: string
-      price_in_paise:
+      price_minor:
         type: integer
       subscribers:
         type: integer
@@ -194,14 +194,14 @@ definitions:
         type: boolean
       name:
         type: string
-      price_in_paise:
+      price_minor:
         type: integer
       updated_at:
         type: string
     type: object
   models.MarketPlanSubscription:
     properties:
-      amount_in_paise:
+      amount_minor:
         type: integer
       created_at:
         type: string
@@ -232,7 +232,7 @@ definitions:
     type: object
   models.Payment:
     properties:
-      amount_in_paise:
+      amount_minor:
         type: integer
       created_at:
         type: string
@@ -366,16 +366,16 @@ definitions:
         type: boolean
       name:
         type: string
-      price_in_paise:
+      price_minor:
         type: integer
       updated_at:
         type: string
     type: object
   models.PlatformLedger:
     properties:
-      amount_in_paise:
+      amount_minor:
         type: integer
-      balance_after_in_paise:
+      balance_after_minor:
         type: integer
       created_at:
         type: string
@@ -448,7 +448,7 @@ definitions:
         items:
           type: string
         type: array
-      price_in_paise:
+      price_minor:
         type: integer
       sales_count:
         type: integer
@@ -487,7 +487,7 @@ definitions:
     type: object
   models.ProductPurchase:
     properties:
-      amount_in_paise:
+      amount_minor:
         type: integer
       buyer:
         $ref: '#/definitions/models.User'
@@ -501,7 +501,7 @@ definitions:
         type: string
       currency:
         type: string
-      fee_in_paise:
+      fee_minor:
         description: |-
           Fee snapshot taken at capture time so historic sales keep the fee
           percent they were sold under. Zero on rows from before the wallet era.
@@ -528,7 +528,7 @@ definitions:
         type: string
       seller_name:
         type: string
-      seller_net_in_paise:
+      seller_net_minor:
         type: integer
       status:
         $ref: '#/definitions/models.PaymentStatus'
@@ -645,7 +645,7 @@ definitions:
         type: array
       updated_at:
         type: string
-      wallet_balance_in_paise:
+      wallet_balance_minor:
         description: |-
           Cached wallet balance; source of truth is the wallet_transactions ledger.
           Mutated only via wallet.Apply, which row-locks this record first.
@@ -800,11 +800,11 @@ definitions:
     - VideoStatusError
   models.WalletTransaction:
     properties:
-      amount_in_paise:
+      amount_minor:
         description: 'Signed: TOPUP/SALE_CREDIT positive, PURCHASE_DEBIT/WITHDRAWAL/PLAN_DEBIT
           negative.'
         type: integer
-      balance_after_in_paise:
+      balance_after_minor:
         description: Balance snapshot taken inside the row lock, for drift auditing.
         type: integer
       created_at:
@@ -820,7 +820,7 @@ definitions:
     type: object
   models.Withdrawal:
     properties:
-      amount_in_paise:
+      amount_minor:
         type: integer
       bank_account_number:
         type: string
@@ -880,7 +880,7 @@ definitions:
         type: boolean
       name:
         type: string
-      price_in_paise:
+      price_minor:
         type: integer
       subscribers:
         type: integer
@@ -3721,7 +3721,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: amount_in_paise, note
+      - description: amount_minor, note
         in: body
         name: body
         required: true
@@ -4474,7 +4474,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: provider_order_id, provider_payment_id, razorpay_signature
+      - description: provider_order_id, provider_payment_id, provider_signature
         in: body
         name: body
         required: true
@@ -4540,9 +4540,9 @@ paths:
         in: formData
         name: description
         type: string
-      - description: Price in paise (min 1000 = ₹10)
+      - description: Price in the currency's minor unit (min 1000)
         in: formData
-        name: price_in_paise
+        name: price_minor
         required: true
         type: integer
       - description: Product file (.pdf/.zip/.png/...)
@@ -4841,7 +4841,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: provider_order_id, provider_payment_id, razorpay_signature
+      - description: provider_order_id, provider_payment_id, provider_signature
         in: body
         name: body
         required: true
@@ -5071,7 +5071,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: provider_order_id, provider_payment_id, razorpay_signature
+      - description: provider_order_id, provider_payment_id, provider_signature
         in: body
         name: body
         required: true
@@ -5705,7 +5705,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: amount_in_paise
+      - description: amount_minor
         in: body
         name: body
         required: true
@@ -5743,7 +5743,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: provider_order_id, provider_payment_id, razorpay_signature
+      - description: provider_order_id, provider_payment_id, provider_signature
         in: body
         name: body
         required: true
@@ -5840,7 +5840,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: amount_in_paise, method (UPI|BANK)
+      - description: amount_minor, method (UPI|BANK)
         in: body
         name: body
         required: true
@@ -6147,7 +6147,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: fee_percent, min_withdrawal_in_paise
+      - description: fee_percent, min_withdrawal_minor
         in: body
         name: body
         required: true

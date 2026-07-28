@@ -201,7 +201,7 @@ func HandleApprove(c *fiber.Ctx) error {
 	}
 	_ = c.BodyParser(&body)
 
-	refundID, err := callGatewayRefund(*p.ProviderPaymentID, p.AmountInPaise, req.Reason)
+	refundID, err := callGatewayRefund(*p.ProviderPaymentID, p.AmountMinor, req.Reason)
 	if err != nil {
 		return response.InternalErrorWithLog(c, "gateway refund failed", err)
 	}
@@ -243,7 +243,7 @@ func HandleApprove(c *fiber.Ctx) error {
 		// out-of-sync state can be reconciled manually.
 		slog.Error("refund: gateway refund SUCCEEDED but DB update failed — manual reconciliation needed",
 			"refund_id", refundID, "request_id", req.ID, "payment_id", p.ID,
-			"user_id", p.UserID, "amount", p.AmountInPaise, "error", err)
+			"user_id", p.UserID, "amount", p.AmountMinor, "error", err)
 		database.DB.Model(&req).Update("refund_id", refundID)
 		return response.InternalError(c,
 			"refund issued by the gateway (id: "+refundID+") but recording it failed — reconcile manually")
@@ -259,14 +259,14 @@ func HandleApprove(c *fiber.Ctx) error {
 			"request_id": req.ID,
 			"payment_id": p.ID,
 			"refund_id":  refundID,
-			"amount":     p.AmountInPaise,
+			"amount":     p.AmountMinor,
 		},
 	})
 
 	go email.SendRefundEmail(p.User.Email, email.RefundEmailData{
 		Name:          p.User.Name,
 		PlanName:      p.Plan.Name,
-		Amount:        email.FormatAmount(p.AmountInPaise),
+		Amount:        email.FormatAmount(p.AmountMinor),
 		TransactionID: *p.ProviderPaymentID,
 		RefundID:      refundID,
 		Reason:        req.Reason,
@@ -276,7 +276,7 @@ func HandleApprove(c *fiber.Ctx) error {
 	return response.OK(c, fiber.Map{
 		"message":   "refund approved and processed",
 		"refund_id": refundID,
-		"amount":    email.FormatAmount(p.AmountInPaise),
+		"amount":    email.FormatAmount(p.AmountMinor),
 	})
 }
 
@@ -343,8 +343,8 @@ func HandleReject(c *fiber.Ctx) error {
 }
 
 // callGatewayRefund refunds a captured payment through the active gateway.
-func callGatewayRefund(providerPaymentID string, amountPaise int64, reason string) (string, error) {
-	refund, err := payments.Refund(context.Background(), providerPaymentID, amountPaise, reason)
+func callGatewayRefund(providerPaymentID string, amountMinor int64, reason string) (string, error) {
+	refund, err := payments.Refund(context.Background(), providerPaymentID, amountMinor, reason)
 	if err != nil {
 		return "", err
 	}

@@ -141,15 +141,15 @@ func HandleAdminListPurchases(c *fiber.Ctx) error {
 // user aggregated across everything they've done in the Product Market,
 // whether that's listing products, buying them, or both.
 type MarketUserSummary struct {
-	ID                    string `json:"id"`
-	Name                  string `json:"name"`
-	Email                 string `json:"email"`
-	Phone                 string `json:"phone"`
-	ProductCount          int64  `json:"product_count"`
-	PurchaseCount         int64  `json:"purchase_count"`
-	TotalIncomeInPaise    int64  `json:"total_income_in_paise"`
-	SellerIncomeInPaise   int64  `json:"seller_income_in_paise"`
-	PlatformIncomeInPaise int64  `json:"platform_income_in_paise"`
+	ID                  string `json:"id"`
+	Name                string `json:"name"`
+	Email               string `json:"email"`
+	Phone               string `json:"phone"`
+	ProductCount        int64  `json:"product_count"`
+	PurchaseCount       int64  `json:"purchase_count"`
+	TotalIncomeMinor    int64  `json:"total_income_minor"`
+	SellerIncomeMinor   int64  `json:"seller_income_minor"`
+	PlatformIncomeMinor int64  `json:"platform_income_minor"`
 }
 
 // HandleAdminListMarketUsers godoc
@@ -205,9 +205,9 @@ func HandleAdminListMarketUsers(c *fiber.Ctx) error {
 		SELECT u.id, u.name, u.email, u.phone,
 			COALESCE(dc.product_count, 0)             AS product_count,
 			COALESCE(pc.purchase_count, 0)           AS purchase_count,
-			COALESCE(s.total_income_in_paise, 0)      AS total_income_in_paise,
-			COALESCE(s.seller_income_in_paise, 0)     AS seller_income_in_paise,
-			COALESCE(s.platform_income_in_paise, 0)   AS platform_income_in_paise
+			COALESCE(s.total_income_minor, 0)      AS total_income_minor,
+			COALESCE(s.seller_income_minor, 0)     AS seller_income_minor,
+			COALESCE(s.platform_income_minor, 0)   AS platform_income_minor
 		FROM users u
 		LEFT JOIN (
 			SELECT seller_id, COUNT(*) AS product_count
@@ -219,9 +219,9 @@ func HandleAdminListMarketUsers(c *fiber.Ctx) error {
 		) pc ON pc.buyer_id = u.id
 		LEFT JOIN (
 			SELECT seller_id,
-				SUM(amount_in_paise)     AS total_income_in_paise,
-				SUM(seller_net_in_paise) AS seller_income_in_paise,
-				SUM(fee_in_paise)        AS platform_income_in_paise
+				SUM(amount_minor)     AS total_income_minor,
+				SUM(seller_net_minor) AS seller_income_minor,
+				SUM(fee_minor)        AS platform_income_minor
 			FROM product_purchases WHERE status = 'SUCCESS' GROUP BY seller_id
 		) s ON s.seller_id = u.id
 		WHERE u.deleted_at IS NULL ` + searchClause + `
@@ -244,27 +244,27 @@ func HandleAdminListMarketUsers(c *fiber.Ctx) error {
 // MarketUserProductRow is one product in a seller's "User details" drill-down —
 // enough to show what they've listed and what it has earned everyone.
 type MarketUserProductRow struct {
-	ID                string   `json:"id"`
-	Title             string   `json:"title"`
-	PriceInPaise      int64    `json:"price_in_paise"`
-	PreviewURLs       []string `json:"preview_urls"`
-	SellCount         int64    `json:"sell_count"`
-	UserProfitInPaise int64    `json:"user_profit_in_paise"`
-	PfProfitInPaise   int64    `json:"pf_profit_in_paise"`
+	ID              string   `json:"id"`
+	Title           string   `json:"title"`
+	PriceMinor      int64    `json:"price_minor"`
+	PreviewURLs     []string `json:"preview_urls"`
+	SellCount       int64    `json:"sell_count"`
+	UserProfitMinor int64    `json:"user_profit_minor"`
+	PfProfitMinor   int64    `json:"pf_profit_minor"`
 }
 
 // MarketUserPurchaseRow is one purchase in a buyer's "Account detail"
 // drill-down — shown even for users who have never listed a product.
 type MarketUserPurchaseRow struct {
-	ID            string     `json:"id"`
-	ProductID     string     `json:"product_id"`
-	ProductTitle  string     `json:"product_title"`
-	PreviewURL    string     `json:"preview_url,omitempty"`
-	AmountInPaise int64      `json:"amount_in_paise"`
-	FeeInPaise    int64      `json:"fee_in_paise"`
-	SellerName    string     `json:"seller_name"`
-	Provider      string     `json:"provider"`
-	PaidAt        *time.Time `json:"paid_at,omitempty"`
+	ID           string     `json:"id"`
+	ProductID    string     `json:"product_id"`
+	ProductTitle string     `json:"product_title"`
+	PreviewURL   string     `json:"preview_url,omitempty"`
+	AmountMinor  int64      `json:"amount_minor"`
+	FeeMinor     int64      `json:"fee_minor"`
+	SellerName   string     `json:"seller_name"`
+	Provider     string     `json:"provider"`
+	PaidAt       *time.Time `json:"paid_at,omitempty"`
 }
 
 // HandleAdminMarketUserProducts godoc
@@ -302,8 +302,8 @@ func HandleAdminMarketUserProducts(c *fiber.Ctx) error {
 	if err := database.DB.Raw(`
 		SELECT product_id,
 			COUNT(*)                     AS sell_count,
-			COALESCE(SUM(seller_net_in_paise), 0) AS user_profit,
-			COALESCE(SUM(fee_in_paise), 0)        AS pf_profit
+			COALESCE(SUM(seller_net_minor), 0) AS user_profit,
+			COALESCE(SUM(fee_minor), 0)        AS pf_profit
 		FROM product_purchases
 		WHERE seller_id = ? AND status = 'SUCCESS'
 		GROUP BY product_id`, userID).Scan(&stats).Error; err != nil {
@@ -318,13 +318,13 @@ func HandleAdminMarketUserProducts(c *fiber.Ctx) error {
 	for _, d := range products {
 		e := statsByProduct[d.ID]
 		rows = append(rows, MarketUserProductRow{
-			ID:                d.ID,
-			Title:             d.Title,
-			PriceInPaise:      d.PriceInPaise,
-			PreviewURLs:       d.PreviewURLs,
-			SellCount:         e.SellCount,
-			UserProfitInPaise: e.UserProfit,
-			PfProfitInPaise:   e.PfProfit,
+			ID:              d.ID,
+			Title:           d.Title,
+			PriceMinor:      d.PriceMinor,
+			PreviewURLs:     d.PreviewURLs,
+			SellCount:       e.SellCount,
+			UserProfitMinor: e.UserProfit,
+			PfProfitMinor:   e.PfProfit,
 		})
 	}
 
@@ -339,14 +339,14 @@ func HandleAdminMarketUserProducts(c *fiber.Ctx) error {
 	purchaseRows := make([]MarketUserPurchaseRow, 0, len(purchases))
 	for _, p := range purchases {
 		row := MarketUserPurchaseRow{
-			ID:            p.ID,
-			ProductID:     p.ProductID,
-			ProductTitle:  p.Product.Title,
-			AmountInPaise: p.AmountInPaise,
-			FeeInPaise:    p.FeeInPaise,
-			SellerName:    p.Seller.Name,
-			Provider:      p.PaidVia,
-			PaidAt:        p.PaidAt,
+			ID:           p.ID,
+			ProductID:    p.ProductID,
+			ProductTitle: p.Product.Title,
+			AmountMinor:  p.AmountMinor,
+			FeeMinor:     p.FeeMinor,
+			SellerName:   p.Seller.Name,
+			Provider:     p.PaidVia,
+			PaidAt:       p.PaidAt,
 		}
 		if len(p.Product.PreviewKeys) > 0 {
 			row.PreviewURL = storage.Store.PublicURL(p.Product.PreviewKeys[0])

@@ -5,7 +5,7 @@ export interface RenewalStats {
   renewals_90d: number;
   renewal_rate_pct: number;
   churn_rate_pct: number;
-  forecast_by_plan: { plan_name: string; expiring_count: number; expected_value_paise: number }[];
+  forecast_by_plan: { plan_name: string; expiring_count: number; expected_value_minor: number }[];
 }
 
 export const revenueService = {

@@ -1,3 +1,4 @@
+import { formatMoney } from "@/lib/currency";
 import { Fragment, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash2, ChevronLeft, ChevronRight, MessageSquareReply, MoreVertical } from "lucide-react";
@@ -24,7 +25,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-const formatPrice = (paise: number) => `₹${(paise / 100).toLocaleString("en-IN")}`;
+const formatPrice = (minor: number) => `${formatMoney(minor)}`;
 
 export default function ProductsPage() {
   const qc = useQueryClient();
@@ -186,9 +187,9 @@ export default function ProductsPage() {
                       <td className="px-4 py-3 text-muted-foreground">{u.phone || "—"}</td>
                       <td className="px-4 py-3">{u.purchase_count}</td>
                       <td className="px-4 py-3">{u.product_count}</td>
-                      <td className="px-4 py-3 font-medium">{formatPrice(u.total_income_in_paise)}</td>
-                      <td className="px-4 py-3">{formatPrice(u.seller_income_in_paise)}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{formatPrice(u.platform_income_in_paise)}</td>
+                      <td className="px-4 py-3 font-medium">{formatPrice(u.total_income_minor)}</td>
+                      <td className="px-4 py-3">{formatPrice(u.seller_income_minor)}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{formatPrice(u.platform_income_minor)}</td>
                       <td className="px-4 py-3">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -285,7 +286,7 @@ export default function ProductsPage() {
                         <p className="text-xs font-medium">{d.seller_name ?? "—"}</p>
                         {d.seller_email && <p className="text-[11px] text-muted-foreground">{d.seller_email}</p>}
                       </td>
-                      <td className="px-4 py-3 font-medium">{formatPrice(d.price_in_paise)}</td>
+                      <td className="px-4 py-3 font-medium">{formatPrice(d.price_minor)}</td>
                       <td className="px-4 py-3">
                         <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full uppercase">{d.file_format}</span>
                       </td>
@@ -364,7 +365,7 @@ export default function ProductsPage() {
                         <p className="text-xs font-medium">{p.seller_name ?? "—"}</p>
                         {p.seller_email && <p className="text-[11px] text-muted-foreground">{p.seller_email}</p>}
                       </td>
-                      <td className="px-4 py-3 font-medium">{formatPrice(p.amount_in_paise)}</td>
+                      <td className="px-4 py-3 font-medium">{formatPrice(p.amount_minor)}</td>
                       <td className="px-4 py-3">
                         <span
                           className={cn(
@@ -520,13 +521,13 @@ export default function ProductsPage() {
                               )}
                             </td>
                             <td className="px-3 py-2 max-w-[180px] truncate">{d.title}</td>
-                            <td className="px-3 py-2 font-medium">{formatPrice(d.price_in_paise)}</td>
+                            <td className="px-3 py-2 font-medium">{formatPrice(d.price_minor)}</td>
                             <td className="px-3 py-2">{d.sell_count}</td>
                             <td className="px-3 py-2 text-emerald-600 font-medium">
-                              {formatPrice(d.user_profit_in_paise)}
+                              {formatPrice(d.user_profit_minor)}
                             </td>
                             <td className="px-3 py-2 text-muted-foreground">
-                              {formatPrice(d.pf_profit_in_paise)}
+                              {formatPrice(d.pf_profit_minor)}
                             </td>
                           </tr>
                         ))}
@@ -569,8 +570,8 @@ export default function ProductsPage() {
                             </td>
                             <td className="px-3 py-2 max-w-[180px] truncate">{p.product_title}</td>
                             <td className="px-3 py-2 text-muted-foreground">{p.seller_name}</td>
-                            <td className="px-3 py-2 font-medium">{formatPrice(p.amount_in_paise)}</td>
-                            <td className="px-3 py-2 text-muted-foreground">{formatPrice(p.fee_in_paise)}</td>
+                            <td className="px-3 py-2 font-medium">{formatPrice(p.amount_minor)}</td>
+                            <td className="px-3 py-2 text-muted-foreground">{formatPrice(p.fee_minor)}</td>
                             <td className="px-3 py-2 text-muted-foreground">{p.provider}</td>
                             <td className="px-3 py-2 text-muted-foreground text-xs">
                               {p.paid_at ? new Date(p.paid_at).toLocaleString() : "—"}

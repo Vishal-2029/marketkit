@@ -25,7 +25,7 @@ type planWithStats struct {
 // @Router      /plans/public [get]
 func HandlePublicList(c *fiber.Ctx) error {
 	var plans []models.Plan
-	if err := database.DB.Where("is_active = true").Order("price_in_paise ASC").Find(&plans).Error; err != nil {
+	if err := database.DB.Where("is_active = true").Order("price_minor ASC").Find(&plans).Error; err != nil {
 		return response.InternalError(c, "failed to fetch plans")
 	}
 	return response.OK(c, plans)
@@ -74,7 +74,7 @@ func HandleCreate(c *fiber.Ctx) error {
 	var body struct {
 		Name         string   `json:"name"`
 		Description  string   `json:"description"`
-		PriceInPaise int64    `json:"price_in_paise"`
+		PriceMinor   int64    `json:"price_minor"`
 		Features     []string `json:"features"`
 		DurationDays int      `json:"duration_days"`
 	}
@@ -84,7 +84,7 @@ func HandleCreate(c *fiber.Ctx) error {
 	if body.Name == "" {
 		return response.BadRequest(c, "plan name is required")
 	}
-	if body.PriceInPaise <= 0 {
+	if body.PriceMinor <= 0 {
 		return response.BadRequest(c, "price must be greater than 0")
 	}
 	if body.DurationDays <= 0 {
@@ -94,7 +94,7 @@ func HandleCreate(c *fiber.Ctx) error {
 	plan := models.Plan{
 		Name:         body.Name,
 		Description:  body.Description,
-		PriceInPaise: body.PriceInPaise,
+		PriceMinor:   body.PriceMinor,
 		Features:     body.Features,
 		DurationDays: body.DurationDays,
 		IsActive:     true,
@@ -129,7 +129,7 @@ func HandleUpdate(c *fiber.Ctx) error {
 	var body struct {
 		Name         *string   `json:"name"`
 		Description  *string   `json:"description"`
-		PriceInPaise *int64    `json:"price_in_paise"`
+		PriceMinor   *int64    `json:"price_minor"`
 		Features     *[]string `json:"features"`
 		DurationDays *int      `json:"duration_days"`
 		IsActive     *bool     `json:"is_active"`
@@ -145,11 +145,11 @@ func HandleUpdate(c *fiber.Ctx) error {
 	if body.Description != nil {
 		updates["description"] = *body.Description
 	}
-	if body.PriceInPaise != nil {
-		if *body.PriceInPaise <= 0 {
+	if body.PriceMinor != nil {
+		if *body.PriceMinor <= 0 {
 			return response.BadRequest(c, "price must be greater than 0")
 		}
-		updates["price_in_paise"] = *body.PriceInPaise
+		updates["price_minor"] = *body.PriceMinor
 	}
 	if body.DurationDays != nil && *body.DurationDays <= 0 {
 		return response.BadRequest(c, "duration must be greater than 0 days")

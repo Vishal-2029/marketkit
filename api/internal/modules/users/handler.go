@@ -592,7 +592,7 @@ func HandleChangePlan(c *fiber.Ctx) error {
 		First(&currentSub).Error == nil {
 		currentPlan = currentSub.Plan
 	}
-	isUpgrade := plan.PriceInPaise > currentPlan.PriceInPaise
+	isUpgrade := plan.PriceMinor > currentPlan.PriceMinor
 
 	var sub models.Subscription
 	if err := database.DB.Transaction(func(tx *gorm.DB) error {
@@ -638,7 +638,7 @@ func HandleChangePlan(c *fiber.Ctx) error {
 				UserName:  user.Name,
 				UserEmail: user.Email,
 				PlanName:  plan.Name,
-				Amount:    email.FormatAmount(plan.PriceInPaise),
+				Amount:    email.FormatAmount(plan.PriceMinor),
 				Provider:  "MANUAL",
 				PaidAt:    email.FormatDate(time.Now()),
 				IsUpgrade: isUpgrade,

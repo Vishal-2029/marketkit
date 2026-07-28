@@ -18,13 +18,16 @@ import (
 	"github.com/marketkit/api/internal/database"
 	"github.com/marketkit/api/internal/models"
 	"github.com/marketkit/api/internal/payments"
+	"github.com/marketkit/api/internal/payments/provider"
+	"github.com/marketkit/api/pkg/money"
 	"github.com/marketkit/api/pkg/response"
 	"gorm.io/gorm"
 )
 
 const (
-	minTopupInPaise = 1000     // ₹10
-	maxTopupInPaise = 10000000 // ₹1,00,000
+	// Minor units — 1000 is ₹10 under INR, $10.00 under USD.
+	minTopupMinor = 1000
+	maxTopupMinor = 10000000
 )
 
 var (
@@ -45,7 +48,7 @@ func HandleSummary(c *fiber.Ctx) error {
 	userID, _ := c.Locals("userID").(string)
 
 	var user models.User
-	if err := database.DB.Select("id", "wallet_balance_in_paise").
+	if err := database.DB.Select("id", "wallet_balance_minor").
 		First(&user, "id = ?", userID).Error; err != nil {
 		return response.NotFound(c, "user not found")
 	}
@@ -54,10 +57,10 @@ func HandleSummary(c *fiber.Ctx) error {
 	database.DB.Where("user_id = ?", userID).First(&pd)
 
 	return response.OK(c, fiber.Map{
-		"balance_in_paise":        user.WalletBalanceInPaise,
-		"has_upi":                 pd.UpiID != "",
-		"has_bank":                pd.BankAccountNumber != "",
-		"min_withdrawal_in_paise": MinWithdrawal(),
+		"balance_minor":        user.WalletBalanceMinor,
+		"has_upi":              pd.UpiID != "",
+		"has_bank":             pd.BankAccountNumber != "",
+		"min_withdrawal_minor": MinWithdrawal(),
 	})
 }
 
@@ -114,20 +117,22 @@ func listUserTransactions(c *fiber.Ctx, userID string) error {
 // @Accept      json
 // @Produce     json
 // @Security    UserAuth
-// @Param       body  body  map[string]int  true  "amount_in_paise"
+// @Param       body  body  map[string]int  true  "amount_minor"
 // @Success     200  {object}  map[string]interface{}
 // @Failure     400  {object}  map[string]string
 // @Failure     401  {object}  map[string]string
 // @Router      /user/wallet/topup/order [post]
 func HandleTopupOrder(c *fiber.Ctx) error {
 	var body struct {
-		AmountInPaise int64 `json:"amount_in_paise"`
+		AmountMinor int64 `json:"amount_minor"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return response.BadRequest(c, "invalid request body")
 	}
-	if body.AmountInPaise < minTopupInPaise || body.AmountInPaise > maxTopupInPaise {
-		return response.BadRequest(c, "amount must be between ₹10 and ₹1,00,000")
+	if body.AmountMinor < minTopupMinor || body.AmountMinor > maxTopupMinor {
+		return response.BadRequest(c, fmt.Sprintf("amount must be between %s and %s",
+			money.Format(minTopupMinor, config.App.PaymentCurrency),
+			money.Format(maxTopupMinor, config.App.PaymentCurrency)))
 	}
 
 	userID, _ := c.Locals("userID").(string)
@@ -137,7 +142,7 @@ func HandleTopupOrder(c *fiber.Ctx) error {
 		return response.InternalError(c, "razorpay is not configured on the server")
 	}
 
-	rzpOrderID, err := createRazorpayOrder(body.AmountInPaise, userID)
+	order, err := createRazorpayOrder(body.AmountMinor, userID)
 	if err != nil {
 		slog.Error("wallet: razorpay topup order creation failed", "error", err, "user_id", userID)
 		return response.InternalError(c, "failed to create payment order")
@@ -145,20 +150,15 @@ func HandleTopupOrder(c *fiber.Ctx) error {
 
 	topup := models.WalletTopup{
 		UserID:          userID,
-		AmountInPaise:   body.AmountInPaise,
+		AmountMinor:     body.AmountMinor,
 		Status:          models.PaymentPending,
-		ProviderOrderID: &rzpOrderID,
+		ProviderOrderID: &order.ID,
 	}
 	database.DB.Create(&topup)
 
 	// Same response shape as the market/plans order endpoints so the app
 	// checkout code is shared.
-	return response.OK(c, fiber.Map{
-		"order_id": rzpOrderID,
-		"amount":   body.AmountInPaise,
-		"currency": "INR",
-		"key_id":   config.App.RazorpayKeyID,
-	})
+	return response.OK(c, payments.NewCheckout(order, body.AmountMinor))
 }
 
 // HandleTopupVerify godoc
@@ -240,7 +240,7 @@ func captureTopup(topupID, razorpayPaymentID string, gatewayResponse models.JSON
 		if err := tx.First(&t, "id = ?", topupID).Error; err != nil {
 			return err
 		}
-		if _, err := Apply(tx, t.UserID, models.WalletTxTopup, t.AmountInPaise, &t.ID, nil); err != nil {
+		if _, err := Apply(tx, t.UserID, models.WalletTxTopup, t.AmountMinor, &t.ID, nil); err != nil {
 			return err
 		}
 		captured = true
@@ -352,15 +352,15 @@ func HandleUpsertPayoutDetails(c *fiber.Ctx) error {
 // @Accept      json
 // @Produce     json
 // @Security    UserAuth
-// @Param       body  body  map[string]interface{}  true  "amount_in_paise, method (UPI|BANK)"
+// @Param       body  body  map[string]interface{}  true  "amount_minor, method (UPI|BANK)"
 // @Success     201  {object}  models.Withdrawal
 // @Failure     400  {object}  map[string]string
 // @Failure     401  {object}  map[string]string
 // @Router      /user/wallet/withdrawals [post]
 func HandleCreateWithdrawal(c *fiber.Ctx) error {
 	var body struct {
-		AmountInPaise int64  `json:"amount_in_paise"`
-		Method        string `json:"method"`
+		AmountMinor int64  `json:"amount_minor"`
+		Method      string `json:"method"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return response.BadRequest(c, "invalid request body")
@@ -369,8 +369,9 @@ func HandleCreateWithdrawal(c *fiber.Ctx) error {
 	if body.Method != models.WithdrawalMethodUPI && body.Method != models.WithdrawalMethodBank {
 		return response.BadRequest(c, "method must be UPI or BANK")
 	}
-	if min := MinWithdrawal(); body.AmountInPaise < min {
-		return response.BadRequest(c, fmt.Sprintf("minimum withdrawal is ₹%d", min/100))
+	if min := MinWithdrawal(); body.AmountMinor < min {
+		return response.BadRequest(c, fmt.Sprintf("minimum withdrawal is %s",
+			money.Format(min, config.App.PaymentCurrency)))
 	}
 
 	userID, _ := c.Locals("userID").(string)
@@ -387,10 +388,10 @@ func HandleCreateWithdrawal(c *fiber.Ctx) error {
 	}
 
 	w := models.Withdrawal{
-		UserID:        userID,
-		AmountInPaise: body.AmountInPaise,
-		Method:        body.Method,
-		Status:        models.WithdrawalStatusApproved,
+		UserID:      userID,
+		AmountMinor: body.AmountMinor,
+		Method:      body.Method,
+		Status:      models.WithdrawalStatusApproved,
 	}
 	// Snapshot the destination as it is right now.
 	if body.Method == models.WithdrawalMethodUPI {
@@ -405,7 +406,7 @@ func HandleCreateWithdrawal(c *fiber.Ctx) error {
 		if err := tx.Create(&w).Error; err != nil {
 			return err
 		}
-		_, err := Apply(tx, userID, models.WalletTxWithdrawal, -body.AmountInPaise, &w.ID,
+		_, err := Apply(tx, userID, models.WalletTxWithdrawal, -body.AmountMinor, &w.ID,
 			models.JSONMap{"method": body.Method})
 		return err
 	})
@@ -455,12 +456,12 @@ func HandleGetFee(c *fiber.Ctx) error {
 
 // createRazorpayOrder creates a topup order via the Razorpay REST API (no
 // SDK), mirroring the market module's helper.
-func createRazorpayOrder(amountInPaise int64, userID string) (string, error) {
-	order, err := payments.CreateOrder(context.Background(), amountInPaise,
+func createRazorpayOrder(amountMinor int64, userID string) (provider.Order, error) {
+	order, err := payments.CreateOrder(context.Background(), amountMinor,
 		payments.Receipt("wal", userID),
 		map[string]string{"user_id": userID, "kind": "wallet_topup"})
 	if err != nil {
-		return "", err
+		return provider.Order{}, err
 	}
-	return order.ID, nil
+	return order, nil
 }

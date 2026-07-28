@@ -1,45 +1,43 @@
-String formatPaise(int paise) {
-  final rupees = paise / 100;
-  if (rupees == rupees.roundToDouble()) return '₹${rupees.toInt()}';
-  return '₹${rupees.toStringAsFixed(2)}';
-}
+import 'package:marketkit/core/config/currency.dart';
+
+String formatMinor(int minor) => Currency.format(minor);
 
 class WalletSummary {
-  final int balanceInPaise;
+  final int balanceMinor;
   final bool hasUpi;
   final bool hasBank;
-  final int minWithdrawalInPaise;
+  final int minWithdrawalMinor;
 
   const WalletSummary({
-    required this.balanceInPaise,
+    required this.balanceMinor,
     required this.hasUpi,
     required this.hasBank,
-    required this.minWithdrawalInPaise,
+    required this.minWithdrawalMinor,
   });
 
   factory WalletSummary.fromJson(Map<String, dynamic> json) => WalletSummary(
-        balanceInPaise: (json['balance_in_paise'] as num?)?.toInt() ?? 0,
+        balanceMinor: (json['balance_minor'] as num?)?.toInt() ?? 0,
         hasUpi: json['has_upi'] as bool? ?? false,
         hasBank: json['has_bank'] as bool? ?? false,
-        minWithdrawalInPaise:
-            (json['min_withdrawal_in_paise'] as num?)?.toInt() ?? 10000,
+        minWithdrawalMinor:
+            (json['min_withdrawal_minor'] as num?)?.toInt() ?? 10000,
       );
 
-  String get formattedBalance => formatPaise(balanceInPaise);
+  String get formattedBalance => formatMinor(balanceMinor);
 }
 
 class WalletTransactionModel {
   final String id;
   final String type; // TOPUP | PURCHASE_DEBIT | SALE_CREDIT | WITHDRAWAL
-  final int amountInPaise; // signed: credits positive, debits negative
-  final int balanceAfterInPaise;
+  final int amountMinor; // signed: credits positive, debits negative
+  final int balanceAfterMinor;
   final DateTime createdAt;
 
   const WalletTransactionModel({
     required this.id,
     required this.type,
-    required this.amountInPaise,
-    required this.balanceAfterInPaise,
+    required this.amountMinor,
+    required this.balanceAfterMinor,
     required this.createdAt,
   });
 
@@ -47,15 +45,15 @@ class WalletTransactionModel {
       WalletTransactionModel(
         id: json['id'] as String,
         type: json['type'] as String? ?? '',
-        amountInPaise: (json['amount_in_paise'] as num?)?.toInt() ?? 0,
-        balanceAfterInPaise:
-            (json['balance_after_in_paise'] as num?)?.toInt() ?? 0,
+        amountMinor: (json['amount_minor'] as num?)?.toInt() ?? 0,
+        balanceAfterMinor:
+            (json['balance_after_minor'] as num?)?.toInt() ?? 0,
         createdAt:
             DateTime.tryParse(json['created_at'] as String? ?? '')?.toLocal() ??
                 DateTime.now(),
       );
 
-  bool get isCredit => amountInPaise >= 0;
+  bool get isCredit => amountMinor >= 0;
 
   String get label => switch (type) {
         'TOPUP' => 'Money added',
@@ -91,14 +89,14 @@ class PayoutDetailsModel {
 
 class WithdrawalModel {
   final String id;
-  final int amountInPaise;
+  final int amountMinor;
   final String method; // UPI | BANK
   final String status; // APPROVED | SETTLED
   final DateTime createdAt;
 
   const WithdrawalModel({
     required this.id,
-    required this.amountInPaise,
+    required this.amountMinor,
     required this.method,
     required this.status,
     required this.createdAt,
@@ -107,7 +105,7 @@ class WithdrawalModel {
   factory WithdrawalModel.fromJson(Map<String, dynamic> json) =>
       WithdrawalModel(
         id: json['id'] as String,
-        amountInPaise: (json['amount_in_paise'] as num?)?.toInt() ?? 0,
+        amountMinor: (json['amount_minor'] as num?)?.toInt() ?? 0,
         method: json['method'] as String? ?? '',
         status: json['status'] as String? ?? '',
         createdAt:
