@@ -1,7 +1,7 @@
 # MarketKit — Makefile
 # Usage: make <target>
 
-.PHONY: help quickstart bootstrap seed-demo dev prod deploy up down build logs seed run fmt lint tidy clean \
+.PHONY: help quickstart bootstrap smoke seed-demo dev prod deploy up down build logs seed run fmt lint tidy clean \
         web-install web-dev web-build web-preview start stop app swagger-docs apk publish release \
         test test-db-up test-db-down
 
@@ -137,6 +137,9 @@ seed-demo: ## Fill the database with demo sellers, products, purchases and walle
 
 seed-demo-reset: ## Remove seeded demo data, then re-seed it
 	$(COMPOSE_DEV) exec api go run /app/seed/demo.go -reset
+
+smoke: ## End-to-end check against the running stack (money path + attack paths)
+	@API=http://localhost:$(API_PORT) ./scripts/smoke.sh
 
 tidy: ## Tidy go.mod and go.sum
 	cd $(API_DIR) && go mod tidy

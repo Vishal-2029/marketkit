@@ -50,6 +50,23 @@ var otpLimiter = limiter.New(limiter.Config{
 	},
 })
 
+// otpVerifyLimiter is deliberately separate from otpLimiter: sharing one bucket
+// between "send me a code" and "here is my code" means two mistyped codes lock
+// a legitimate user out of their own login. Same ceiling, independent budget.
+var otpVerifyLimiter = limiter.New(limiter.Config{
+	Max:        5,
+	Expiration: 1 * time.Minute,
+	KeyGenerator: func(c *fiber.Ctx) string {
+		return c.IP()
+	},
+	LimitReached: func(c *fiber.Ctx) error {
+		return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+			"success": false,
+			"error":   "too many verification attempts — try again in a minute",
+		})
+	},
+})
+
 var streamLimiter = limiter.New(limiter.Config{
 	Max:        10,
 	Expiration: 1 * time.Minute,
@@ -248,7 +265,7 @@ func RegisterRoutes(v1 fiber.Router) {
 	a := v1.Group("/auth")
 	a.Post("/register", otpLimiter, auth.HandleRegister)
 	a.Post("/send-otp", otpLimiter, auth.HandleSendOTP)
-	a.Post("/verify-otp", otpLimiter, auth.HandleVerifyOTP)
+	a.Post("/verify-otp", otpVerifyLimiter, auth.HandleVerifyOTP)
 	a.Post("/refresh", refreshLimiter, auth.HandleRefresh)
 	a.Post("/logout", auth.HandleLogout)
 	a.Get("/me", middleware.Authenticate, auth.HandleMe)
@@ -265,7 +282,7 @@ func RegisterRoutes(v1 fiber.Router) {
 	ua.Post("/forgot-password", otpLimiter, user_auth.HandleForgotPassword)
 	ua.Post("/reset-password", resetPasswordLimiter, user_auth.HandleResetPassword)
 	ua.Post("/send-otp", otpLimiter, user_auth.HandleSendOTP)
-	ua.Post("/verify-otp", otpLimiter, user_auth.HandleVerifyOTP)
+	ua.Post("/verify-otp", otpVerifyLimiter, user_auth.HandleVerifyOTP)
 	ua.Post("/google", otpLimiter, user_auth.HandleGoogleLogin)
 	ua.Post("/refresh", refreshLimiter, user_auth.HandleRefresh)
 	ua.Post("/logout", user_auth.HandleLogout)
@@ -283,7 +300,7 @@ func RegisterRoutes(v1 fiber.Router) {
 	u := v1.Group("/users", middleware.Authenticate)
 	u.Get("/", users.HandleList)
 	u.Post("/send-otp", otpLimiter, users.HandleSendUserOTP)
-	u.Post("/verify-otp", otpLimiter, users.HandleVerifyUserOTP)
+	u.Post("/verify-otp", otpVerifyLimiter, users.HandleVerifyUserOTP)
 	u.Post("/", users.HandleCreate)
 	u.Get("/:id", users.HandleGet)
 	u.Patch("/:id", users.HandleUpdate)

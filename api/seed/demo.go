@@ -601,15 +601,20 @@ func verifyLedgers() {
 func resetDemo() {
 	log.Println("Resetting demo data…")
 
+	// Unscoped throughout: a previous soft-delete would otherwise hide the very
+	// rows this needs to purge, leaving the unique email index occupied.
 	var ids []string
-	database.DB.Model(&models.User{}).
+	database.DB.Unscoped().Model(&models.User{}).
 		Where("email LIKE ?", "%"+demoEmailDomain).Pluck("id", &ids)
 	if len(ids) == 0 {
 		log.Println("  nothing to reset")
 		return
 	}
 
-	// Children first — several tables have no cascade back to users.
+	// Children first. Several FKs to users are NO ACTION rather than CASCADE
+	// (payments, playback_logs, subscriptions, user_otp_codes, user_sessions),
+	// so anything left behind blocks the user delete below. Logging in even
+	// once creates otp_code and session rows, which is enough to wedge a reset.
 	database.DB.Where("buyer_id IN ? OR seller_id IN ?", ids, ids).Delete(&models.ProductPurchase{})
 	database.DB.Where("seller_id IN ?", ids).Delete(&models.Product{})
 	database.DB.Where("user_id IN ?", ids).Delete(&models.WalletTransaction{})
@@ -619,7 +624,18 @@ func resetDemo() {
 	database.DB.Where("user_id IN ?", ids).Delete(&models.MarketPlanSubscription{})
 	database.DB.Where("user_id IN ?", ids).Delete(&models.Subscription{})
 	database.DB.Where("user_id IN ?", ids).Delete(&models.Payment{})
-	database.DB.Where("id IN ?", ids).Delete(&models.User{})
+	database.DB.Where("user_id IN ?", ids).Delete(&models.PlaybackLog{})
+	database.DB.Where("user_id IN ?", ids).Delete(&models.UserOtpCode{})
+	database.DB.Where("user_id IN ?", ids).Delete(&models.UserSession{})
+	database.DB.Where("user_id IN ?", ids).Delete(&models.UserRefreshToken{})
+	database.DB.Where("user_id IN ?", ids).Delete(&models.DeviceToken{})
+	database.DB.Where("user_id IN ?", ids).Delete(&models.UserNotification{})
+	// User has gorm.DeletedAt, so a plain Delete only soft-deletes: the row and
+	// its unique email index survive, and the next seed fails with a duplicate
+	// key. Unscoped makes -reset an actual reset.
+	if err := database.DB.Unscoped().Where("id IN ?", ids).Delete(&models.User{}).Error; err != nil {
+		log.Fatalf("reset: could not delete demo users (a child row still references them): %v", err)
+	}
 
 	log.Printf("  removed %d demo accounts and their data", len(ids))
 	log.Println("  note: platform ledger entries are append-only and are left in place")

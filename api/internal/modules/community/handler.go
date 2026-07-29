@@ -68,15 +68,20 @@ func uploadCommunityImage(fileHeader *multipart.FileHeader) (string, error) {
 		return "", fmt.Errorf("unsupported image format %s", ext)
 	}
 
+	// Callers surface these errors verbatim to the client, so nothing internal
+	// (file paths, decoder internals) may travel in the message — detail goes
+	// to the log instead.
 	src, err := fileHeader.Open()
 	if err != nil {
-		return "", err
+		slog.Error("community: could not open uploaded image", "error", err)
+		return "", fmt.Errorf("could not read the uploaded image")
 	}
 	defer src.Close()
 
 	compressed, err := imageutil.CompressFast(src, imageutil.MaxCommunityPixels, imageutil.JPEGQuality)
 	if err != nil {
-		return "", fmt.Errorf("failed to process image: %w", err)
+		slog.Error("community: image compression failed", "error", err)
+		return "", fmt.Errorf("could not process the image — try a different file")
 	}
 
 	fileKey := fmt.Sprintf("community/%s.jpg", uuid.New().String())

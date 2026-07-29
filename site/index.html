@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MarketKit — the money layer, already built</title>
+<meta name="description" content="A Go API, Flutter app and React admin panel with a working wallet ledger, seller payouts, platform fees and refunds. One-time purchase." />
+
+<meta property="og:title" content="MarketKit — the money layer, already built" />
+<meta property="og:description" content="Wallet ledger, seller payouts, platform fees, refunds. Go + Flutter + React. One-time purchase, no subscription." />
+<meta property="og:type" content="website" />
+
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<style>
+:root{
+  /* Ground is a blue-black, not neutral — the whole page sits in ink. */
+  --ink:#0A0E1A;
+  --slate:#141A2E;
+  --rule:#232B45;
+  --indigo:#6366F1;
+  --indigo-dim:#4F46E5;
+  /* Green and red appear ONLY inside ledgers. In accounting they carry
+     meaning, so they are never used decoratively anywhere else. */
+  --credit:#34D399;
+  --debit:#F87171;
+  --paper:#E8EAF2;
+  --mute:#8B93AD;
+
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --body:"Inter Tight",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+
+  --gut:clamp(20px,5vw,64px);
+  --max:1160px;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--ink);color:var(--paper);
+  font-family:var(--body);font-size:17px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit}
+h1,h2,h3{font-family:var(--display);font-weight:800;letter-spacing:-.03em;line-height:1.02;margin:0}
+p{margin:0}
+
+.wrap{max-width:var(--max);margin:0 auto;padding-inline:var(--gut)}
+
+/* Sections are separated by hairlines and titled with mono column headers —
+   the page is laid out like a ledger document. */
+.band{border-top:1px solid var(--rule);padding-block:clamp(52px,6.5vw,88px)}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;font-weight:500;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--mute);
+  margin-bottom:28px;
+}
+
+/* ── Nav ─────────────────────────────────────────────────────────────── */
+.nav{
+  position:sticky;top:0;z-index:50;background:rgba(10,14,26,.82);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--rule);
+}
+.nav .wrap{display:flex;align-items:center;gap:24px;height:62px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:-.02em;text-decoration:none}
+.brand svg{width:26px;height:26px;border-radius:7px}
+.nav nav{margin-left:auto;display:flex;gap:26px;font-size:14px}
+.nav nav a{color:var(--mute);text-decoration:none}
+.nav nav a:hover{color:var(--paper)}
+@media(max-width:760px){.nav nav{display:none}}
+
+.btn{
+  display:inline-block;background:var(--indigo);color:#fff;text-decoration:none;
+  font-weight:600;font-size:15px;padding:12px 22px;border-radius:9px;
+  border:1px solid #7C7BF5;transition:transform .12s ease,background .12s ease;
+}
+.btn:hover{background:var(--indigo-dim);transform:translateY(-1px)}
+.btn-ghost{background:transparent;border-color:var(--rule);color:var(--paper)}
+.btn-ghost:hover{background:var(--slate);border-color:#313B5C}
+.btn-sm{padding:9px 16px;font-size:14px}
+
+/* ── Hero ────────────────────────────────────────────────────────────── */
+.hero{padding-block:clamp(48px,6vw,84px) clamp(52px,6.5vw,92px)}
+.hero-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:clamp(36px,5vw,72px);align-items:center}
+@media(max-width:940px){.hero-grid{grid-template-columns:1fr;gap:44px}}
+
+h1{font-size:clamp(42px,6.4vw,76px)}
+h1 em{font-style:normal;color:var(--indigo)}
+.lede{color:var(--mute);font-size:clamp(17px,1.9vw,20px);margin-top:22px;max-width:34ch}
+.hero-cta{display:flex;gap:12px;margin-top:34px;flex-wrap:wrap}
+.hero-note{font-family:var(--mono);font-size:12.5px;color:var(--mute);margin-top:20px}
+
+/* ── The ledger: the one bold element on the page ────────────────────── */
+.ledger{
+  background:var(--slate);border:1px solid var(--rule);border-radius:14px;
+  overflow:hidden;box-shadow:0 30px 70px -30px rgba(0,0,0,.9);
+}
+.ledger-head{
+  display:flex;align-items:center;gap:8px;padding:13px 18px;
+  border-bottom:1px solid var(--rule);background:rgba(255,255,255,.02);
+}
+.ledger-head span{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--credit);box-shadow:0 0 0 3px rgba(52,211,153,.15)}
+
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13.5px}
+thead th{
+  text-align:left;padding:11px 18px;font-weight:500;font-size:10.5px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--mute);
+  border-bottom:1px solid var(--rule);
+}
+thead th:last-child,tbody td:last-child{text-align:right}
+tbody td{padding:15px 18px;border-bottom:1px solid rgba(35,43,69,.6)}
+tbody tr:last-child td{border-bottom:0}
+.who{color:var(--paper);font-family:var(--body);font-size:14.5px;font-weight:500}
+.kind{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--mute);margin-top:3px}
+.amt{font-weight:700;font-variant-numeric:tabular-nums}
+.amt.out{color:var(--debit)}
+.amt.in{color:var(--credit)}
+.bal{color:var(--mute);font-variant-numeric:tabular-nums}
+
+/* Rows deal in one at a time so the sequence reads as a transaction. */
+.row{opacity:0;transform:translateY(6px);animation:deal .5s cubic-bezier(.2,.7,.3,1) forwards}
+.row:nth-child(1){animation-delay:.35s}
+.row:nth-child(2){animation-delay:.75s}
+.row:nth-child(3){animation-delay:1.15s}
+@keyframes deal{to{opacity:1;transform:none}}
+
+.ledger-foot{
+  display:flex;justify-content:space-between;align-items:center;gap:16px;
+  padding:14px 18px;border-top:1px solid var(--rule);
+  background:rgba(52,211,153,.05);font-family:var(--mono);font-size:12px;
+  opacity:0;animation:deal .5s ease 1.6s forwards;flex-wrap:wrap;
+}
+.check{color:var(--credit);font-weight:700}
+.ledger-foot .muted{color:var(--mute)}
+
+@media(prefers-reduced-motion:reduce){
+  .row,.ledger-foot{animation:none;opacity:1;transform:none}
+  html{scroll-behavior:auto}
+}
+
+/* ── Facts ───────────────────────────────────────────────────────────── */
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:14px;overflow:hidden}
+@media(max-width:820px){.facts{grid-template-columns:1fr}}
+.fact{background:var(--ink);padding:30px 26px}
+.fact h3{font-size:19px;margin-bottom:10px;letter-spacing:-.02em}
+.fact p{color:var(--mute);font-size:15px}
+
+/* ── Tiers ───────────────────────────────────────────────────────────── */
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:900px){.tiers{grid-template-columns:1fr}}
+.tier{background:var(--slate);border:1px solid var(--rule);border-radius:14px;padding:26px}
+.tier h3{font-size:17px;margin-bottom:4px}
+.tier .stack{font-family:var(--mono);font-size:11.5px;color:var(--indigo);letter-spacing:.06em;margin-bottom:18px}
+.tier ul{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:12.5px;color:var(--mute);line-height:2}
+.tier li::before{content:"·";color:var(--rule);margin-right:9px}
+
+/* ── Proof / code ────────────────────────────────────────────────────── */
+.proof{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,4vw,56px);align-items:start}
+@media(max-width:900px){.proof{grid-template-columns:1fr}}
+.claims{display:grid;gap:22px}
+.claim h3{font-size:17px;margin-bottom:7px}
+.claim p{color:var(--mute);font-size:15px}
+pre{
+  margin:0;background:var(--slate);border:1px solid var(--rule);border-radius:12px;
+  padding:20px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.85;color:#C7CEE4;
+}
+.c-key{color:#A5B4FC}.c-str{color:var(--credit)}.c-num{color:#FCD34D}.c-com{color:#5B6480}
+
+/* ── Shots ───────────────────────────────────────────────────────────── */
+.shots{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+@media(max-width:820px){.shots{grid-template-columns:1fr}}
+figure{margin:0;background:var(--slate);border:1px solid var(--rule);border-radius:13px;overflow:hidden}
+figure img{width:100%;display:block;border-bottom:1px solid var(--rule);aspect-ratio:16/9;object-fit:cover;object-position:top center;background:var(--ink)}
+figcaption{padding:13px 17px;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+
+/* ── Price ───────────────────────────────────────────────────────────── */
+.price-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;max-width:760px}
+@media(max-width:820px){.price-grid{grid-template-columns:1fr}}
+.price{background:var(--slate);border:1px solid var(--rule);border-radius:14px;padding:28px;position:relative}
+.price.pick{border-color:var(--indigo);box-shadow:0 0 0 1px var(--indigo)}
+.tag{position:absolute;top:-10px;right:22px;background:var(--indigo);color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:20px}
+.price h3{font-size:16px;color:var(--mute);font-weight:600;letter-spacing:0}
+.amount{font-family:var(--display);font-size:52px;font-weight:800;letter-spacing:-.04em;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.once{font-family:var(--mono);font-size:11.5px;color:var(--mute);letter-spacing:.08em;text-transform:uppercase}
+.price ul{list-style:none;margin:20px 0 24px;padding:0;font-size:14.5px;color:var(--mute);display:grid;gap:9px}
+.price li::before{content:"→";color:var(--indigo);margin-right:10px;font-family:var(--mono)}
+.price .btn{width:100%;text-align:center}
+
+/* ── Honesty ─────────────────────────────────────────────────────────── */
+.honest{border:1px solid var(--rule);border-radius:14px;padding:28px;max-width:760px}
+.honest ul{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:11px;font-size:15px;color:var(--mute)}
+.honest li::before{content:"—";color:var(--debit);margin-right:11px;font-family:var(--mono)}
+
+/* ── Foot ────────────────────────────────────────────────────────────── */
+footer{border-top:1px solid var(--rule);padding-block:38px;color:var(--mute);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+footer a{color:var(--mute)}
+
+:focus-visible{outline:2px solid var(--indigo);outline-offset:3px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <svg viewBox="0 0 512 512" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#818CF8"/><stop offset="1" stop-color="#4F46E5"/></linearGradient></defs><rect width="512" height="512" rx="112" fill="url(#g)"/><path d="M196 214v-24a60 60 0 0 1 120 0v24" fill="none" stroke="#fff" stroke-width="26" stroke-linecap="round"/><rect x="136" y="206" width="240" height="180" rx="28" fill="#fff"/><circle cx="206" cy="272" r="15" fill="#4F46E5"/><circle cx="306" cy="272" r="15" fill="#4F46E5"/></svg>
+      MarketKit
+    </a>
+    <nav>
+      <a href="#inside">What's inside</a>
+      <a href="#correct">Correctness</a>
+      <a href="#screens">Screens</a>
+      <a href="#price">Price</a>
+    </nav>
+    <a class="btn btn-sm" href="#price">Get the kit</a>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- HERO: the ledger is the thesis. It shows the exact arithmetic the kit
+     performs on every sale, with the numbers the code actually produces. -->
+<section class="wrap hero">
+  <div class="hero-grid">
+    <div>
+      <h1>The money layer,<br /><em>already built.</em></h1>
+      <p class="lede">
+        A Go API, a Flutter app and a React admin panel that ship together —
+        with the wallet ledger, seller payouts, platform fees and refunds
+        already working.
+      </p>
+      <div class="hero-cta">
+        <a class="btn" href="#price">Get the kit — $299</a>
+        <a class="btn btn-ghost" href="#correct">Read the ledger code</a>
+      </div>
+      <p class="hero-note">One-time purchase · full source · no subscription</p>
+    </div>
+
+    <div class="ledger" role="img" aria-label="A ledger showing one sale: the buyer is debited 999.00, the seller credited 899.10, and the platform credited 99.90. The fee and the seller's net add back to the price exactly.">
+      <div class="ledger-head">
+        <span class="dot" aria-hidden="true"></span>
+        <span>one sale · wallet_transactions</span>
+      </div>
+      <table>
+        <thead>
+          <tr><th scope="col">Account</th><th scope="col">Amount</th><th scope="col">Balance after</th></tr>
+        </thead>
+        <tbody>
+          <tr class="row">
+            <td><span class="who">Buyer</span><span class="kind">purchase_debit</span></td>
+            <td class="amt out">−999.00</td>
+            <td class="bal">1,204.50</td>
+          </tr>
+          <tr class="row">
+            <td><span class="who">Seller</span><span class="kind">sale_credit</span></td>
+            <td class="amt in">+899.10</td>
+            <td class="bal">3,410.60</td>
+          </tr>
+          <tr class="row">
+            <td><span class="who">Platform</span><span class="kind">platform_fee</span></td>
+            <td class="amt in">+99.90</td>
+            <td class="bal">40,641.40</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="ledger-foot">
+        <span class="muted">99.90&nbsp;+&nbsp;899.10&nbsp;=&nbsp;999.00</span>
+        <span class="check">balances ✓</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Why this is hard. Facts, not feature bullets. -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">Why this takes months</p>
+    <div class="facts">
+      <div class="fact">
+        <h3>Money can't drift</h3>
+        <p>Balances have to reconcile to the last unit, forever. That means integer arithmetic, append-only ledgers, and row locks — not a <code>balance</code> column you increment.</p>
+      </div>
+      <div class="fact">
+        <h3>Two wallets, one transaction</h3>
+        <p>A sale debits a buyer, credits a seller and credits you, atomically. Get the lock order wrong and you deadlock under concurrency instead of at your desk.</p>
+      </div>
+      <div class="fact">
+        <h3>Webhooks decide the truth</h3>
+        <p>The gateway confirms payment out-of-band, retries, and replays. Every capture path has to be idempotent and every signature check has to fail closed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- What's inside -->
+<section class="band" id="inside">
+  <div class="wrap">
+    <p class="eyebrow">Three codebases · one repo</p>
+    <div class="tiers">
+      <div class="tier">
+        <h3>API</h3>
+        <p class="stack">Go · Fiber · GORM · PostgreSQL</p>
+        <ul>
+          <li>wallet ledger</li><li>platform wallet</li><li>marketplace</li>
+          <li>payouts &amp; withdrawals</li><li>refunds</li><li>subscriptions</li>
+          <li>auth · sessions · admins</li><li>audit log</li>
+        </ul>
+      </div>
+      <div class="tier">
+        <h3>Mobile app</h3>
+        <p class="stack">Flutter · Riverpod · GoRouter</p>
+        <ul>
+          <li>browse &amp; buy</li><li>in-app wallet</li><li>seller uploads</li>
+          <li>earnings &amp; payouts</li><li>invoices</li><li>push notifications</li>
+          <li>Android &amp; iOS</li>
+        </ul>
+      </div>
+      <div class="tier">
+        <h3>Admin panel</h3>
+        <p class="stack">React · TypeScript · Tailwind</p>
+        <ul>
+          <li>revenue dashboard</li><li>products &amp; sellers</li><li>payments</li>
+          <li>withdrawal approvals</li><li>refund requests</li><li>plans &amp; pricing</li>
+          <li>audit trail</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Correctness: the actual differentiator, shown as code. -->
+<section class="band" id="correct">
+  <div class="wrap">
+    <p class="eyebrow">What "correct" means here</p>
+    <div class="proof">
+      <div class="claims">
+        <div class="claim">
+          <h3>One invariant, always true</h3>
+          <p>A user's balance equals the sum of their ledger rows. The cached column is a read optimisation; the ledger is the truth. The demo seeder asserts this and refuses to finish if it fails.</p>
+        </div>
+        <div class="claim">
+          <h3>Integers, never floats</h3>
+          <p>Every amount is an integer in the currency's minor unit. A fee split adds back to the price exactly — no cent drifts away at volume. INR, USD, JPY and KWD all render correctly.</p>
+        </div>
+        <div class="claim">
+          <h3>Fails closed by default</h3>
+          <p>An unconfigured webhook secret rejects every request instead of accepting unsigned ones. Stripe webhooks are replay-checked against a timestamp window.</p>
+        </div>
+        <div class="claim">
+          <h3>Swap the gateway, not the app</h3>
+          <p>Razorpay and Stripe both implement one interface. Adding a third is one file and five methods — nothing that touches money changes.</p>
+        </div>
+      </div>
+
+      <pre><code><span class="c-com">// One sale. Buyer debited before seller is credited —
+// a single fixed lock order prevents deadlocks.</span>
+db.Transaction(<span class="c-key">func</span>(tx *gorm.DB) <span class="c-key">error</span> {
+  fee, net := wallet.SplitFee(price, feePct)   <span class="c-com">// 9990, 89910</span>
+
+  wallet.Apply(tx, buyerID,  PurchaseDebit, <span class="c-num">-price</span>, ...)
+  wallet.Apply(tx, sellerID, SaleCredit,    <span class="c-num">+net</span>,   ...)
+  platform.Apply(tx, PlatformFee,           <span class="c-num">+fee</span>,   ...)
+
+  <span class="c-key">return</span> <span class="c-num">nil</span>
+})
+
+<span class="c-com">// Rolls back as one unit. No half-finished sale,
+// no credit without a matching debit.</span></code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- Screens -->
+<section class="band" id="screens">
+  <div class="wrap">
+    <p class="eyebrow">Running, with seeded data</p>
+    <div class="shots">
+      <figure>
+        <img src="screenshots/admin-login.png" alt="MarketKit admin panel sign-in screen" loading="lazy" />
+        <figcaption>Admin · sign in</figcaption>
+      </figure>
+      <figure>
+        <img src="screenshots/admin-dashboard.png" alt="Admin dashboard showing revenue and recent activity" loading="lazy" />
+        <figcaption>Admin · dashboard</figcaption>
+      </figure>
+      <figure>
+        <img src="screenshots/admin-products.png" alt="Products and purchases table in the admin panel" loading="lazy" />
+        <figcaption>Admin · products &amp; purchases</figcaption>
+      </figure>
+      <figure>
+        <img src="screenshots/admin-withdrawals.png" alt="Seller withdrawal requests awaiting approval" loading="lazy" />
+        <figcaption>Admin · withdrawals</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- Price -->
+<section class="band" id="price">
+  <div class="wrap">
+    <p class="eyebrow">One payment · lifetime access</p>
+    <div class="price-grid">
+      <div class="price">
+        <h3>Starter</h3>
+        <div class="amount">$299</div>
+        <div class="once">one app · one time</div>
+        <ul>
+          <li>Full source, all three tiers</li>
+          <li>Commercial use in one product</li>
+          <li>Documentation &amp; demo data</li>
+        </ul>
+        <a class="btn btn-ghost" href="#">Buy Starter</a>
+      </div>
+      <div class="price pick">
+        <span class="tag">Most bought</span>
+        <h3>Pro</h3>
+        <div class="amount">$499</div>
+        <div class="once">unlimited apps · one time</div>
+        <ul>
+          <li>Everything in Starter</li>
+          <li>Unlimited commercial products</li>
+          <li>One year of updates</li>
+        </ul>
+        <a class="btn" href="#">Buy Pro</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Honesty section. Developers trust a page that says what it isn't. -->
+<section class="band">
+  <div class="wrap">
+    <p class="eyebrow">What it doesn't do</p>
+    <div class="honest">
+      <p>Worth knowing before you buy:</p>
+      <ul>
+        <li>Payouts record intent and capture bank/UPI details — actually sending money is manual or your own integration, because payout APIs are country-specific.</li>
+        <li>One currency per deployment. Amounts are stored in that currency's minor unit and are not converted.</li>
+        <li>Push notifications need your own Firebase project. Everything else runs without it.</li>
+        <li>You bring your own gateway account, SMTP provider and server.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>MarketKit — a starter kit for marketplace apps.</span>
+    <span><a href="#top">Back to top</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
