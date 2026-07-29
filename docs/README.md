@@ -16,6 +16,7 @@ Start here.
 |---|---|
 | **[WALLET.md](WALLET.md)** | The money layer: two ledgers, their invariants, the fee split, refunds. **Read before changing anything financial.** |
 | **[ARCHITECTURE.md](ARCHITECTURE.md)** | Full system tour — modules, auth, API surface, database tables |
+| **[TESTING.md](TESTING.md)** | What is tested, why each check exists, and what is deliberately not covered |
 
 ## Optional features
 
