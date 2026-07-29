@@ -160,7 +160,10 @@ func main() {
 	}
 	app.Use(cors.New(corsConfig))
 
-	// Legacy files on local disk are always served at /uploads (hybrid keeps old media here).
+	// Files on local disk are served at /uploads. Product files sit under the
+	// same root, so this guard runs first and refuses to hand them out without
+	// a valid, unexpired signature.
+	app.Use("/uploads", storage.ProtectUploads)
 	app.Static("/uploads", config.App.UploadDir, fiber.Static{
 		ByteRange: true,
 	})

@@ -41,8 +41,15 @@ func (l *LocalStorage) PublicURL(key string) string {
 	return l.serverBase + "/uploads/" + key
 }
 
-func (l *LocalStorage) SignedURL(_ context.Context, key string, _ time.Duration) (string, error) {
-	return l.PublicURL(key), nil
+// SignedURL returns a time-limited link. For private keys (product files) the
+// signature is mandatory — ProtectUploads rejects the request without it, so a
+// leaked link stops working once it expires instead of granting paid content
+// forever.
+func (l *LocalStorage) SignedURL(_ context.Context, key string, ttl time.Duration) (string, error) {
+	if !IsPrivateKey(key) {
+		return l.PublicURL(key), nil
+	}
+	return l.PublicURL(key) + "?" + SignQuery(key, ttl), nil
 }
 
 func (l *LocalStorage) Size(_ context.Context, key string) (int64, bool, error) {

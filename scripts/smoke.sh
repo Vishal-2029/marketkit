@@ -95,10 +95,15 @@ head_ "Browse"
 PRODUCTS=$(curl -s "${AUTH[@]}" "$API/api/v1/user/market/products")
 COUNT=$(echo "$PRODUCTS" | jqlen data)
 [[ "${COUNT:-0}" -gt 0 ]] && ok "product list returned $COUNT items" || bad "no products — run: make seed-demo"
-CHEAPEST=$(echo "$PRODUCTS" | python3 -c "
-import sys, json
+# Cheapest product this buyer does NOT already own, so the purchase path
+# actually runs on a re-run instead of short-circuiting on "already purchased".
+OWNED=$(curl -s "${AUTH[@]}" "$API/api/v1/user/market/my/purchases")
+CHEAPEST=$(echo "$PRODUCTS" | OWNED_JSON="$OWNED" python3 -c "
+import sys, json, os
 items = json.load(sys.stdin)['data']
-p = min(items, key=lambda x: x['price_minor'])
+owned = {p.get('product_id') for p in (json.loads(os.environ['OWNED_JSON']).get('data') or [])}
+free = [i for i in items if i['id'] not in owned] or items
+p = min(free, key=lambda x: x['price_minor'])
 print(p['id'], p['price_minor'])")
 PID=${CHEAPEST% *}
 PRICE=${CHEAPEST#* }
@@ -114,9 +119,12 @@ if echo "$BUY" | grep -q '"success":true'; then
   ok "purchase succeeded"
   BAL1=$(curl -s "${AUTH[@]}" "$API/api/v1/user/wallet/" | jqf data balance_minor)
   expect "buyer debited exactly the price" "$((BAL0 - BAL1))" "$PRICE"
-  ok "download URL issued" # verified below
-  expect "owner can fetch download url" \
-    "$(code "${AUTH[@]}" "$API/api/v1/user/market/products/$PID/download-url")" "200"
+  DL=$(curl -s "${AUTH[@]}" "$API/api/v1/user/market/products/$PID/download-url" | jqf data url)
+  [[ -n "$DL" && "$DL" != "None" ]] && ok "download url issued to the buyer" || bad "no download url returned"
+  # The URL must actually work for the buyer …
+  expect "signed download url resolves" "$(code "$DL")" "200"
+  # … and must not work with the signature stripped, or paid content is free.
+  expect "same url without its signature is refused" "$(code "${DL%%\?*}")" "403"
 else
   # Insufficient balance is a legitimate outcome; the ledger checks still run.
   ok "purchase declined cleanly ($(echo "$BUY" | jqf error))"

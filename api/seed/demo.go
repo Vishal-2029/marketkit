@@ -22,6 +22,8 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -33,6 +35,7 @@ import (
 	"github.com/marketkit/api/internal/models"
 	"github.com/marketkit/api/internal/modules/platform_wallet"
 	"github.com/marketkit/api/internal/modules/wallet"
+	"github.com/marketkit/api/internal/storage"
 	"github.com/marketkit/api/pkg/money"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -60,6 +63,10 @@ func main() {
 	}
 	if err := database.Migrate(); err != nil {
 		log.Fatalf("migrate: %v", err)
+	}
+	// Needed so each demo product gets a real downloadable file behind it.
+	if err := storage.Init(); err != nil {
+		log.Fatalf("storage: %v", err)
 	}
 
 	if *reset {
@@ -256,7 +263,7 @@ func seedProducts(sellers []models.User, cats []models.ProductCategory) []models
 			Title:         title,
 			Description:   fmt.Sprintf("%s — a ready-to-use asset pack. Demo listing seeded for local development.", title),
 			PriceMinor:    priceMinor,
-			FileKey:       fmt.Sprintf("products/demo-%02d.zip", i+1),
+			FileKey:       fmt.Sprintf("market/files/demo-%02d.zip", i+1),
 			FileName:      fmt.Sprintf("%s.zip", slug(title)),
 			FileSizeBytes: int64(200_000 + rng.Intn(8_000_000)),
 			FileFormat:    "zip",
@@ -267,6 +274,12 @@ func seedProducts(sellers []models.User, cats []models.ProductCategory) []models
 		}
 		if err := database.DB.Create(&p).Error; err != nil {
 			log.Fatalf("product %s: %v", title, err)
+		}
+		// Without real bytes the demo has products nobody can download.
+		body := []byte("MarketKit demo product: " + title + "\nReplace with your own file.\n")
+		if err := storage.Store.Upload(context.Background(), p.FileKey,
+			"application/zip", bytes.NewReader(body), int64(len(body))); err != nil {
+			log.Printf("  warning: could not write demo file for %s: %v", title, err)
 		}
 		out = append(out, p)
 	}
