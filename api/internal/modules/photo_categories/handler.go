@@ -66,6 +66,12 @@ func HandleCreate(c *fiber.Ctx) error {
 func HandleDelete(c *fiber.Ctx) error {
 	// Non-destructive to photos: only the selectable list entry is removed.
 	// Photos that already stored this category text keep their value.
-	database.DB.Delete(&models.PhotoCategory{}, "id = ?", c.Params("id"))
+	res := database.DB.Delete(&models.PhotoCategory{}, "id = ?", c.Params("id"))
+	if res.Error != nil {
+		return response.InternalErrorWithLog(c, "photo_categories: delete", res.Error)
+	}
+	if res.RowsAffected == 0 {
+		return response.NotFound(c, "category not found")
+	}
 	return response.OK(c, fiber.Map{"message": "category deleted"})
 }

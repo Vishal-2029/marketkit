@@ -19,10 +19,9 @@ const PlatformWalletSingletonID = "platform"
 // platform wallet (super-admin only). SUM(platform_ledger.amount_minor)
 // must always equal BalanceMinor.
 type PlatformWallet struct {
-	ID           string     `gorm:"primaryKey;type:varchar(20)" json:"id"`
-	BalanceMinor int64      `gorm:"not null;default:0"          json:"balance_minor"`
-	BackfilledAt *time.Time `                                    json:"backfilled_at,omitempty"`
-	UpdatedAt    time.Time  `                                    json:"updated_at"`
+	ID           string    `gorm:"primaryKey;type:varchar(20)" json:"id"`
+	BalanceMinor int64     `gorm:"not null;default:0"          json:"balance_minor"`
+	UpdatedAt    time.Time `                                    json:"updated_at"`
 }
 
 // PlatformLedger is an append-only ledger row for the platform wallet,

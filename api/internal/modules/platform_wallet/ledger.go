@@ -7,10 +7,7 @@ package platform_wallet
 
 import (
 	"errors"
-	"log/slog"
-	"time"
 
-	"github.com/marketkit/api/internal/database"
 	"github.com/marketkit/api/internal/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -60,66 +57,4 @@ func Apply(tx *gorm.DB, source string, amountMinor int64, referenceID *string, m
 	}
 
 	return newBalance, nil
-}
-
-// Backfill seeds the platform ledger/balance from historical rows the first
-// time it runs: SUM(fee_minor) over successful product_purchases, plus
-// historical learning payments, plus paid market_plan_subscriptions. Guarded
-// by PlatformWallet.BackfilledAt so re-runs on every boot never double-credit.
-func Backfill() {
-	var w models.PlatformWallet
-	if err := database.DB.First(&w, "id = ?", models.PlatformWalletSingletonID).Error; err != nil {
-		slog.Error("platform_wallet: backfill skipped, singleton row missing", "error", err)
-		return
-	}
-	if w.BackfilledAt != nil {
-		return
-	}
-
-	err := database.DB.Transaction(func(tx *gorm.DB) error {
-		var learningTotal, marketPlanTotal, feeTotal int64
-
-		if err := tx.Model(&models.Payment{}).
-			Where("status = ?", models.PaymentSuccess).
-			Select("COALESCE(SUM(amount_minor), 0)").Scan(&learningTotal).Error; err != nil {
-			return err
-		}
-		if err := tx.Model(&models.MarketPlanSubscription{}).
-			Where("paid_at IS NOT NULL").
-			Select("COALESCE(SUM(amount_minor), 0)").Scan(&marketPlanTotal).Error; err != nil {
-			return err
-		}
-		if err := tx.Model(&models.ProductPurchase{}).
-			Where("status = ?", models.PaymentSuccess).
-			Select("COALESCE(SUM(fee_minor), 0)").Scan(&feeTotal).Error; err != nil {
-			return err
-		}
-
-		meta := models.JSONMap{"backfill": true}
-		if learningTotal > 0 {
-			if _, err := Apply(tx, models.PlatformSourceLearningPlan, learningTotal, nil, meta); err != nil {
-				return err
-			}
-		}
-		if marketPlanTotal > 0 {
-			if _, err := Apply(tx, models.PlatformSourceMarketPlan, marketPlanTotal, nil, meta); err != nil {
-				return err
-			}
-		}
-		if feeTotal > 0 {
-			if _, err := Apply(tx, models.PlatformSourcePlatformFee, feeTotal, nil, meta); err != nil {
-				return err
-			}
-		}
-
-		now := time.Now()
-		return tx.Model(&models.PlatformWallet{}).
-			Where("id = ?", models.PlatformWalletSingletonID).
-			Update("backfilled_at", now).Error
-	})
-	if err != nil {
-		slog.Error("platform_wallet: backfill failed", "error", err)
-		return
-	}
-	slog.Info("platform_wallet: backfill complete")
 }

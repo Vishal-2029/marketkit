@@ -1,6 +1,7 @@
 package market
 
 import (
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -54,6 +55,12 @@ func HandlePurchaseWithWallet(c *fiber.Ctx) error {
 	if err == wallet.ErrInsufficientBalance {
 		return response.BadRequest(c, "insufficient wallet balance")
 	}
+	// The COUNT above cannot see a purchase committed by a concurrent request,
+	// so the unique index is what actually settles a double-click. Losing that
+	// race is not a server error — the buyer simply already owns it.
+	if isDuplicatePurchase(err) {
+		return response.BadRequest(c, "you already purchased this product")
+	}
 	if err != nil {
 		return response.InternalErrorWithLog(c, "market: wallet purchase", err)
 	}
@@ -67,6 +74,12 @@ func HandlePurchaseWithWallet(c *fiber.Ctx) error {
 // purchaseWithWallet is the money-moving core of HandlePurchaseWithWallet,
 // split out so it can be exercised directly in tests without also triggering
 // the handler's fire-and-forget notification/email goroutines.
+// isDuplicatePurchase reports whether err is the unique-index violation from
+// idx_product_purchases_one_success_per_buyer.
+func isDuplicatePurchase(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "idx_product_purchases_one_success_per_buyer")
+}
+
 func purchaseWithWallet(product *models.Product, userID string) (models.ProductPurchase, error) {
 	pct := sellerFeePercent(product.SellerID)
 	fee, net := wallet.SplitFee(product.PriceMinor, pct)

@@ -24,7 +24,6 @@ import (
 	"github.com/marketkit/api/internal/cron"
 	"github.com/marketkit/api/internal/database"
 	paymentsmod "github.com/marketkit/api/internal/modules/payments"
-	"github.com/marketkit/api/internal/modules/platform_wallet"
 	"github.com/marketkit/api/internal/payments"
 	"github.com/marketkit/api/internal/storage"
 	"github.com/marketkit/api/internal/workers"
@@ -76,7 +75,6 @@ func main() {
 	// Seed default playlists and assign existing videos by category
 	database.SeedDefaultPlaylists()
 	// One-time idempotent backfill of historical platform income into the ledger
-	platform_wallet.Backfill()
 
 	// Init file storage backend (local disk or hybrid with Cloudflare R2)
 	// Payment gateways: register providers, then wire the modules that can own

@@ -87,6 +87,22 @@ func Migrate() error {
 		return err
 	}
 
+	// A buyer must own a product at most once. The handlers check with a COUNT
+	// before charging, but that read sits outside the transaction, so two
+	// concurrent requests (a double-click, or a client retry) both see zero and
+	// both charge. Only the database can settle that race.
+	//
+	// Partial, so it constrains completed sales only: a buyer may still have
+	// several PENDING orders for one product after abandoning checkout.
+	// AutoMigrate cannot express a partial index, hence the raw statement.
+	if err := DB.Exec(`
+		CREATE UNIQUE INDEX IF NOT EXISTS idx_product_purchases_one_success_per_buyer
+		ON product_purchases (buyer_id, product_id)
+		WHERE status = 'SUCCESS'
+	`).Error; err != nil {
+		return fmt.Errorf("creating the one-purchase-per-buyer index: %w", err)
+	}
+
 	// GORM inserts is_active=false for new admins when the field is omitted (Go zero value),
 	// but login requires is_active=true. Repair any legacy rows on startup.
 	if res := DB.Model(&models.Admin{}).
