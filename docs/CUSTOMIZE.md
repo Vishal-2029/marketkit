@@ -221,7 +221,27 @@ change both or the form accepts what the server rejects.
 
 ---
 
-## 9. Removing what you don't need
+## 9. Selling it — the landing page
+
+`site/index.html` is a self-contained static page. Host it anywhere (Netlify,
+Vercel, Cloudflare Pages) or serve `site/` from your own nginx.
+
+Two things to change before it goes live:
+
+| What | Where |
+|---|---|
+| Checkout links | The two `href`s in the pricing section, marked by a comment block. Until you paste real ones they fall back to a pre-order `mailto:` so nothing is dead. |
+| Screenshots | `site/screenshots/`. Regenerate any time with `node scripts/screenshots.mjs` — it signs into your running admin panel and recaptures all three. |
+
+```bash
+make up && make seed-demo && make web-dev
+ADMIN_PASSWORD=$(grep '^ADMIN_PASSWORD=' api/.env | cut -d= -f2) \
+  node scripts/screenshots.mjs
+```
+
+---
+
+## 10. Removing what you don't need
 
 The kit ships the full product: a marketplace **and** a video/learning side with
 community and photos. If you only want the marketplace, these are safe to
@@ -252,7 +272,7 @@ Removing learning plans also removes the `plans` entitlement model, so drop
 
 ---
 
-## 10. Before you ship
+## 11. Before you ship
 
 - [ ] Bundle IDs changed (permanent after store submission)
 - [ ] Logo replaced and launcher icons regenerated

@@ -5,10 +5,11 @@ import { StatCard } from "@/components/StatCard";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { marketRevenueService } from "@/services/marketRevenue";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PRIMARY, SECONDARY, ACTIVE, GRID, SERIES } from "@/lib/chartColors";
 
 const MONTH_NAMES = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const TOOLTIP_STYLE = {
-  contentStyle: { background: "hsl(0 0% 100%)", border: "1px solid hsl(36 14% 90%)", borderRadius: "10px", fontSize: "12px", color: "hsl(240 6% 12%)" },
+  contentStyle: { background: "hsl(0 0% 100%)", border: "1px solid hsl(240 6% 90%)", borderRadius: "10px", fontSize: "12px", color: "hsl(240 6% 12%)" },
 };
 
 const fmt = (v: number) => formatMoney(v);
@@ -53,13 +54,13 @@ export default function ProductMarketRevenuePage() {
         {monthly.isLoading ? <Skeleton className="h-48" /> : (
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={monthlyData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(36 14% 90%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
               <XAxis dataKey="month" tick={{ fontSize: 12, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} />
               <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => formatMoney(toMinor(v))} />
               <Legend wrapperStyle={{ fontSize: "12px" }} />
-              <Bar dataKey="Plan revenue" stackId="a" fill="#b8965a" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="Fee revenue" stackId="a" fill="#8a6d3b" radius={[5, 5, 0, 0]} />
+              <Bar dataKey="Plan revenue" stackId="a" fill={PRIMARY} radius={[0, 0, 0, 0]} />
+              <Bar dataKey="Fee revenue" stackId="a" fill={SECONDARY} radius={[5, 5, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}

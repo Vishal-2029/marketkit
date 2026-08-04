@@ -173,7 +173,10 @@ test-db-down: ## Stop and remove the throwaway test Postgres
 	@docker rm -f $(TEST_DB_CONTAINER) >/dev/null 2>&1 || true
 
 test: test-db-up ## Run Go tests against a throwaway Postgres, then tear it down
-	@(cd $(API_DIR) && TEST_DATABASE_URL="$(TEST_DATABASE_URL)" go test ./...); \
+	@# -p 1: every package migrates the same throwaway database on startup, and
+	@# on a freshly-created one they race. The suite runs in seconds, so
+	@# serialising costs little and removes a confusing first-run failure.
+	@(cd $(API_DIR) && TEST_DATABASE_URL="$(TEST_DATABASE_URL)" go test -p 1 ./...); \
 	status=$$?; \
 	$(MAKE) test-db-down; \
 	exit $$status

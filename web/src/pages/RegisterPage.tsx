@@ -55,21 +55,21 @@ export default function RegisterPage() {
         preserveAspectRatio="xMidYMid slice"
       >
         {/* Glowing rounded squares - inspired by logo */}
-        <rect className="glow-box" x="100" y="150" width="80" height="80" rx="16" fill="none" stroke="#b14f65" strokeWidth="2" style={{ animationDelay: '0s' }} />
-        <rect className="glow-box" x="950" y="200" width="100" height="100" rx="20" fill="none" stroke="#a12d52" strokeWidth="2" style={{ animationDelay: '1.5s' }} />
-        <rect className="glow-box" x="200" y="600" width="70" height="70" rx="14" fill="none" stroke="#c98c52" strokeWidth="2" style={{ animationDelay: '3s' }} />
-        <rect className="glow-box" x="900" y="550" width="90" height="90" rx="18" fill="none" stroke="#b14f65" strokeWidth="2" style={{ animationDelay: '1s' }} />
+        <rect className="glow-box" x="100" y="150" width="80" height="80" rx="16" fill="none" stroke="#818CF8" strokeWidth="2" style={{ animationDelay: '0s' }} />
+        <rect className="glow-box" x="950" y="200" width="100" height="100" rx="20" fill="none" stroke="#4F46E5" strokeWidth="2" style={{ animationDelay: '1.5s' }} />
+        <rect className="glow-box" x="200" y="600" width="70" height="70" rx="14" fill="none" stroke="#A5B4FC" strokeWidth="2" style={{ animationDelay: '3s' }} />
+        <rect className="glow-box" x="900" y="550" width="90" height="90" rx="18" fill="none" stroke="#818CF8" strokeWidth="2" style={{ animationDelay: '1s' }} />
         
         {/* Floating particles with staggered timing */}
-        <circle className="float-element" cx="300" cy="750" r="4" fill="#a12d52" style={{ animationDelay: '0s' }} />
-        <circle className="float-element" cx="600" cy="750" r="3" fill="#b14f65" style={{ animationDelay: '1.5s' }} />
-        <circle className="float-element" cx="900" cy="750" r="3.5" fill="#c98c52" style={{ animationDelay: '3s' }} />
-        <circle className="float-element" cx="150" cy="750" r="3" fill="#b14f65" style={{ animationDelay: '0.75s' }} />
-        <circle className="float-element" cx="1050" cy="750" r="4" fill="#a12d52" style={{ animationDelay: '2.25s' }} />
+        <circle className="float-element" cx="300" cy="750" r="4" fill="#4F46E5" style={{ animationDelay: '0s' }} />
+        <circle className="float-element" cx="600" cy="750" r="3" fill="#818CF8" style={{ animationDelay: '1.5s' }} />
+        <circle className="float-element" cx="900" cy="750" r="3.5" fill="#A5B4FC" style={{ animationDelay: '3s' }} />
+        <circle className="float-element" cx="150" cy="750" r="3" fill="#818CF8" style={{ animationDelay: '0.75s' }} />
+        <circle className="float-element" cx="1050" cy="750" r="4" fill="#4F46E5" style={{ animationDelay: '2.25s' }} />
         
         {/* Large rotating decorative circles */}
-        <circle className="rotate-element" cx="600" cy="400" r="150" fill="none" stroke="#b14f65" strokeWidth="1" opacity="0.15" />
-        <circle className="rotate-element" cx="600" cy="400" r="200" fill="none" stroke="#a12d52" strokeWidth="1" opacity="0.1" style={{ animationDelay: '-15s' }} />
+        <circle className="rotate-element" cx="600" cy="400" r="150" fill="none" stroke="#818CF8" strokeWidth="1" opacity="0.15" />
+        <circle className="rotate-element" cx="600" cy="400" r="200" fill="none" stroke="#4F46E5" strokeWidth="1" opacity="0.1" style={{ animationDelay: '-15s' }} />
       </svg>
 
       <div className="relative z-10 w-full max-w-sm mx-4">

@@ -9,12 +9,14 @@ import {
 } from "recharts";
 import { dashboardService } from "@/services/dashboard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PRIMARY, SECONDARY, ACTIVE, GRID, SERIES } from "@/lib/chartColors";
 
-const PLAN_COLORS = ["#b8965a","#c8a96a","#d4b87a","#8a6d3b","#a07840","#6b5028"];
+// Donut slices — shared brand ramp, see lib/chartColors.
+const PLAN_COLORS = SERIES;
 const TOOLTIP_STYLE = {
   contentStyle: {
     background: "hsl(0 0% 100%)",
-    border: "1px solid hsl(36 14% 90%)",
+    border: "1px solid hsl(240 6% 90%)",
     borderRadius: "10px",
     fontSize: "12px",
     color: "hsl(240 6% 12%)",
@@ -75,11 +77,11 @@ export default function DashboardPage() {
         {userGrowth.isLoading ? <Skeleton className="h-48" /> : (
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={growthData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(36 14% 90%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
               <XAxis dataKey="month" tick={{ fontSize: 12, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} />
               <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => [v.toLocaleString(), "Total Users"]} />
-              <Line type="monotone" dataKey="users" stroke="#b8965a" strokeWidth={2.5} dot={{ fill: "#b8965a", r: 4 }} activeDot={{ r: 6, fill: "#8a6d3b" }} />
+              <Line type="monotone" dataKey="users" stroke={PRIMARY} strokeWidth={2.5} dot={{ fill: PRIMARY, r: 4 }} activeDot={{ r: 6, fill: ACTIVE }} />
             </LineChart>
           </ResponsiveContainer>
         )}
@@ -157,11 +159,11 @@ export default function DashboardPage() {
         {monthlyRev.isLoading ? <Skeleton className="h-48" /> : (
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={revenueData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(36 14% 90%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} unit="K" />
               <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => [`${currencySymbol()}${v}K`, "Revenue"]} />
-              <Bar dataKey="revenue" fill="#b8965a" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="revenue" fill={PRIMARY} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}

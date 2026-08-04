@@ -5,10 +5,11 @@ import { StatCard } from "@/components/StatCard";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { revenueService, RenewalStats } from "@/services/revenue";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PRIMARY, SECONDARY, ACTIVE, GRID, SERIES } from "@/lib/chartColors";
 
 const MONTH_NAMES = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const TOOLTIP_STYLE = {
-  contentStyle: { background: "hsl(0 0% 100%)", border: "1px solid hsl(36 14% 90%)", borderRadius: "10px", fontSize: "12px", color: "hsl(240 6% 12%)" },
+  contentStyle: { background: "hsl(0 0% 100%)", border: "1px solid hsl(240 6% 90%)", borderRadius: "10px", fontSize: "12px", color: "hsl(240 6% 12%)" },
 };
 
 const fmt = (v: number) => formatMoney(v);
@@ -60,11 +61,11 @@ export default function RevenuePage() {
         {monthly.isLoading ? <Skeleton className="h-48" /> : (
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={monthlyData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(36 14% 90%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
               <XAxis dataKey="month" tick={{ fontSize: 12, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} unit="K" />
               <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => [`${currencySymbol()}${v}K`, "Revenue"]} />
-              <Bar dataKey="amount" fill="#b8965a" radius={[5, 5, 0, 0]} />
+              <Bar dataKey="amount" fill={PRIMARY} radius={[5, 5, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}
@@ -75,11 +76,11 @@ export default function RevenuePage() {
         {monthly.isLoading ? <Skeleton className="h-44" /> : (
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={cumulativeData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(36 14% 90%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
               <XAxis dataKey="month" tick={{ fontSize: 12, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12, fill: "hsl(0 0% 42%)" }} axisLine={false} tickLine={false} unit="K" />
               <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => [`${currencySymbol()}${v}K`, "Cumulative"]} />
-              <Line type="monotone" dataKey="cumulative" stroke="#8a6d3b" strokeWidth={2.5} dot={{ fill: "#8a6d3b", r: 4 }} activeDot={{ r: 6, fill: "#b8965a" }} />
+              <Line type="monotone" dataKey="cumulative" stroke={SECONDARY} strokeWidth={2.5} dot={{ fill: ACTIVE, r: 4 }} activeDot={{ r: 6, fill: PRIMARY }} />
             </LineChart>
           </ResponsiveContainer>
         )}

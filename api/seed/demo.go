@@ -442,7 +442,10 @@ func seedWithdrawals(sellers []models.User) {
 				AmountMinor: amount,
 				Method:      models.WithdrawalMethodUPI,
 				UpiID:       fmt.Sprintf("demo%d@upi", i+1),
-				Status:      models.WithdrawalStatusSettled,
+				// One still awaiting payout, one already settled — the admin
+				// queue is a blank screen otherwise.
+				Status: map[bool]string{true: models.WithdrawalStatusApproved,
+					false: models.WithdrawalStatusSettled}[i == 0],
 			}
 			if err := tx.Create(&w).Error; err != nil {
 				return err

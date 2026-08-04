@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { playbackService } from "@/services/playback";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PRIMARY, SECONDARY, ACTIVE, GRID, SERIES } from "@/lib/chartColors";
 
 interface TopVideo {
   video_id: string;
@@ -35,7 +36,7 @@ function fmtSeconds(s: number) {
 const TOOLTIP_STYLE = {
   contentStyle: {
     background: "hsl(0 0% 100%)",
-    border: "1px solid hsl(36 14% 90%)",
+    border: "1px solid hsl(240 6% 90%)",
     borderRadius: "10px",
     fontSize: "12px",
     color: "hsl(240 6% 12%)",
@@ -78,11 +79,11 @@ export default function PlaybackPage() {
             <AreaChart data={dailyData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
               <defs>
                 <linearGradient id="playsGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#b8965a" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#b8965a" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(36 14% 90%)" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
               <XAxis
                 dataKey="date"
                 tick={{ fontSize: 11, fill: "hsl(0 0% 42%)" }}
@@ -100,11 +101,11 @@ export default function PlaybackPage() {
               <Area
                 type="monotone"
                 dataKey="plays"
-                stroke="#b8965a"
+                stroke={PRIMARY}
                 strokeWidth={2}
                 fill="url(#playsGradient)"
                 dot={false}
-                activeDot={{ r: 4, fill: "#b8965a", strokeWidth: 0 }}
+                activeDot={{ r: 4, fill: PRIMARY, strokeWidth: 0 }}
               />
             </AreaChart>
           </ResponsiveContainer>
