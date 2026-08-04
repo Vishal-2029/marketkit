@@ -107,27 +107,30 @@ They handle world tax. (Not Razorpay — that is India only.)
 ## 6. Five-week plan
 
 ### Week 1 — Clean
-- [ ] Copy code into this new folder
-- [ ] Remove all Design Express names, logos, colors
-- [ ] Remove embroidery words → generic words
-- [ ] Remove all real keys → `.env.example`
+- [x] Copy code into this new folder
+- [x] Remove all Design Express names, logos, colors
+- [x] Remove embroidery words → generic words
+- [x] Remove all real keys → `.env.example`
 
 ### Week 2 — Stripe + demo data
-- [ ] Add Stripe next to Razorpay
-- [ ] Seed file: 20 fake products, 5 fake sellers, fake transactions
-- [ ] One command starts everything (`docker compose up`)
+- [x] Add Stripe next to Razorpay
+- [x] Seed file: 20 fake products, 5 fake sellers, fake transactions
+- [x] One command starts everything — `make quickstart`
+      (generates .env, starts the stack, seeds demo data; plain
+      `docker compose up` still needs a .env, on purpose)
 
 ### Week 3 — Documents (50% of the product)
-- [ ] `docs/INSTALL.md` — install in 10 minutes
-- [ ] `docs/WALLET.md` — how the wallet ledger works
-- [ ] `docs/CUSTOMIZE.md` — change name, colors, logo
-- [ ] `docs/DEPLOY.md` — put it live
+- [x] `docs/INSTALL.md` — install in 10 minutes
+- [x] `docs/WALLET.md` — how the wallet ledger works
+- [x] `docs/CUSTOMIZE.md` — change name, colors, logo
+- [x] `docs/DEPLOY.md` — put it live
 
 > Bad documents = refunds. Good documents = 5-star reviews.
 
 ### Week 4 — Demo + website
 - [ ] Live demo online — anyone can open and click
-- [ ] One-page website in `site/` — screenshots, features, price, Buy button
+- [x] One-page website in `site/` — screenshots, features, price, Buy button
+      (built with real screenshots; paste your checkout links to go live)
 - [ ] Connect Lemon Squeezy / Paddle
 
 ### Week 5 — Launch
@@ -186,6 +189,25 @@ marketkit/
 
 ---
 
-## 10. Next step
+## 10. Where it stands
 
-**Week 1, task 1** — start moving code in and removing client parts.
+Weeks 1–3 are done and Week 4 is code-complete. What is left needs accounts or
+hosting rather than code:
+
+| Remaining | Needs |
+|---|---|
+| Paste the two checkout links into `site/index.html` | Lemon Squeezy or Paddle product |
+| Host `site/` | Netlify / Vercel / Cloudflare Pages |
+| Live demo online | A VPS — see `docs/DEPLOY.md` |
+| Week 5 launch | Your accounts on each platform |
+
+Two things to settle before selling:
+
+- **The repo is public.** Anyone can read the whole kit today.
+- **Rotate the old client credentials** — Firebase Admin, Gmail app password,
+  Cloudflare R2, both Google OAuth secrets, Razorpay. They are not in this
+  repo, but they are still live at the providers.
+
+One honest gap: no real gateway payment has run end to end. Both providers are
+covered by tests against mock servers, but before launch complete one test-mode
+payment per gateway on a real device.
